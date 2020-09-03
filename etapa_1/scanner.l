@@ -7,7 +7,7 @@ alfa    [a-zA-Z_]
 dig     [0-9]
 sign   (\-|\+)
 ws	    [ \t]
-special_char [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
+special_char [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
 
 %%
 
@@ -47,30 +47,7 @@ special_char [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 
     /* Special Characters */ 
 
-","             { return yytext[0];      }
-";"             { return yytext[0];      }
-":"             { return yytext[0];      }
-"("             { return yytext[0];      }
-")"             { return yytext[0];      }
-"["             { return yytext[0];      }
-"]"             { return yytext[0];      }
-"{"             { return yytext[0];      }
-"}"             { return yytext[0];      }
-"+"             { return yytext[0];      }
-"-"             { return yytext[0];      }
-"|"             { return yytext[0];      }
-"*"             { return yytext[0];      }
-"/"             { return yytext[0];      }
-"<"             { return yytext[0];      }
-">"             { return yytext[0];      }
-"="             { return yytext[0];      }
-"!"             { return yytext[0];      }
-"&"             { return yytext[0];      }
-"%"             { return yytext[0];      }
-"#"             { return yytext[0];      }
-"^"             { return yytext[0];      }
-"."             { return yytext[0];      }
-"$"             { return yytext[0];      }
+{special_char}  { return yytext[0];      }
 
     /* Composite Operators */
 
@@ -94,13 +71,13 @@ special_char [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 
 '(({alfa}{1})|({dig}{1})|({ws}{1})|({special_char}))' { return TK_LIT_CHAR; }
 
-\"[^\r\n"]+\" { return TK_LIT_STRING; }
+\"[^\n"]+\" { return TK_LIT_STRING; }
 
-    /* Identificadores */
+    /* Identifiers */
 
 {alfa}+{dig}*  { return TK_IDENTIFICADOR; }
 
-    /* Coisas Ignoradas */
+    /* Eat up spaces and comments */
 
 {ws}            { }
 \/\/[^\n]*      { }
@@ -119,7 +96,7 @@ special_char [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
                     }
 		        }
 
-    /* Erros */
+    /* Errors */
 
 {dig}+{alfa}+ { return TOKEN_ERRO; }
 . { return TOKEN_ERRO; }
