@@ -7,6 +7,7 @@ alfa    [a-zA-Z_]
 dig     [0-9]
 sinal   (\-|\+)
 ws	    [ \t]
+caracter_especial [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 
 %%
 
@@ -91,7 +92,7 @@ ws	    [ \t]
 "false" { return TK_LIT_FALSE; } 
 "true"  { return TK_LIT_TRUE; } 
 
-'(({alfa}{1})|({dig}{1})|({ws}{1}))' { return TK_LIT_CHAR; }
+'(({alfa}{1})|({dig}{1})|({ws}{1})|({caracter_especial}))' { return TK_LIT_CHAR; }
 
 \"[^\n"]+\" { return TK_LIT_STRING; }
 
