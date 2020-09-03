@@ -1,0 +1,15 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.yy.c
+*.yy
+
+etapa_1/etapa1*
+etapa_1/*.yy
+etapa_1/*.yy.*
+
