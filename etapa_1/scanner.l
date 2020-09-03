@@ -1,21 +1,21 @@
 %{
     #include "tokens.h"
-    int num_linha = 1;
+    int line_number = 1;
 %}
 
 alfa    [a-zA-Z_]
 dig     [0-9]
-sinal   (\-|\+)
+sign   (\-|\+)
 ws	    [ \t]
-caractere_especial [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
+special_char [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 
 %%
 
-    /* Conta linhas */
+    /* Line counter */
 
-\n  num_linha++;
+\n  line_number++;
 
-    /* Palavras Reservadas */
+    /* Reserved Words */
 
 "int"           { return TK_PR_INT;      }
 "float"         { return TK_PR_FLOAT;    }
@@ -45,7 +45,7 @@ caractere_especial [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 "end"           { return TK_PR_END;      }
 "default"       { return TK_PR_DEFAULT;  }
 
-    /* Caracteres Especiais */ 
+    /* Special Characters */ 
 
 ","             { return yytext[0];      }
 ";"             { return yytext[0];      }
@@ -72,7 +72,7 @@ caractere_especial [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 "."             { return yytext[0];      }
 "$"             { return yytext[0];      }
 
-    /* Operadores Compostos */
+    /* Composite Operators */
 
 "<="             { return TK_OC_LE;      }
 ">="             { return TK_OC_GE;      }
@@ -83,18 +83,18 @@ caractere_especial [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 ">>"             { return TK_OC_SR;      }
 "<<"             { return TK_OC_SL;      }
 
-    /* Literais */
+    /* Literals */
 
-{sinal}*{dig}+\.{dig}+((e|E){sinal}*{dig}+)* { return TK_LIT_FLOAT; }
+{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)* { return TK_LIT_FLOAT; }
 
-{sinal}*{dig}+ { return TK_LIT_INT; }
+{sign}*{dig}+ { return TK_LIT_INT; }
 
 "false" { return TK_LIT_FALSE; } 
 "true"  { return TK_LIT_TRUE; } 
 
-'(({alfa}{1})|({dig}{1})|({ws}{1})|({caracter_especial}))' { return TK_LIT_CHAR; }
+'(({alfa}{1})|({dig}{1})|({ws}{1})|({special_char}))' { return TK_LIT_CHAR; }
 
-\"[^\n"]+\" { return TK_LIT_STRING; }
+\"[^\r\n"]+\" { return TK_LIT_STRING; }
 
     /* Identificadores */
 
@@ -109,7 +109,7 @@ caractere_especial [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 
                     while((c = input()) != 0) {
                         if(c == '\n')
-                            ++num_linha;
+                            ++line_number;
                         else if(c == '*') {
                             if((c = input()) == '/')
                                 break;
@@ -127,5 +127,5 @@ caractere_especial [,!;:\(\)\[\]\{\}\+\-\|\?\@\*\/\<\>\=\&\%\#\.\$^~`]
 %%
 
 int get_line_number() {
-    return num_linha;
+    return line_number;
 }
