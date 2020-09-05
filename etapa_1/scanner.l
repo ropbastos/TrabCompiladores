@@ -64,7 +64,7 @@ special_char [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
 
     /* Literals */
 
-{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)* { return TK_LIT_FLOAT; }
+{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+) { return TK_LIT_FLOAT; }
 
 {sign}*{dig}+/({invisible}|{operator}+)  { return TK_LIT_INT; }
 
