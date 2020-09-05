@@ -10,6 +10,7 @@ ws	    [ \t]
 invisible [ \n\t\r\f]
 operator [\+\-\*\%\^\&\<\>\<<\>>\.]
 special_char [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
+any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
 %%
 
@@ -71,7 +72,7 @@ special_char [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
 "false" { return TK_LIT_FALSE; } 
 "true"  { return TK_LIT_TRUE; } 
 
-'(({alfa}{1})|({dig}{1})|({ws}{1})|({special_char}))' { return TK_LIT_CHAR; }
+'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+) { return TK_LIT_CHAR; }
 
 \"[^\n"]+\" { return TK_LIT_STRING; }
 

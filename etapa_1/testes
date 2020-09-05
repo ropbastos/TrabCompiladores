@@ -1,0 +1,60 @@
+1
+2
+3
+"Vai pular uma linha"
+// Pula linha
+6
+"char linha 7" 'c'
+"Pulando duas linhas c comentario multilinha"
+/* Comentario
+multilinha */
+"linha 11"
+a
+aa
+a_
+a_a
+A
+AA
+A_
+_a
+_
+__
+! @ # $ % ^ & 
+== = < << >>
+1+2
+1 + 2
+1+ 2
+1 +2
+a+1
+a + 1
+a+ 1
+a +1
+aa_11
+aa12_
+_a_12a
+int
+float bool
+false true
+!= && || >=
+' '
+'+'
+'@'
+"x = 3"
+
+"Erros"
+'
+'aa'
+'a '
+a'
+''
+""
+'
+'
+1.0e
+1.0e2
+1.0e-2
+1.0e+2
+'/'
+'\'
+'t'59
+
