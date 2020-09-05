@@ -77,7 +77,7 @@ special_char [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
 
     /* Identifiers */
 
-{alfa}+{dig}*  { return TK_IDENTIFICADOR; }
+{alfa}+({dig}|{alfa})*  { return TK_IDENTIFICADOR; }
 
     /* Eat up spaces and comments */
 
