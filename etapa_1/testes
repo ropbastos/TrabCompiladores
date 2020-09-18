@@ -1,6 +1,8 @@
-1
-2
+/* comentario 
+multilinha ***/
 3
+3
+4
 "Vai pular uma linha"
 // Pula linha
 6
@@ -57,4 +59,7 @@ a'
 '/'
 '\'
 't'59
+
+/*     
+   
 

@@ -9,14 +9,16 @@ sign   (\-|\+)
 ws	    [ \t]
 invisible [ \n\t\r\f]
 operator [\+\-\*\%\^\&\<\>\<<\>>\.]
-special_char [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$]
+special_char [\,\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\\]
 any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
+
+%x MULTILINE_COMMENT
 
 %%
 
     /* Line counter */
 
-\n  line_number++;
+\n  {line_number++;}
 
     /* Reserved Words */
 
@@ -84,20 +86,14 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
 {ws}            { }
 \/\/[^\n]*      { }
-"/*"		    {
-                    int c;
 
-                    while((c = input()) != 0) {
-                        if(c == '\n')
-                            ++line_number;
-                        else if(c == '*') {
-                            if((c = input()) == '/')
-                                break;
-                            else
-                                unput(c);
-                        }
-                    }
-		        }
+\/\* { BEGIN(MULTILINE_COMMENT); }
+<MULTILINE_COMMENT>{
+"*/"      BEGIN(INITIAL);
+[^*\n]+   // eat comment in chunks
+"*"       // eat the lone star
+\n        line_number++;
+}
 
     /* Errors */
 
