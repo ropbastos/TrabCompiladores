@@ -74,7 +74,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
 {sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+) { return TK_LIT_FLOAT; }
 
-{sign}*{dig}+/({invisible}|{operator}+)  { return TK_LIT_INT; }
+{sign}*{dig}+/({invisible}|{operator}+|\]|\;)  { return TK_LIT_INT; }
 
 "false" { return TK_LIT_FALSE; } 
 "true"  { return TK_LIT_TRUE; } 

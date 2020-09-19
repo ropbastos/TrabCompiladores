@@ -59,17 +59,20 @@ int get_col();
 
 program:
     %empty
-|   decl program
+|   global_decl program
+|   func program
 ;
 
-decl:
-    type list ';'
-|   TK_PR_STATIC type list ';'
+global_decl:
+    type global_list ';'
+|   TK_PR_STATIC type global_list ';'
 ;
 
-list:
-    TK_IDENTIFICADOR ',' list 
+global_list:
+    TK_IDENTIFICADOR ',' global_list
 |   TK_IDENTIFICADOR
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']'
 ;
 
 type:
@@ -79,6 +82,21 @@ type:
 |   TK_PR_CHAR
 |   TK_PR_STRING
 ;
+
+func: 
+    header
+
+header:
+    type TK_IDENTIFICADOR '(' ')'
+|   type TK_IDENTIFICADOR '(' params ')'
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')'
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')'
+
+params:
+    type TK_IDENTIFICADOR ',' params 
+|   type TK_IDENTIFICADOR
+|   TK_PR_CONST type TK_IDENTIFICADOR ',' params
+|   TK_PR_CONST type TK_IDENTIFICADOR  
 
 
 %%
