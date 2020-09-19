@@ -2,9 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 int yylex(void);
-int yyerror (char const *s);
+void yyerror (char const *s);
 int get_line_number();
+int get_col();
 %}
+
+%define parse.error verbose
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -54,21 +57,37 @@ int get_line_number();
 
 %%
 
-program: TK_IDENTIFICADOR;
+program:
+    %empty
+|   decl program
+;
+
+decl:
+    type list ';'
+|   TK_PR_STATIC type list ';'
+;
+
+list:
+    TK_IDENTIFICADOR ',' list 
+|   TK_IDENTIFICADOR
+;
+
+type:
+    TK_PR_INT
+|   TK_PR_FLOAT
+|   TK_PR_BOOL
+|   TK_PR_CHAR
+|   TK_PR_STRING
+;
 
 
 %%
 
-int yyerror(char const *s) {
-    printf("%s\n", s);
-    return 1;
+void yyerror(char const *s) {
+    fprintf(stderr, "%s on line %d at column %d\n",\
+            s, get_line_number(), get_col());
 }
 
 int main() {
-    int ret = yyparse();
-    if (ret != 0){
-        fprintf(stderr, "%d error found on line %d.\n", ret, get_line_number());
-        return 1;
-    }
-    return 0;
+    return yyparse();
 }

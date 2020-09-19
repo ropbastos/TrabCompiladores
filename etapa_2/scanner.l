@@ -1,7 +1,12 @@
 %{
     #include "parser.tab.h"
+    static void count_col();
+    #define YY_USER_ACTION count_col();
+    int col = 1;
     int line_number = 1;
 %}
+
+
 
 alfa    [a-zA-Z_]
 dig     [0-9]
@@ -18,7 +23,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
     /* Line counter */
 
-\n  {line_number++;}
+\n  {line_number++; col = 1; }
 
     /* Reserved Words */
 
@@ -92,7 +97,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 "*/"      BEGIN(INITIAL);
 [^*\n]+   // eat comment in chunks
 "*"       // eat the lone star
-\n        line_number++;
+\n        { line_number++; col = 1; } 
 }
 
     /* Errors */
@@ -103,4 +108,14 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
 int get_line_number() {
     return line_number;
+}
+
+int get_col() {
+    return col - yyleng;
+}
+
+static void count_col() {
+    for(int i = 0; yytext[i] != '\0'; i++) {
+        col++;
+    }
 }
