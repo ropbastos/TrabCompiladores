@@ -84,7 +84,7 @@ type:
 ;
 
 func: 
-    header
+    header body
 
 header:
     type TK_IDENTIFICADOR '(' ')'
@@ -98,6 +98,93 @@ params:
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
 |   TK_PR_CONST type TK_IDENTIFICADOR  
 
+body:
+    block
+
+block:
+    '{' local_decl '}'
+|   '{' attrib '}'
+|   '{' exp '}'
+|   '{' io '}'
+|   '{' func_call '}'
+|   '{' shift '}'
+|   '{' jmp_stmt '}'
+|   '{' if '}'
+;
+
+
+local_decl:
+    type local_list ';'
+|   TK_PR_CONST type local_list ';'
+|   TK_PR_STATIC TK_PR_CONST type local_list ';'
+|   TK_PR_STATIC type local_list ';'
+;
+
+local_list:
+    TK_IDENTIFICADOR 
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR 
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE 
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT 
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT 
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING 
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE 
+|   TK_IDENTIFICADOR ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE ',' local_list
+;
+
+attrib:
+    TK_IDENTIFICADOR '=' exp ';'
+|   TK_IDENTIFICADOR '[' exp ']' '=' exp ';'
+;
+
+exp:
+    TK_IDENTIFICADOR // DUMMY DEFINITION
+;
+
+io:
+    TK_PR_INPUT TK_IDENTIFICADOR ';'
+|   TK_PR_OUTPUT TK_IDENTIFICADOR ';'
+|   TK_PR_OUTPUT TK_LIT_CHAR ';'
+|   TK_PR_OUTPUT TK_LIT_FALSE ';'
+|   TK_PR_OUTPUT TK_LIT_FLOAT ';'
+|   TK_PR_OUTPUT TK_LIT_INT ';'
+|   TK_PR_OUTPUT TK_LIT_STRING ';'
+|   TK_PR_OUTPUT TK_LIT_TRUE ';'
+;
+
+func_call:
+    TK_IDENTIFICADOR '(' exp ')'
+;
+
+shift:
+    TK_IDENTIFICADOR TK_OC_SL TK_LIT_INT
+|   TK_IDENTIFICADOR TK_OC_SR TK_LIT_INT
+|   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
+|   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR TK_LIT_INT
+;
+
+jmp_stmt:
+    TK_PR_RETURN exp
+|   TK_PR_BREAK
+|   TK_PR_CONTINUE
+;
+
+// BLOCKS BELOW MUST HAVE NO SEMMICOLONS
+
+if:
+    TK_PR_IF '(' exp ')' block
+|   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
+;
+
+for:
+    '(' attrib ':' exp ':' attrib ')' block // NOT COMPLETE
 
 %%
 

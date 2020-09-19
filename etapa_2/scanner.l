@@ -72,14 +72,14 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
     /* Literals */
 
-{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+) { return TK_LIT_FLOAT; }
+{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+|\;) { return TK_LIT_FLOAT; }
 
 {sign}*{dig}+/({invisible}|{operator}+|\]|\;)  { return TK_LIT_INT; }
 
 "false" { return TK_LIT_FALSE; } 
 "true"  { return TK_LIT_TRUE; } 
 
-'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+) { return TK_LIT_CHAR; }
+'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;) { return TK_LIT_CHAR; }
 
 \"[^\n"]+\" { return TK_LIT_STRING; }
 
