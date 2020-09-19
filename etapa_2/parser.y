@@ -3,6 +3,7 @@
 #include <stdlib.h>
 int yylex(void);
 int yyerror (char const *s);
+int get_line_number();
 %}
 
 %token TK_PR_INT
@@ -53,7 +54,8 @@ int yyerror (char const *s);
 
 %%
 
-programa:
+program: TK_IDENTIFICADOR;
+
 
 %%
 
@@ -65,7 +67,8 @@ int yyerror(char const *s) {
 int main() {
     int ret = yyparse();
     if (ret != 0){
-        fprintf(stderr, "%d error found.\n", ret);
+        fprintf(stderr, "%d error found on line %d.\n", ret, get_line_number());
+        return 1;
     }
     return 0;
 }
