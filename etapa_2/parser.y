@@ -204,13 +204,13 @@ while:
 ;
 
 exp:
-    TK_IDENTIFICADOR
-|   exp '+' exp
-|   exp '-' exp
-|   exp '*' exp
-|   exp '/' exp
-|   exp '%' exp
-|   exp '^' exp
+    aop
+|   exp '+' aop
+|   exp '-' aop
+|   exp '*' aop
+|   exp '/' aop
+|   exp '%' aop
+|   exp '^' aop
 |   '(' exp ')'
 ;
  
