@@ -8,10 +8,6 @@ int get_col();
 %}
 
 %define parse.error verbose
-/* %left '-' '+'
-%left '*' '/'
-%left '%'
-%right '^'  */
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -114,7 +110,7 @@ block:
 ;
 
 cmds: 
-    %empty                 // NOT COMPLETE
+    %empty                 
 |   block ';' cmds
 |   local_decl ';' cmds
 |   attrib ';' cmds
@@ -122,11 +118,10 @@ cmds:
 |   func_call ';' cmds
 |   shift ';' cmds
 |   jmp_stmt ';' cmds
-|   if cmds
-|   for cmds
-|   while cmds
+|   if ';' cmds
+|   for ';' cmds
+|   while ';' cmds
 ;
-
 
 
 local_decl:
@@ -172,7 +167,12 @@ io:
 ;
 
 func_call:
-    TK_IDENTIFICADOR '(' exp ')'
+    TK_IDENTIFICADOR '(' exp_list ')'
+;
+
+exp_list:
+    exp
+|   exp ',' exp_list
 ;
 
 shift:
@@ -196,24 +196,58 @@ if:
 ;
 
 for:
-    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block // NOT COMPLETE
+    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block 
 ;
 
 while:
     TK_PR_WHILE '(' exp ')' TK_PR_DO block
 ;
 
+
 exp:
-    aop
-|   exp '+' aop
-|   exp '-' aop
-|   exp '*' aop
-|   exp '/' aop
-|   exp '%' aop
-|   exp '^' aop
+    operand
+|   exp operator operand
 |   '(' exp ')'
 ;
- 
+
+operator:
+    aoperator
+|   loperator
+;
+
+aoperator:
+    '+' 
+|   '-' 
+|   '*' 
+|   '/' 
+|   '%' 
+|   '^'
+;
+
+loperator:          // shifst fazem parte?
+    '|'
+|   '&'
+|   TK_OC_AND
+|   TK_OC_EQ
+|   TK_OC_GE
+|   TK_OC_LE
+|   TK_OC_NE
+|   TK_OC_OR
+;
+
+operand:
+    aoperand
+|   loperand
+;
+
+aoperand:
+    '?'
+;
+
+loperand:
+    '@'
+;
+
 /* arith:
     '?'
 |   arith '+' arith

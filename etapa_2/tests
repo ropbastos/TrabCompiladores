@@ -1,8 +1,7 @@
 int a(int b, int c, const float z) { 
-  while (e) do {
+  while (? + ?) do {
     int a;
   }
-  { a = b; };
 }
 
 
