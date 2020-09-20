@@ -118,9 +118,7 @@ cmds:
 |   func_call ';' cmds
 |   shift ';' cmds
 |   jmp_stmt ';' cmds
-|   if ';' cmds
-|   for ';' cmds
-|   while ';' cmds
+|   control ';' cmds
 ;
 
 
@@ -133,21 +131,20 @@ local_decl:
 
 local_list:
     TK_IDENTIFICADOR 
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE 
 |   TK_IDENTIFICADOR ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
+|   TK_IDENTIFICADOR TK_OC_LE literal
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
+;
+
+literal:
+    TK_LIT_CHAR
+|   TK_LIT_FALSE
+|   TK_LIT_FLOAT
+|   TK_LIT_INT
+|   TK_LIT_STRING
+|   TK_LIT_TRUE
 ;
 
 attrib:
@@ -158,12 +155,7 @@ attrib:
 io:
     TK_PR_INPUT TK_IDENTIFICADOR 
 |   TK_PR_OUTPUT TK_IDENTIFICADOR 
-|   TK_PR_OUTPUT TK_LIT_CHAR 
-|   TK_PR_OUTPUT TK_LIT_FALSE 
-|   TK_PR_OUTPUT TK_LIT_FLOAT 
-|   TK_PR_OUTPUT TK_LIT_INT 
-|   TK_PR_OUTPUT TK_LIT_STRING 
-|   TK_PR_OUTPUT TK_LIT_TRUE 
+|   TK_PR_OUTPUT literal 
 ;
 
 func_call:
@@ -183,12 +175,18 @@ shift:
 ;
 
 jmp_stmt:
-    TK_PR_RETURN exp
+    TK_PR_RETURN
+|   TK_PR_RETURN exp
 |   TK_PR_BREAK
 |   TK_PR_CONTINUE
 ;
 
 // BLOCKS BELOW MUST HAVE NO SEMICOLONS
+control:
+    if
+|   for
+|   while
+;
 
 if:
     TK_PR_IF '(' exp ')' block
@@ -203,11 +201,9 @@ while:
     TK_PR_WHILE '(' exp ')' TK_PR_DO block
 ;
 
-
 exp:
     operand
 |   exp operator operand
-|   '(' exp ')'
 ;
 
 operator:
@@ -224,9 +220,11 @@ aoperator:
 |   '^'
 ;
 
-loperator:          // shifst fazem parte?
+loperator:          // shifts fazem parte?
     '|'
 |   '&'
+|   '<'
+|   '>'
 |   TK_OC_AND
 |   TK_OC_EQ
 |   TK_OC_GE
@@ -238,46 +236,23 @@ loperator:          // shifst fazem parte?
 operand:
     aoperand
 |   loperand
+|   '(' exp ')'
 ;
 
 aoperand:
-    '?'
+    TK_IDENTIFICADOR
+|   TK_IDENTIFICADOR '[' exp ']'
+|   literal
+|   func_call
 ;
 
 loperand:
     '@'
 ;
 
-/* arith:
-    '?'
-|   arith '+' arith
-|   arith '-' arith
-|   arith '*' arith
-|   arith '/' arith
-|   arith '%' arith
-|   arith '^' arith
-|   '(' arith ')'
-; */
 
-/* logic:
-    aoperand TK_OC_OR aoperand
-|   aoperand TK_OC_AND aoperand
-|   aoperand '|' aoperand
-|   aoperand '&' aoperand
-|   aoperand TK_OC_EQ aoperand
-|   aoperand TK_OC_NE aoperand
-|   aoperand TK_OC_GE aoperand
-|   aoperand '>' aoperand
-|   aoperand TK_OC_LE aoperand
-|   aoperand '<' aoperand
-|   aoperand TK_OC_SR aoperand
-|   aoperand TK_OC_SL aoperand
-;
- */
+
  
-
-
-
 %%
 
 void yyerror(char const *s) {
