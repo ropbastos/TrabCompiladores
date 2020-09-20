@@ -83,7 +83,7 @@ type:
 |   TK_PR_STRING
 ;
 
-func: 
+func:
     header body
 ;
 
@@ -95,21 +95,21 @@ header:
 ;
 
 params:
-    type TK_IDENTIFICADOR ',' params 
+    type TK_IDENTIFICADOR ',' params
 |   type TK_IDENTIFICADOR
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
-|   TK_PR_CONST type TK_IDENTIFICADOR  
+|   TK_PR_CONST type TK_IDENTIFICADOR
 ;
 
 body:
-    block 
+    block
 ;
 
 block:
    '{' cmds '}'
 ;
 
-cmds: 
+cmds:
     %empty                 // NOT COMPLETE
 |   block ';' cmds
 |   local_decl ';' cmds
@@ -127,21 +127,21 @@ cmds:
 
 
 local_decl:
-    type local_list 
-|   TK_PR_CONST type local_list 
-|   TK_PR_STATIC TK_PR_CONST type local_list 
-|   TK_PR_STATIC type local_list 
+    type local_list
+|   TK_PR_CONST type local_list
+|   TK_PR_STATIC TK_PR_CONST type local_list
+|   TK_PR_STATIC type local_list
 ;
 
 local_list:
-    TK_IDENTIFICADOR 
+    TK_IDENTIFICADOR
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING 
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE 
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING
+|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE
 |   TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR ',' local_list
@@ -158,14 +158,14 @@ attrib:
 ;
 
 io:
-    TK_PR_INPUT TK_IDENTIFICADOR 
-|   TK_PR_OUTPUT TK_IDENTIFICADOR 
-|   TK_PR_OUTPUT TK_LIT_CHAR 
-|   TK_PR_OUTPUT TK_LIT_FALSE 
-|   TK_PR_OUTPUT TK_LIT_FLOAT 
-|   TK_PR_OUTPUT TK_LIT_INT 
-|   TK_PR_OUTPUT TK_LIT_STRING 
-|   TK_PR_OUTPUT TK_LIT_TRUE 
+    TK_PR_INPUT TK_IDENTIFICADOR
+|   TK_PR_OUTPUT TK_IDENTIFICADOR
+|   TK_PR_OUTPUT TK_LIT_CHAR
+|   TK_PR_OUTPUT TK_LIT_FALSE
+|   TK_PR_OUTPUT TK_LIT_FLOAT
+|   TK_PR_OUTPUT TK_LIT_INT
+|   TK_PR_OUTPUT TK_LIT_STRING
+|   TK_PR_OUTPUT TK_LIT_TRUE
 ;
 
 func_call:
@@ -193,7 +193,7 @@ if:
 ;
 
 for:
-    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block // NOT COMPLETE
+    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
 ;
 
 while:
@@ -201,45 +201,25 @@ while:
 ;
 
 exp:
-    '?'
-|   arith '+' arith
-|   arith '-' arith
-|   arith '*' arith
-|   arith '/' arith
-|   arith '%' arith
-|   arith '^' arith
-|   '(' arith ')'
-;
- 
-arith:
-    '?'
-|   arith '+' arith
-|   arith '-' arith
-|   arith '*' arith
-|   arith '/' arith
-|   arith '%' arith
-|   arith '^' arith
-|   '(' arith ')'
+    arithOperand
+|   arithOperand arithSimbol arithOperand
+|   '(' exp ')'
 ;
 
-/* logic:
-    aoperand TK_OC_OR aoperand
-|   aoperand TK_OC_AND aoperand
-|   aoperand '|' aoperand
-|   aoperand '&' aoperand
-|   aoperand TK_OC_EQ aoperand
-|   aoperand TK_OC_NE aoperand
-|   aoperand TK_OC_GE aoperand
-|   aoperand '>' aoperand
-|   aoperand TK_OC_LE aoperand
-|   aoperand '<' aoperand
-|   aoperand TK_OC_SR aoperand
-|   aoperand TK_OC_SL aoperand
+arithSimbol:
+    '+'
+|   '-'
+|   '*'
+|   '/'
+|   '%'
+|   '^'
 ;
- */
- 
 
-
+arithOperand:
+    TK_IDENTIFICADOR
+|   TK_LIT_INT
+|   TK_LIT_FLOAT
+;
 
 %%
 
