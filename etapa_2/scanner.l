@@ -6,8 +6,6 @@
     int line_number = 1;
 %}
 
-
-
 alfa    [a-zA-Z_]
 dig     [0-9]
 sign   (\-|\+)

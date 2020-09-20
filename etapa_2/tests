@@ -1,1 +1,11 @@
-int a(int b, int c, const float z) { if(e) { int a; } else { int b; } }
+int a(int b, int c, const float z) { 
+  while (e) do {
+    int a;
+  }
+  { a = b; };
+}
+
+
+
+
+
