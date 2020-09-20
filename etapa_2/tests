@@ -97,5 +97,7 @@ int simpleBlocks() {
   abc(a * main((a / b), (a % b)));
 
   abc(a * b + &a);
+  abc(-a * #b);
+  abc(false * b);
 
 }

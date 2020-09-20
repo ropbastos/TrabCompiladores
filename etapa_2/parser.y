@@ -230,8 +230,14 @@ unary:
 laoperand:
     TK_IDENTIFICADOR
 |   TK_IDENTIFICADOR '[' exp ']'
+|   bool
 |   func_call
 |   '(' exp ')'
+;
+
+bool:
+    TK_LIT_FALSE
+|   TK_LIT_TRUE
 ;
 
 boperator:
