@@ -36,6 +36,7 @@ int blocks() {
 int simpleBlocks() {
   /* Declaração de Variavel Local */
 
+  int b <= 2, c <= 3, d;
   int a, b <= 2;
   const float c;
   const int a <= 10;
