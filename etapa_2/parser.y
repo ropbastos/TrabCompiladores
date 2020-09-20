@@ -234,22 +234,12 @@ loperator:          // shifts fazem parte?
 ;
 
 operand:
-    aoperand
-|   loperand
-|   '(' exp ')'
-;
-
-aoperand:
     TK_IDENTIFICADOR
 |   TK_IDENTIFICADOR '[' exp ']'
 |   literal
 |   func_call
+|   '(' exp ')'
 ;
-
-loperand:
-    '@'
-;
-
 
 
  
