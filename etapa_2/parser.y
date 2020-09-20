@@ -83,7 +83,7 @@ type:
 |   TK_PR_STRING
 ;
 
-func:
+func: 
     header body
 ;
 
@@ -95,22 +95,22 @@ header:
 ;
 
 params:
-    type TK_IDENTIFICADOR ',' params
+    type TK_IDENTIFICADOR ',' params 
 |   type TK_IDENTIFICADOR
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
-|   TK_PR_CONST type TK_IDENTIFICADOR
+|   TK_PR_CONST type TK_IDENTIFICADOR  
 ;
 
 body:
-    block
+    block 
 ;
 
 block:
-    '{' cmds '}'
+   '{' cmds '}'
 ;
 
-cmds:
-    %empty                 // NOT COMPLETE
+cmds: 
+    %empty                 
 |   block ';' cmds
 |   local_decl ';' cmds
 |   attrib ';' cmds
@@ -121,23 +121,25 @@ cmds:
 |   control ';' cmds
 ;
 
+
 local_decl:
-    type local_list
-|   TK_PR_CONST type local_list
-|   TK_PR_STATIC TK_PR_CONST type local_list
-|   TK_PR_STATIC type local_list
+    type local_list 
+|   TK_PR_CONST type local_list 
+|   TK_PR_STATIC TK_PR_CONST type local_list 
+|   TK_PR_STATIC type local_list 
 ;
 
 local_list:
-    literals
-|   literals ',' local_list
-|   literals TK_OC_LE literals
-|   literals TK_OC_LE literals ',' local_list
+    TK_IDENTIFICADOR 
+|   TK_IDENTIFICADOR ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
+|   TK_IDENTIFICADOR TK_OC_LE literal
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
+|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
 ;
 
-literals:
-    TK_IDENTIFICADOR
-|   TK_LIT_CHAR
+literal:
+    TK_LIT_CHAR
 |   TK_LIT_FALSE
 |   TK_LIT_FLOAT
 |   TK_LIT_INT
@@ -150,14 +152,19 @@ attrib:
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
 ;
 
-
 io:
-    TK_PR_INPUT TK_IDENTIFICADOR
-|   TK_PR_OUTPUT literals
+    TK_PR_INPUT TK_IDENTIFICADOR 
+|   TK_PR_OUTPUT TK_IDENTIFICADOR 
+|   TK_PR_OUTPUT literal 
 ;
 
 func_call:
-    TK_IDENTIFICADOR '(' exp ')'
+    TK_IDENTIFICADOR '(' exp_list ')'
+;
+
+exp_list:
+    exp
+|   exp ',' exp_list
 ;
 
 shift:
@@ -168,11 +175,13 @@ shift:
 ;
 
 jmp_stmt:
-    TK_PR_RETURN exp
+    TK_PR_RETURN
+|   TK_PR_RETURN exp
 |   TK_PR_BREAK
 |   TK_PR_CONTINUE
 ;
 
+// BLOCKS BELOW MUST HAVE NO SEMICOLONS
 control:
     if
 |   for
@@ -185,7 +194,7 @@ if:
 ;
 
 for:
-    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
+    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block 
 ;
 
 while:
@@ -193,16 +202,47 @@ while:
 ;
 
 exp:
-    %empty
-|   literals
+    operand
+|   exp operator operand
+;
+
+operator:
+    aoperator
+|   loperator
+;
+
+aoperator:
+    '+' 
+|   '-' 
+|   '*' 
+|   '/' 
+|   '%' 
+|   '^'
+;
+
+loperator:          // shifts fazem parte?
+    '|'
+|   '&'
+|   '<'
+|   '>'
+|   TK_OC_AND
+|   TK_OC_EQ
+|   TK_OC_GE
+|   TK_OC_LE
+|   TK_OC_NE
+|   TK_OC_OR
+;
+
+operand:
+    TK_IDENTIFICADOR
+|   TK_IDENTIFICADOR '[' exp ']'
+|   literal
+|   func_call
+|   '(' exp ')'
 ;
 
 
-
-
-
-
-
+ 
 %%
 
 void yyerror(char const *s) {
