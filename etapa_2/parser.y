@@ -106,7 +106,7 @@ body:
 ;
 
 block:
-   '{' cmds '}'
+    '{' cmds '}'
 ;
 
 cmds:
@@ -114,17 +114,12 @@ cmds:
 |   block ';' cmds
 |   local_decl ';' cmds
 |   attrib ';' cmds
-|   exp ';' cmds
 |   io ';' cmds
 |   func_call ';' cmds
 |   shift ';' cmds
 |   jmp_stmt ';' cmds
-|   if cmds
-|   for cmds
-|   while cmds
+|   control ';' cmds
 ;
-
-
 
 local_decl:
     type local_list
@@ -134,22 +129,20 @@ local_decl:
 ;
 
 local_list:
+    literals
+|   literals ',' local_list
+|   literals TK_OC_LE literals
+|   literals TK_OC_LE literals ',' local_list
+;
+
+literals:
     TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE
-|   TK_IDENTIFICADOR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_CHAR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FALSE ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_FLOAT ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_INT ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_STRING ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_LIT_TRUE ',' local_list
+|   TK_LIT_CHAR
+|   TK_LIT_FALSE
+|   TK_LIT_FLOAT
+|   TK_LIT_INT
+|   TK_LIT_STRING
+|   TK_LIT_TRUE
 ;
 
 attrib:
@@ -157,15 +150,10 @@ attrib:
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
 ;
 
+
 io:
     TK_PR_INPUT TK_IDENTIFICADOR
-|   TK_PR_OUTPUT TK_IDENTIFICADOR
-|   TK_PR_OUTPUT TK_LIT_CHAR
-|   TK_PR_OUTPUT TK_LIT_FALSE
-|   TK_PR_OUTPUT TK_LIT_FLOAT
-|   TK_PR_OUTPUT TK_LIT_INT
-|   TK_PR_OUTPUT TK_LIT_STRING
-|   TK_PR_OUTPUT TK_LIT_TRUE
+|   TK_PR_OUTPUT literals
 ;
 
 func_call:
@@ -185,7 +173,11 @@ jmp_stmt:
 |   TK_PR_CONTINUE
 ;
 
-// BLOCKS BELOW MUST HAVE NO SEMICOLONS
+control:
+    if
+|   for
+|   while
+;
 
 if:
     TK_PR_IF '(' exp ')' block
@@ -201,35 +193,15 @@ while:
 ;
 
 exp:
-    arithOperand
-|   arithOperand arithSimbol exp
-|   '(' exp ')'
+    %empty
+|   literals
 ;
 
 
-arithSimbol:
-    '+'
-|   '-'
-|   '*'
-|   '/'
-|   '%'
-|   '&'
-|   '|'
-|   '^'
-|   '<'
-|   '>'
-|   TK_OC_LE
-|   TK_OC_GE
-|   TK_OC_EQ
-|   TK_OC_AND
-|   TK_OC_OR
-;
 
-arithOperand:
-    TK_IDENTIFICADOR
-|   TK_LIT_INT
-|   TK_LIT_FLOAT
-;
+
+
+
 
 %%
 
