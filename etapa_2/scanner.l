@@ -53,7 +53,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 "end"           { return TK_PR_END;      }
 "default"       { return TK_PR_DEFAULT;  }
 
-    /* Special Characters */ 
+    /* Special Characters */
 
 {special_char}  { return yytext[0];      }
 
@@ -72,10 +72,10 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
 {sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+|\;) { return TK_LIT_FLOAT; }
 
-{sign}*{dig}+/({invisible}|{operator}+|\]|\;)  { return TK_LIT_INT; }
+{sign}*{dig}+/({invisible}|{operator}+|\]|\;|\,)  { return TK_LIT_INT; }
 
-"false" { return TK_LIT_FALSE; } 
-"true"  { return TK_LIT_TRUE; } 
+"false" { return TK_LIT_FALSE; }
+"true"  { return TK_LIT_TRUE; }
 
 '(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;) { return TK_LIT_CHAR; }
 
@@ -95,7 +95,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 "*/"      BEGIN(INITIAL);
 [^*\n]+   // eat comment in chunks
 "*"       // eat the lone star
-\n        { line_number++; col = 1; } 
+\n        { line_number++; col = 1; }
 }
 
     /* Errors */
