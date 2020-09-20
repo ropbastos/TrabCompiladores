@@ -8,6 +8,10 @@ int get_col();
 %}
 
 %define parse.error verbose
+/* %left '-' '+'
+%left '*' '/'
+%left '%'
+%right '^'  */
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -114,7 +118,6 @@ cmds:
 |   block ';' cmds
 |   local_decl ';' cmds
 |   attrib ';' cmds
-|   exp ';' cmds
 |   io ';' cmds
 |   func_call ';' cmds
 |   shift ';' cmds
@@ -201,17 +204,17 @@ while:
 ;
 
 exp:
-    '?'
-|   arith '+' arith
-|   arith '-' arith
-|   arith '*' arith
-|   arith '/' arith
-|   arith '%' arith
-|   arith '^' arith
-|   '(' arith ')'
+    TK_IDENTIFICADOR
+|   exp '+' exp
+|   exp '-' exp
+|   exp '*' exp
+|   exp '/' exp
+|   exp '%' exp
+|   exp '^' exp
+|   '(' exp ')'
 ;
  
-arith:
+/* arith:
     '?'
 |   arith '+' arith
 |   arith '-' arith
@@ -220,7 +223,7 @@ arith:
 |   arith '%' arith
 |   arith '^' arith
 |   '(' arith ')'
-;
+; */
 
 /* logic:
     aoperand TK_OC_OR aoperand
