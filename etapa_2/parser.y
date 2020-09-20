@@ -203,10 +203,44 @@ while:
 
 exp:
     operand
-|   exp operator operand
+|   exp boperator operand
 ;
 
-operator:
+operand:
+    num
+|   unary
+;
+
+num:
+    TK_LIT_FLOAT
+|   TK_LIT_INT    
+;
+
+unary:
+    '+' unary
+|   '-' unary
+|   '!' unary
+|   '&' unary
+|   '*' unary
+|   '?' unary
+|   '#' unary
+|   laoperand
+;
+
+laoperand:
+    TK_IDENTIFICADOR
+|   TK_IDENTIFICADOR '[' exp ']'
+|   bool
+|   func_call
+|   '(' exp ')'
+;
+
+bool:
+    TK_LIT_FALSE
+|   TK_LIT_TRUE
+;
+
+boperator:
     aoperator
 |   loperator
 ;
@@ -233,13 +267,7 @@ loperator:          // shifts fazem parte?
 |   TK_OC_OR
 ;
 
-operand:
-    TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR '[' exp ']'
-|   literal
-|   func_call
-|   '(' exp ')'
-;
+
 
 
  
