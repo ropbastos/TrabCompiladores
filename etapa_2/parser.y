@@ -202,9 +202,10 @@ while:
 
 exp:
     arithOperand
-|   arithOperand arithSimbol arithOperand
+|   arithOperand arithSimbol exp
 |   '(' exp ')'
 ;
+
 
 arithSimbol:
     '+'
@@ -212,7 +213,16 @@ arithSimbol:
 |   '*'
 |   '/'
 |   '%'
+|   '&'
+|   '|'
 |   '^'
+|   '<'
+|   '>'
+|   TK_OC_LE
+|   TK_OC_GE
+|   TK_OC_EQ
+|   TK_OC_AND
+|   TK_OC_OR
 ;
 
 arithOperand:
