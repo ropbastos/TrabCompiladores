@@ -9,6 +9,7 @@ int get_col();
 
 %define parse.error verbose
 
+
 %token TK_PR_INT
 %token TK_PR_FLOAT
 %token TK_PR_BOOL
@@ -55,6 +56,11 @@ int get_col();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+// Define priorities
+
+%precedence TK_OC_LE  TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
+%precedence '?' '+' '-' '&' '*' '/' '%' '^' '|' '<' '>'  
+%left TERNARY
 
 %%
 
@@ -205,8 +211,8 @@ while:
 exp:
     operand
 |   exp boperator operand 
+|   exp '?' exp ':' exp   %prec TERNARY
 ;
-
 
 operand:
     num

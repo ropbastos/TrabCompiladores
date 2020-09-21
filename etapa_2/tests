@@ -104,4 +104,6 @@ int simpleBlocks() {
 
   abc(false * ?a);
 
+  abc( a * b ? a * 2 : b * 3);
+
 }
