@@ -55,6 +55,7 @@ int get_col();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
+
 %%
 
 program:
@@ -203,8 +204,9 @@ while:
 
 exp:
     operand
-|   exp boperator operand
+|   exp boperator operand 
 ;
+
 
 operand:
     num

@@ -6,3 +6,6 @@ default: scanner.l main.c parser.y
 
 clean:
 	rm lex* parser.tab* parser
+
+dev:
+	bison -v -d parser.y

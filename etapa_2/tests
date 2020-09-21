@@ -90,6 +90,8 @@ int simpleBlocks() {
 
   /* Expressões Aritméticas, Lógicas */
 
+  a = b * (a * 2);
+
   abc(a * b);
   abc(a * b + c);
   abc(a * b + (c * d));
@@ -99,5 +101,7 @@ int simpleBlocks() {
   abc(a * b + &a);
   abc(-a * #b);
   abc(false * b);
+
+  abc(false * ?a);
 
 }
