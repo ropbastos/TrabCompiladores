@@ -5,7 +5,7 @@ default: scanner.l main.c parser.y
 	gcc -o parser lex.yy.o parser.tab.o -lfl
 
 clean:
-	rm lex* parser.tab* parser
+	rm lex* parser.tab* parser.out* parser
 
 dev:
 	bison -v -d parser.y
