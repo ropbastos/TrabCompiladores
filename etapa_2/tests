@@ -38,6 +38,8 @@ int simpleBlocks() {
   /* Declaração de Variavel Local */
 
   int a, b <= 2;
+  int a <= 4, c;
+  float a, c <= 2, b;
   const float c;
   const int a <= 10;
   static const int a <= 10;
@@ -47,7 +49,7 @@ int simpleBlocks() {
   /* Atribuição */
 
   b = 12;
-  b[4] = 12;
+  b[2] = 12;
 
 
 
@@ -91,6 +93,9 @@ int simpleBlocks() {
   /* Expressões Aritméticas, Lógicas */
 
   a = b * (a * 2);
+  a = b;
+  a = b * c + &v;
+
 
   abc(a * b);
   abc(a * b + c);
@@ -105,5 +110,7 @@ int simpleBlocks() {
   abc(false * ?a);
 
   abc( a * b ? a * 2 : b * 3);
+
+  abc(id);
 
 }

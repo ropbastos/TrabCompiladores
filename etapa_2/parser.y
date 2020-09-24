@@ -9,7 +9,6 @@ int get_col();
 
 %define parse.error verbose
 
-
 %token TK_PR_INT
 %token TK_PR_FLOAT
 %token TK_PR_BOOL
@@ -56,10 +55,12 @@ int get_col();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-// Define priorities
-
-%precedence TK_OC_LE  TK_OC_GE TK_OC_EQ TK_OC_NE TK_OC_AND TK_OC_OR
-%precedence '?' '+' '-' '&' '*' '/' '%' '^' '|' '<' '>'  
+// Define precedences 
+%precedence TK_OC_OR
+%precedence TK_OC_AND
+%precedence TK_OC_EQ TK_OC_NE
+%precedence TK_OC_LE TK_OC_GE '<' '>'  
+%precedence '?' '+' '-' '&' '*' '/' '%' '^' '|'  '#' 
 %left TERNARY
 
 %%
@@ -80,6 +81,8 @@ global_list:
 |   TK_IDENTIFICADOR
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']'
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']'
 ;
 
 type:
@@ -127,7 +130,6 @@ cmds:
 |   jmp_stmt ';' cmds
 |   control ';' cmds
 ;
-
 
 local_decl:
     type local_list 
@@ -177,18 +179,20 @@ exp_list:
 shift:
     TK_IDENTIFICADOR TK_OC_SL TK_LIT_INT
 |   TK_IDENTIFICADOR TK_OC_SR TK_LIT_INT
+|   TK_IDENTIFICADOR TK_OC_SL '+' TK_LIT_INT
+|   TK_IDENTIFICADOR TK_OC_SR '+' TK_LIT_INT
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR TK_LIT_INT
+|   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL '+' TK_LIT_INT
+|   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR '+' TK_LIT_INT
 ;
 
 jmp_stmt:
-    TK_PR_RETURN
-|   TK_PR_RETURN exp
+    TK_PR_RETURN exp
 |   TK_PR_BREAK
 |   TK_PR_CONTINUE
 ;
 
-// BLOCKS BELOW MUST HAVE NO SEMICOLONS
 control:
     if
 |   for
@@ -262,7 +266,7 @@ aoperator:
 |   '^'
 ;
 
-loperator:          // shifts fazem parte?
+loperator:   
     '|'
 |   '&'
 |   '<'
@@ -274,10 +278,6 @@ loperator:          // shifts fazem parte?
 |   TK_OC_NE
 |   TK_OC_OR
 ;
-
-
-
-
  
 %%
 
@@ -286,6 +286,3 @@ void yyerror(char const *s) {
             s, get_line_number(), get_col());
 }
 
-int main() {
-    return yyparse();
-}
