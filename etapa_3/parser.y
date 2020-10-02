@@ -187,7 +187,8 @@ io:
 ;
 
 func_call:
-    TK_IDENTIFICADOR '(' exp_list ')'
+    TK_IDENTIFICADOR '(' ')'
+|    TK_IDENTIFICADOR '(' exp_list ')'
 ;
 
 exp_list:

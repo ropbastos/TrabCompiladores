@@ -55,13 +55,32 @@ int get_col();
 %token TK_IDENTIFICADOR
 %token TOKEN_ERRO
 
-// Define precedences 
-%precedence TK_OC_OR
-%precedence TK_OC_AND
-%precedence TK_OC_EQ TK_OC_NE
-%precedence TK_OC_LE TK_OC_GE '<' '>'  
-%precedence '?' '+' '-' '&' '*' '/' '%' '^' '|'  '#' 
-%left TERNARY
+/* Define precedences */
+// Comma
+%left ','
+// Attribution
+%right '='
+// Conditional Op
+%right '?' ':'
+// Logical Op
+%left TK_OC_OR
+%left TK_OC_AND
+// Bitwise Op
+%left '|'
+%left '&'
+// Relational Op
+%left TK_OC_EQ TK_OC_NE
+%left TK_OC_GE '>'
+%left TK_OC_LE '<'
+// Bitwise shift 
+%left TK_OC_SL TK_OC_SR 
+// Sum and subtraction
+%left '+' '-'
+// Multiplication, division, modulo, exponentiation
+%left '*' '/' '%' '^'
+
+// Ternary Operator
+%right TERNARY
 
 %%
 
@@ -168,7 +187,8 @@ io:
 ;
 
 func_call:
-    TK_IDENTIFICADOR '(' exp_list ')'
+    TK_IDENTIFICADOR '(' ')'
+|    TK_IDENTIFICADOR '(' exp_list ')'
 ;
 
 exp_list:
