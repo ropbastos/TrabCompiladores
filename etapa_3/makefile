@@ -4,9 +4,9 @@ default: scanner.l main.c parser.y
 	gcc -c lex.yy.c parser.tab.c main.c
 	gcc -o parser main.o lex.yy.o parser.tab.o -lfl
 	cp parser etapa3
-	
+
 clean:
-	rm lex* parser.tab* parser.out* parser main.o
+	rm lex* parser.tab* parser.out* parser main.o etapa*
 
 dev:
 	bison -v -d parser.y
