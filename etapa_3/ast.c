@@ -7,16 +7,12 @@ node*  create_literal_node(lex_val* val);
 
 node* create_node(lex_val* val, int child_num, ...) {
 
-    // Allocate memory for new node.
-    node *nodeptr;
-    nodeptr = (struct node*) malloc(sizeof(struct node));
-
-
-    if (val->lex_type == LIT_TK) {
-        return create_literal_node(val);
+    switch ( val->lex_type ) {
+        case LIT_TK:
+            return create_literal_node(val);
     }
 
-    return nodeptr;
+    return NULL;
 }
 
 node*  create_literal_node(lex_val* val) {
