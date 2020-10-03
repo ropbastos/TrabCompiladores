@@ -15,6 +15,10 @@
     struct lex_val* get_true_val();
     struct lex_val* get_false_val();
 
+    struct lex_val* get_spchar_val();
+    struct lex_val* get_cop_val();
+    struct lex_val* get_id_val();
+
 %}
 
 alfa    [a-zA-Z_]
@@ -142,6 +146,8 @@ static void count_col() {
 
 
 /* Token formation */
+
+// Literals
 struct lex_val* get_int_val() {
     struct lex_val *lvptr;
     lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
@@ -223,6 +229,49 @@ struct lex_val* get_false_val() {
 
     lvptr->lit_type = BOOL_LT;
     lvptr->value.b = 0;
+
+    return lvptr;
+}
+
+// Others
+struct lex_val* get_spchar_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = SPCHAR_TK;
+
+    lvptr->lit_type = NA;
+    lvptr->value.s = strdup(yytext);
+
+    return lvptr;
+}
+
+struct lex_val* get_cop_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = COP_TK;
+
+    lvptr->lit_type = NA;
+    lvptr->value.s = strdup(yytext);
+
+    return lvptr;
+}
+
+struct lex_val* get_id_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = ID_TK;
+
+    lvptr->lit_type = NA;
+    lvptr->value.s = strdup(yytext);
 
     return lvptr;
 }

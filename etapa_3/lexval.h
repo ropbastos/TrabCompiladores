@@ -9,6 +9,8 @@
 #define STR_LT 8
 #define BOOL_LT 9
 
+#define NA 0
+
 #define TRUE 1
 #define FALSE 0
 
@@ -26,3 +28,4 @@ typedef struct lex_val {
     int lit_type;
     TOKEN_VAL value;
 } lex_val;
+
