@@ -6,7 +6,11 @@
 #define INT_LT 5
 #define FLOAT_LT 6
 #define CHAR_LT 7
-#define BOOL_LT 8
+#define STR_LT 8
+#define BOOL_LT 9
+
+#define TRUE 1
+#define FALSE 0
 
 typedef union {
     int i;

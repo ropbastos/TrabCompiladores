@@ -1,11 +1,20 @@
 %{
     #include "parser.tab.h"
     #include "lexval.h"
+
     static void count_col();
     #define YY_USER_ACTION count_col();
     int col = 1;
     int get_line_number();
     int line_number = 1;
+
+    struct lex_val* get_int_val();
+    struct lex_val* get_float_val();
+    struct lex_val* get_char_val();
+    struct lex_val* get_str_val();
+    struct lex_val* get_true_val();
+    struct lex_val* get_false_val();
+
 %}
 
 alfa    [a-zA-Z_]
@@ -73,23 +82,17 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
     /* Literals */
 
 {sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+|\;|\,|\)) { 
-    struct lex_val *lvptr;
-    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
-
-    lvptr->line = get_line_number();
-
-    lvptr->lex_type = LIT_TK;
-
-    lvptr->lit_type = FLOAT_LT;
-    lvptr->value.f = atof(yytext);
-    yylval.lex_val = lvptr;
-    return TK_LIT_FLOAT; }
+    yylval.lex_val = get_float_val();
+    return TK_LIT_FLOAT; 
+    }
 
 {dig}+/({invisible}|{operator}+|\]|\;|\,|\))  { 
-    return TK_LIT_INT; }
+    yylval.lex_val = get_int_val();
+    return TK_LIT_INT; 
+    }
 
-"false" { return TK_LIT_FALSE; } 
-"true"  { return TK_LIT_TRUE; } 
+"false" { yylval.lex_val = get_false_val(); return TK_LIT_FALSE; } 
+"true"  { yylval.lex_val = get_true_val(); return TK_LIT_TRUE; } 
 
 '(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;) { 
     return TK_LIT_CHAR; }
@@ -119,6 +122,8 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
 %%
 
+
+/* Bookkeeping */
 int get_line_number() {
     return line_number;
 }
@@ -131,4 +136,90 @@ static void count_col() {
     for(int i = 0; yytext[i] != '\0'; i++) {
         col++;
     }
+}
+
+
+/* Token formation */
+struct lex_val* get_int_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = LIT_TK;
+
+    lvptr->lit_type = INT_LT;
+    lvptr->value.i = atoi(yytext);
+
+    return lvptr;
+}
+
+struct lex_val* get_float_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = LIT_TK;
+
+    lvptr->lit_type = FLOAT_LT;
+    lvptr->value.f = atof(yytext);
+    
+    return lvptr;
+}
+
+struct lex_val* get_char_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = LIT_TK;
+
+    lvptr->lit_type = CHAR_LT;
+    lvptr->value.c = yytext[1];
+
+    return lvptr;
+}
+
+struct lex_val* get_str_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = LIT_TK;
+
+    lvptr->lit_type = STR_LT;
+    lvptr->value.s = strdup(yytext);
+
+    return lvptr;
+}
+
+struct lex_val* get_true_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = LIT_TK;
+
+    lvptr->lit_type = BOOL_LT;
+    lvptr->value.b = 1;
+
+    return lvptr;
+}
+
+struct lex_val* get_false_val() {
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
+
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = LIT_TK;
+
+    lvptr->lit_type = BOOL_LT;
+    lvptr->value.b = 0;
+
+    return lvptr;
 }
