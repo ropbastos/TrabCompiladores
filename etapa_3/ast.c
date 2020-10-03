@@ -13,7 +13,10 @@ node* create_node(lex_val* val, int child_num, ...) {
         switch ( val->lit_type) {
             case INT_LT:
                 printf("VALOR INTEIRO DO LIT: %d\n", val->value.i);
-                nodeptr->label = (char*) &(val->value.i); break;
+                printf("VALOR CHAR DO LIT: %c\n", val->value.i + '0');
+                nodeptr->label = (char*) &(val->value.i); 
+                *(nodeptr->label) += '0';
+                break;
             case FLOAT_LT:
             case CHAR_LT:
             case BOOL_LT:
