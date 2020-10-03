@@ -70,18 +70,18 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
     /* Special Characters */ 
 
-{special_char}  { return yytext[0];      }
+{special_char}  { yylval.lex_val = get_spchar_val(); return yytext[0];      }
 
     /* Composite Operators */
 
-"<="             { return TK_OC_LE;      }
-">="             { return TK_OC_GE;      }
-"=="             { return TK_OC_EQ;      }
-"!="             { return TK_OC_NE;      }
-"&&"             { return TK_OC_AND;     }
-"||"             { return TK_OC_OR;      }
-">>"             { return TK_OC_SR;      }
-"<<"             { return TK_OC_SL;      }
+"<="             { yylval.lex_val = get_cop_val(); return TK_OC_LE;      }
+">="             { yylval.lex_val = get_cop_val(); return TK_OC_GE;      }
+"=="             { yylval.lex_val = get_cop_val(); return TK_OC_EQ;      }
+"!="             { yylval.lex_val = get_cop_val(); return TK_OC_NE;      }
+"&&"             { yylval.lex_val = get_cop_val(); return TK_OC_AND;     }
+"||"             { yylval.lex_val = get_cop_val(); return TK_OC_OR;      }
+">>"             { yylval.lex_val = get_cop_val(); return TK_OC_SR;      }
+"<<"             { yylval.lex_val = get_cop_val(); return TK_OC_SL;      }
 
     /* Literals */
 
@@ -107,7 +107,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
     /* Identifiers */
 
-{alfa}+({dig}|{alfa})*  { return TK_IDENTIFICADOR; }
+{alfa}+({dig}|{alfa})*  { yylval.lex_val = get_id_val(); return TK_IDENTIFICADOR; }
 
     /* Eat up spaces and comments */
 

@@ -42,17 +42,17 @@ int get_col();
 %token TK_PR_PROTECTED
 %token TK_PR_END
 %token TK_PR_DEFAULT
-%token TK_OC_LE
-%token TK_OC_GE
-%token TK_OC_EQ
-%token TK_OC_NE
-%token TK_OC_AND
-%token TK_OC_OR
-%token TK_OC_SL
-%token TK_OC_SR
-%token TK_OC_FORWARD_PIPE
-%token TK_OC_BASH_PIPE
 
+%token<lex_val> TK_OC_LE
+%token<lex_val> TK_OC_GE
+%token<lex_val> TK_OC_EQ
+%token<lex_val> TK_OC_NE
+%token<lex_val> TK_OC_AND
+%token<lex_val> TK_OC_OR
+%token<lex_val> TK_OC_SL
+%token<lex_val> TK_OC_SR
+%token<lex_val> TK_OC_FORWARD_PIPE
+%token<lex_val> TK_OC_BASH_PIPE
 %token<lex_val> TK_LIT_INT
 %token<lex_val> TK_LIT_FLOAT
 %token<lex_val> TK_LIT_FALSE
@@ -169,7 +169,7 @@ local_list:
     TK_IDENTIFICADOR 
 |   TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE literal 
+|   TK_IDENTIFICADOR TK_OC_LE literal { printf("%s yadayad\n", $2->value.s); }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
 ;
