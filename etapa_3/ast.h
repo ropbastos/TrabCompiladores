@@ -5,12 +5,12 @@ typedef struct node {
     char* label;
     lex_val* val;
     int child_num;
-    node** children; 
+    struct node** children; 
 } node;
 
 enum node_type{lit, id};
 
-int create_node(lex_val* val, int child_num, ...);
+node* create_node(lex_val* val, int child_num, ...);
 int traverse(node* tree);
 
 
