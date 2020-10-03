@@ -3,93 +3,103 @@
 #include <string.h>
 #include "ast.h"
 
+node*  create_literal_node(lex_val* val);
+
 node* create_node(lex_val* val, int child_num, ...) {
 
     // Allocate memory for new node.
     node *nodeptr;
     nodeptr = (struct node*) malloc(sizeof(struct node));
 
-    // Literal nodes
-    if ( val->lex_type == LIT_TK ) {
-        switch ( val->lit_type ) {
-            case INT_LT:
-                // Write label
-                nodeptr->label = (char*) malloc(2);
-                nodeptr->label = (char*) &(val->value.i); 
-                *(nodeptr->label) += '0';
-                nodeptr->label[1] = '\0';
 
-                // Write value
-                nodeptr->val = val;
+    if (val->lex_type == LIT_TK) {
+        return create_literal_node(val);
+    }
 
-                // Write children
-                nodeptr->child_num = 0;
-                nodeptr->children = NULL;
+    return nodeptr;
+}
 
-                break;
-            case FLOAT_LT:
-                // Write label
-                nodeptr->label = (char*) malloc(5);
-                gcvt(val->value.f, 4, nodeptr->label); 
+node*  create_literal_node(lex_val* val) {
+    node *nodeptr;
+    nodeptr = (struct node*) malloc(sizeof(struct node));
 
-                // Write value
-                nodeptr->val = val;
+    switch ( val->lit_type ) {
+        case INT_LT:
+            // Write label
+            nodeptr->label = (char*) malloc(2);
+            nodeptr->label = (char*) &(val->value.i);
+            *(nodeptr->label) += '0';
+            nodeptr->label[1] = '\0';
 
-                // Write children
-                nodeptr->child_num = 0;
-                nodeptr->children = NULL;
+            // Write value
+            nodeptr->val = val;
 
-                break;
-            case CHAR_LT:
-                // Write label
-                nodeptr->label = (char*) malloc(2);
-                
-                nodeptr->label = (char*) &(val->value.c);
-                nodeptr->label[1] = '\0'; 
+            // Write children
+            nodeptr->child_num = 0;
+            nodeptr->children = NULL;
 
-                // Write value
-                nodeptr->val = val;
+            break;
+        case FLOAT_LT:
+            // Write label
+            nodeptr->label = (char*) malloc(5);
+            gcvt(val->value.f, 4, nodeptr->label);
 
-                // Write children
-                nodeptr->child_num = 0;
-                nodeptr->children = NULL;
+            // Write value
+            nodeptr->val = val;
 
-                break;
-            case BOOL_LT:
-                // Write label
-                if (val->value.b == 1) {
-                    nodeptr->label = malloc(5);
+            // Write children
+            nodeptr->child_num = 0;
+            nodeptr->children = NULL;
 
-                    strcpy(nodeptr->label, "True");
-                } else {
-                    nodeptr->label = malloc(6);
+            break;
+        case CHAR_LT:
+            // Write label
+            nodeptr->label = (char*) malloc(2);
 
-                    strcpy(nodeptr->label, "False");
-                };
+            nodeptr->label = (char*) &(val->value.c);
+            nodeptr->label[1] = '\0';
 
-                // Write value
-                nodeptr->val = val;
+            // Write value
+            nodeptr->val = val;
 
-                // Write children
-                nodeptr->child_num = 0;
-                nodeptr->children = NULL;
+            // Write children
+            nodeptr->child_num = 0;
+            nodeptr->children = NULL;
 
-                break;
-            case STR_LT:
-                // Write label
-                nodeptr->label = (char*) malloc(sizeof(val->value.s));
-                strcpy(nodeptr->label, val->value.s); 
+            break;
+        case BOOL_LT:
+            // Write label
+            if (val->value.b == 1) {
+                nodeptr->label = malloc(5);
 
-                // Write value
-                nodeptr->val = val;
+                strcpy(nodeptr->label, "True");
+            } else {
+                nodeptr->label = malloc(6);
 
-                // Write children
-                nodeptr->child_num = 0;
-                nodeptr->children = NULL;
+                strcpy(nodeptr->label, "False");
+            };
 
-                break;
-        }
-        
+            // Write value
+            nodeptr->val = val;
+
+            // Write children
+            nodeptr->child_num = 0;
+            nodeptr->children = NULL;
+
+            break;
+        case STR_LT:
+            // Write label
+            nodeptr->label = (char*) malloc(sizeof(val->value.s));
+            strcpy(nodeptr->label, val->value.s);
+
+            // Write value
+            nodeptr->val = val;
+
+            // Write children
+            nodeptr->child_num = 0;
+            nodeptr->children = NULL;
+
+            break;
     }
 
     return nodeptr;
