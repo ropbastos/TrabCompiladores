@@ -1,8 +1,8 @@
 int a() {
-    int t <= 1;
-    int b <= 3.0;
-    int t <= false;
-    int t <= true;
-    int t <= 'A';
-    int t <= "streng";
+    int t <= 3;
+    //int b <= 3.0;
+    //int t <= false;
+    //int t <= true;
+    //int t <= 'A';
+    //int t <= "streng";
 }

@@ -1,7 +1,8 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "lexval.h"
+//#include "lexval.h"
+#include "ast.h"
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
@@ -13,6 +14,7 @@ int get_col();
 /* Define union types */
 %union {
     struct lex_val* lex_val;
+    struct node* node;
 }
 
 %token TK_PR_INT
@@ -60,6 +62,8 @@ int get_col();
 %token<lex_val> TK_LIT_CHAR
 %token<lex_val> TK_LIT_STRING
 %token<lex_val> TK_IDENTIFICADOR
+
+%type<node> literal
 
 %token TOKEN_ERRO
 
@@ -168,19 +172,19 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR 
 |   TK_IDENTIFICADOR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE literal 
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
+|   TK_IDENTIFICADOR TK_OC_LE literal { printf("Label do nodo criado: %c", *($3->label)); }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
 ;
 
 literal:
-    TK_LIT_CHAR    { printf("%c yadayad\n", $1->value.c); }
-|   TK_LIT_FALSE   
-|   TK_LIT_FLOAT   
-|   TK_LIT_INT     
-|   TK_LIT_STRING  
-|   TK_LIT_TRUE     
+    TK_LIT_CHAR    { $$ = create_node($1, 0); }
+|   TK_LIT_FALSE   { $$ = create_node($1, 0); }
+|   TK_LIT_FLOAT   { $$ = create_node($1, 0); }
+|   TK_LIT_INT     { $$ = create_node($1, 0); }
+|   TK_LIT_STRING  { $$ = create_node($1, 0); }
+|   TK_LIT_TRUE     { $$ = create_node($1, 0); }
 ;
 
 attrib:

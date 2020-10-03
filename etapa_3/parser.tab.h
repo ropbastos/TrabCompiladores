@@ -99,11 +99,12 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 14 "parser.y" /* yacc.c:1909  */
+#line 15 "parser.y" /* yacc.c:1909  */
 
     struct lex_val* lex_val;
+    struct node* node;
 
-#line 107 "parser.tab.h" /* yacc.c:1909  */
+#line 108 "parser.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
