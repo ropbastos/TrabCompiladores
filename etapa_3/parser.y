@@ -175,7 +175,7 @@ local_list:
 ;
 
 literal:
-    TK_LIT_CHAR    
+    TK_LIT_CHAR    { printf("%c yadayad\n", $1->value.c); }
 |   TK_LIT_FALSE   
 |   TK_LIT_FLOAT   
 |   TK_LIT_INT     

@@ -1,8 +1,11 @@
+// LEX TYPES
 #define SPCHAR_TK 1
 #define COP_TK 2
 #define ID_TK 3
 #define LIT_TK 4
+//
 
+// LIT TYPES
 #define INT_LT 5
 #define FLOAT_LT 6
 #define CHAR_LT 7
@@ -13,6 +16,7 @@
 
 #define TRUE 1
 #define FALSE 0
+//
 
 typedef union {
     int i;
