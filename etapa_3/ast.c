@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ast.h"
 
 node* create_node(lex_val* val, int child_num, ...) {
@@ -55,7 +56,38 @@ node* create_node(lex_val* val, int child_num, ...) {
 
                 break;
             case BOOL_LT:
-                printf("not impl.");
+                // Write label
+                if (val->value.b == 1) {
+                    nodeptr->label = malloc(5);
+
+                    strcpy(nodeptr->label, "True");
+                } else {
+                    nodeptr->label = malloc(6);
+
+                    strcpy(nodeptr->label, "False");
+                };
+
+                // Write value
+                nodeptr->val = val;
+
+                // Write children
+                nodeptr->child_num = 0;
+                nodeptr->children = NULL;
+
+                break;
+            case STR_LT:
+                // Write label
+                nodeptr->label = (char*) malloc(sizeof(val->value.s));
+                strcpy(nodeptr->label, val->value.s); 
+
+                // Write value
+                nodeptr->val = val;
+
+                // Write children
+                nodeptr->child_num = 0;
+                nodeptr->children = NULL;
+
+                break;
         }
         
     }
