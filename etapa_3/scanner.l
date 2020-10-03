@@ -1,8 +1,10 @@
 %{
     #include "parser.tab.h"
+    #include "lexval.h"
     static void count_col();
     #define YY_USER_ACTION count_col();
     int col = 1;
+    int get_line_number();
     int line_number = 1;
 %}
 
@@ -70,14 +72,27 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
     /* Literals */
 
-{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+|\;|\,|\)) { return TK_LIT_FLOAT; }
+{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+|\;|\,|\)) { 
+    struct lex_val *lvptr;
+    lvptr = (struct lex_val*) malloc(sizeof(struct lex_val));
 
-{dig}+/({invisible}|{operator}+|\]|\;|\,|\))  { return TK_LIT_INT; }
+    lvptr->line = get_line_number();
+
+    lvptr->lex_type = LIT_TK;
+
+    lvptr->lit_type = FLOAT_LT;
+    lvptr->value.f = atof(yytext);
+    yylval.lex_val = lvptr;
+    return TK_LIT_FLOAT; }
+
+{dig}+/({invisible}|{operator}+|\]|\;|\,|\))  { 
+    return TK_LIT_INT; }
 
 "false" { return TK_LIT_FALSE; } 
 "true"  { return TK_LIT_TRUE; } 
 
-'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;) { return TK_LIT_CHAR; }
+'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;) { 
+    return TK_LIT_CHAR; }
 
 \"[^\n"]+\" { return TK_LIT_STRING; }
 

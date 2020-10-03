@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "lexval.h"
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
@@ -8,6 +9,11 @@ int get_col();
 %}
 
 %define parse.error verbose
+
+/* Define union types */
+%union {
+    struct lex_val* lex_val;
+}
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -46,13 +52,15 @@ int get_col();
 %token TK_OC_SR
 %token TK_OC_FORWARD_PIPE
 %token TK_OC_BASH_PIPE
-%token TK_LIT_INT
-%token TK_LIT_FLOAT
-%token TK_LIT_FALSE
-%token TK_LIT_TRUE
-%token TK_LIT_CHAR
-%token TK_LIT_STRING
-%token TK_IDENTIFICADOR
+
+%token<lex_val> TK_LIT_INT
+%token<lex_val> TK_LIT_FLOAT
+%token<lex_val> TK_LIT_FALSE
+%token<lex_val> TK_LIT_TRUE
+%token<lex_val> TK_LIT_CHAR
+%token<lex_val> TK_LIT_STRING
+%token<lex_val> TK_IDENTIFICADOR
+
 %token TOKEN_ERRO
 
 /* Define precedences */
@@ -96,10 +104,10 @@ global_decl:
 ;
 
 global_list:
-    TK_IDENTIFICADOR ',' global_list
-|   TK_IDENTIFICADOR
+    TK_IDENTIFICADOR 
+|   TK_IDENTIFICADOR ',' global_list
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']'
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' 
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']'
 ;
@@ -161,16 +169,16 @@ local_list:
     TK_IDENTIFICADOR 
 |   TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE literal
+|   TK_IDENTIFICADOR TK_OC_LE literal 
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
 ;
 
 literal:
-    TK_LIT_CHAR
+    TK_LIT_CHAR 
 |   TK_LIT_FALSE
-|   TK_LIT_FLOAT
-|   TK_LIT_INT
+|   TK_LIT_FLOAT    { printf("float detected: %f, in line %d, lext_type: %d, lit_type: %d", $1->value.f, $1->line, $1->lex_type, $1->lit_type); }
+|   TK_LIT_INT  
 |   TK_LIT_STRING
 |   TK_LIT_TRUE
 ;
@@ -188,7 +196,7 @@ io:
 
 func_call:
     TK_IDENTIFICADOR '(' ')'
-|    TK_IDENTIFICADOR '(' exp_list ')'
+|   TK_IDENTIFICADOR '(' exp_list ')'
 ;
 
 exp_list:
