@@ -200,7 +200,22 @@ struct lex_val* get_str_val() {
     lvptr->lex_type = LIT_TK;
 
     lvptr->lit_type = STR_LT;
-    lvptr->value.s = strdup(yytext);
+    
+    // String values must be stripped from their quotes
+    char trim_quotes[strlen(yytext) - 2];  // Does that leak?
+
+    int j = 0;
+    for (int i = 0; i < strlen(yytext); i++) {
+        if (yytext[i] == '"')
+            continue;
+        
+        trim_quotes[j++] = yytext[i];
+    }
+    
+    // Terminating char
+    if (j > 0) trim_quotes[j] = '\0';
+
+    lvptr->value.s = strdup(trim_quotes);
 
     return lvptr;
 }

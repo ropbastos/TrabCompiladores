@@ -169,7 +169,7 @@ local_list:
     TK_IDENTIFICADOR 
 |   TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR TK_OC_LE literal { printf("%s yadayad\n", $2->value.s); }
+|   TK_IDENTIFICADOR TK_OC_LE literal 
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
 ;
@@ -179,7 +179,7 @@ literal:
 |   TK_LIT_FALSE   
 |   TK_LIT_FLOAT   
 |   TK_LIT_INT     
-|   TK_LIT_STRING   
+|   TK_LIT_STRING  
 |   TK_LIT_TRUE     
 ;
 
