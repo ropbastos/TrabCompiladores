@@ -64,6 +64,7 @@ int get_col();
 %token<lex_val> TK_IDENTIFICADOR
 
 %type<node> literal
+%type<node> local_list
 
 %token TOKEN_ERRO
 
@@ -170,12 +171,12 @@ local_decl:
 ;
 
 local_list:
-    TK_IDENTIFICADOR 
-|   TK_IDENTIFICADOR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
-|   TK_IDENTIFICADOR TK_OC_LE literal { printf("Label do nodo criado: %s\n", $3->label); }
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
-|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
+    TK_IDENTIFICADOR { $$ = create_node($1, 0); }
+|   TK_IDENTIFICADOR ',' local_list { $$ = create_node($1, 3, $1, $3); }
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR { $$ = create_node($2, 3, $1, $3); } 
+|   TK_IDENTIFICADOR TK_OC_LE literal { $$ = create_node($2, 3, $1, $3); } // ESSA
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list { $$ = create_node($2, 3, $1, $3); }
+|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list { $$ = create_node($2, 3, $1, $3); }
 ;
 
 literal:

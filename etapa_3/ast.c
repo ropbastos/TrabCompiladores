@@ -3,16 +3,73 @@
 #include <string.h>
 #include "ast.h"
 
-node*  create_literal_node(lex_val* val);
-
 node* create_node(lex_val* val, int child_num, ...) {
 
-    switch ( val->lex_type ) {
-        case LIT_TK:
-            return create_literal_node(val);
-    }
+    va_list valist;
+
+    va_start(valist, child_num);
+
+    printf("Label do primeiro filho: %s\n", va_arg(valist, node*)->label);
+
+    node** children;
+
+    children = malloc(child_num * sizeof(struct node));
+
+    // for (int i = 0; i < child_num; i++) {
+    //     children[i] = va_arg(valist, node*);
+    // }
+
+    // for (int i = 0; i < child_num; i++) {
+    //     printf("label do filho: %s\n", children[i]->label);
+    // }
+
+    // switch ( val->lex_type ) {
+    //     case LIT_TK:
+    //         return create_literal_node(val);
+    //     case ID_TK:
+    //         return create_id_node(val);
+    //     case COP_TK:
+    //         return create_cop_node(val, child_num, children);
+    // };
 
     return NULL;
+}
+
+node* create_cop_node(lex_val* val, int child_num, node** children) {
+    // Allocate memory.
+    node *nodeptr;
+    nodeptr = (struct node*) malloc(sizeof(struct node));
+
+    // Write label
+    nodeptr->label = strdup(val->value.s); // hidden malloc
+
+    // Write value
+    nodeptr->val = val;
+
+    // Write children
+    nodeptr->child_num = 0;
+    nodeptr->children = NULL;
+
+    return nodeptr;
+
+}
+
+node* create_id_node(lex_val* val) {
+    // Allocate memory.
+    node *nodeptr;
+    nodeptr = (struct node*) malloc(sizeof(struct node));
+
+    // Write label
+    nodeptr->label = strdup(val->value.s); // hidden malloc
+
+    // Write value
+    nodeptr->val = val;
+
+    // Write children
+    nodeptr->child_num = 0;
+    nodeptr->children = NULL;
+
+    return nodeptr;
 }
 
 node*  create_literal_node(lex_val* val) {
