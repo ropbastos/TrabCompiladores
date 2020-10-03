@@ -16,7 +16,7 @@ node* create_node(lex_val* val, int child_num, ...) {
                 nodeptr->label = (char*) malloc(2);
                 nodeptr->label = (char*) &(val->value.i); 
                 *(nodeptr->label) += '0';
-                *(nodeptr->label+1) = '\0';
+                nodeptr->label[1] = '\0';
 
                 // Write value
                 nodeptr->val = val;
@@ -40,6 +40,20 @@ node* create_node(lex_val* val, int child_num, ...) {
 
                 break;
             case CHAR_LT:
+                // Write label
+                nodeptr->label = (char*) malloc(2);
+                
+                nodeptr->label = (char*) &(val->value.c);
+                nodeptr->label[1] = '\0'; 
+
+                // Write value
+                nodeptr->val = val;
+
+                // Write children
+                nodeptr->child_num = 0;
+                nodeptr->children = NULL;
+
+                break;
             case BOOL_LT:
                 printf("not impl.");
         }
