@@ -177,7 +177,10 @@ struct lex_val* get_char_val() {
     lvptr->lex_type = LIT_TK;
 
     lvptr->lit_type = CHAR_LT;
-    lvptr->value.c = yytext[1];
+
+    printf("YYTEXT[1]: %c", yytext[1]);
+
+    lvptr->value.c = yytext[0];
 
     return lvptr;
 }

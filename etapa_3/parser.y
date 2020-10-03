@@ -175,12 +175,12 @@ local_list:
 ;
 
 literal:
-    TK_LIT_CHAR 
-|   TK_LIT_FALSE
-|   TK_LIT_FLOAT    { printf("float detected: %f, in line %d, lext_type: %d, lit_type: %d", $1->value.f, $1->line, $1->lex_type, $1->lit_type); }
-|   TK_LIT_INT  
-|   TK_LIT_STRING
-|   TK_LIT_TRUE
+    TK_LIT_CHAR     { printf("char detected: %c, in line %d, lext_type: %d, lit_type: %d\n", $1->value.c, $1->line, $1->lex_type, $1->lit_type); }
+|   TK_LIT_FALSE    { printf("false detected: %d, in line %d, lext_type: %d, lit_type: %d\n", $1->value.b, $1->line, $1->lex_type, $1->lit_type); }
+|   TK_LIT_FLOAT    { printf("float detected: %f, in line %d, lext_type: %d, lit_type: %d\n", $1->value.f, $1->line, $1->lex_type, $1->lit_type); }
+|   TK_LIT_INT      { printf("int detected: %d, in line %d, lext_type: %d, lit_type: %d\n", $1->value.i, $1->line, $1->lex_type, $1->lit_type); }
+|   TK_LIT_STRING   { printf("str detected: %s, in line %d, lext_type: %d, lit_type: %d\n", $1->value.s, $1->line, $1->lex_type, $1->lit_type); }
+|   TK_LIT_TRUE     { printf("true detected: %d, in line %d, lext_type: %d, lit_type: %d\n", $1->value.b, $1->line, $1->lex_type, $1->lit_type); }
 ;
 
 attrib:
