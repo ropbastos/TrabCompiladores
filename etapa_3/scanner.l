@@ -95,9 +95,11 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 "true"  { yylval.lex_val = get_true_val(); return TK_LIT_TRUE; } 
 
 '(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;) { 
-    return TK_LIT_CHAR; }
+    yylval.lex_val = get_char_val();
+    return TK_LIT_CHAR; 
+    }
 
-\"[^\n"]+\" { return TK_LIT_STRING; }
+\"[^\n"]+\" { yylval.lex_val = get_str_val(); return TK_LIT_STRING; }
 
     /* Identifiers */
 
@@ -178,9 +180,7 @@ struct lex_val* get_char_val() {
 
     lvptr->lit_type = CHAR_LT;
 
-    printf("YYTEXT[1]: %c", yytext[1]);
-
-    lvptr->value.c = yytext[0];
+    lvptr->value.c = yytext[1];
 
     return lvptr;
 }

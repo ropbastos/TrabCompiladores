@@ -3,6 +3,6 @@ int a() {
     int b <= 3.0;
     int t <= false;
     int t <= true;
-    int t <= 'c';
-    //int c <= "streng";
+    int t <= 'A';
+    int t <= "streng";
 }
