@@ -173,7 +173,7 @@ local_list:
     TK_IDENTIFICADOR 
 |   TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
-|   TK_IDENTIFICADOR TK_OC_LE literal { printf("Label do nodo criado: %c", *($3->label)); }
+|   TK_IDENTIFICADOR TK_OC_LE literal { printf("Label do nodo criado: %s\n", $3->label); }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
 ;
@@ -184,7 +184,7 @@ literal:
 |   TK_LIT_FLOAT   { $$ = create_node($1, 0); }
 |   TK_LIT_INT     { $$ = create_node($1, 0); }
 |   TK_LIT_STRING  { $$ = create_node($1, 0); }
-|   TK_LIT_TRUE     { $$ = create_node($1, 0); }
+|   TK_LIT_TRUE    { $$ = create_node($1, 0); }
 ;
 
 attrib:

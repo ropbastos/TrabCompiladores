@@ -10,14 +10,35 @@ node* create_node(lex_val* val, int child_num, ...) {
 
     // Literal nodes
     if ( val->lex_type == LIT_TK ) {
-        switch ( val->lit_type) {
+        switch ( val->lit_type ) {
             case INT_LT:
-                printf("VALOR INTEIRO DO LIT: %d\n", val->value.i);
-                printf("VALOR CHAR DO LIT: %c\n", val->value.i + '0');
+                // Write label
+                nodeptr->label = (char*) malloc(2);
                 nodeptr->label = (char*) &(val->value.i); 
                 *(nodeptr->label) += '0';
+                *(nodeptr->label+1) = '\0';
+
+                // Write value
+                nodeptr->val = val;
+
+                // Write children
+                nodeptr->child_num = 0;
+                nodeptr->children = NULL;
+
                 break;
             case FLOAT_LT:
+                // Write label
+                nodeptr->label = (char*) malloc(5);
+                gcvt(val->value.f, 4, nodeptr->label); 
+
+                // Write value
+                nodeptr->val = val;
+
+                // Write children
+                nodeptr->child_num = 0;
+                nodeptr->children = NULL;
+
+                break;
             case CHAR_LT:
             case BOOL_LT:
                 printf("not impl.");

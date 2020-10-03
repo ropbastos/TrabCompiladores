@@ -1,6 +1,6 @@
 int a() {
     int t <= 3;
-    //int b <= 3.0;
+    int b <= 5.1234;
     //int t <= false;
     //int t <= true;
     //int t <= 'A';
