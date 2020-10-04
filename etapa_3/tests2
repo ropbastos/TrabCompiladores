@@ -5,7 +5,7 @@ int a() {
     static int t <= true;
     int t <= 'A';
     int t <= "streng";
-    int a <= b; 
+    int a <= b;
 
     input banana;
     output saida;

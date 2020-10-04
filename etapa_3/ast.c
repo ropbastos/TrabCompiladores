@@ -155,35 +155,36 @@ char* get_label(lex_val* val) {
 
 void print_csv_tree(node* tree) {
      // Print CSV structure
-    for (int i = 0; i < tree->child_num; i++) {
-        if ( ((tree->children)[i])->label ) {
-            printf("%p, %p\n", tree, (tree->children)[i]);
-            
-            if ( ((tree->children)[i])->children ) {
-                print_csv_tree( tree->children[i] );
-            };
-        }
-        else
-        {
-            return;
-        }       
+    if ( tree->child_num ) {
+        for (int i = 0; i < tree->child_num; i++) {
+            if ( ((tree->children)[i])->label ) {
+                printf("%p, %p\n", tree, (tree->children)[i]);
+                
+                if ( ((tree->children)[i])->children ) {
+                    print_csv_tree( tree->children[i] );
+                };
+            }
+            else
+            {
+                return;
+            }       
+        };
     };
 }
 
 void print_tree_labels(node* tree) {
+    // printf("Entrou pint_tree_labels\n");
     printf("%p [label=\"%s\"];\n", tree, tree->label);
-    for (int i = 0; i < tree->child_num; i++) {
-        if ( ((tree->children)[i])->label ) {
-            printf("%p [label=\"%s\"];\n", (tree->children)[i], (tree->children[i])->label);
-            
-            if ( ((tree->children)[i])->children ) {
+    if (tree->child_num) {
+        for (int i = 0; i < tree->child_num; i++) {
+            if ( ((tree->children)[i])->label ) {
                 print_tree_labels( tree->children[i] );
-            };
-        }
-        else
-        {
-            return;
-        }       
+            }
+            else
+            {
+                return;
+            }       
+        };
     };
 }
 
