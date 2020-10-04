@@ -174,37 +174,37 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR 
         { 
-        $$ = create_lv_node($1, 0); 
+        $$ = lexval_node($1, 0); 
         }
 |   TK_IDENTIFICADOR ',' local_list 
         { 
-        $$ = create_lv_node($1, 3, $1); 
+        $$ = lexval_node($1, 3, $1); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
         { 
-        $$ = create_lv_node($2, 2, create_lv_node($3, 0), create_lv_node($1, 0)); 
+        $$ = lexval_node($2, 2, lexval_node($3, 0), lexval_node($1, 0)); 
         } 
 |   TK_IDENTIFICADOR TK_OC_LE literal 
         { 
-        $$ = create_lv_node($2, 2, create_lv_node($1, 0), $3); 
+        $$ = lexval_node($2, 2, lexval_node($1, 0), $3); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list 
         { 
-        $$ = create_lv_node($2, 3, $1); 
+        $$ = lexval_node($2, 3, $1); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list 
     { 
-    $$ = create_lv_node($2, 3, $1); 
+    $$ = lexval_node($2, 3, $1); 
     }
 ;
 
 literal:
-    TK_LIT_CHAR    { $$ = create_lv_node($1, 0); }
-|   TK_LIT_FALSE   { $$ = create_lv_node($1, 0); }
-|   TK_LIT_FLOAT   { $$ = create_lv_node($1, 0); }
-|   TK_LIT_INT     { $$ = create_lv_node($1, 0); }
-|   TK_LIT_STRING  { $$ = create_lv_node($1, 0); }
-|   TK_LIT_TRUE    { $$ = create_lv_node($1, 0); }
+    TK_LIT_CHAR    { $$ = lexval_node($1, 0); }
+|   TK_LIT_FALSE   { $$ = lexval_node($1, 0); }
+|   TK_LIT_FLOAT   { $$ = lexval_node($1, 0); }
+|   TK_LIT_INT     { $$ = lexval_node($1, 0); }
+|   TK_LIT_STRING  { $$ = lexval_node($1, 0); }
+|   TK_LIT_TRUE    { $$ = lexval_node($1, 0); }
 ;
 
 attrib:

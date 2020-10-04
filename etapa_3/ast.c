@@ -4,7 +4,7 @@
 #include "ast.h"
 
 
-node* create_lv_node(lex_val* val, int child_num, ...) {
+node* lexval_node(lex_val* val, int child_num, ...) {
     
     // Allocate memory.
     node *nodeptr = (struct node*) malloc(sizeof(struct node));
@@ -14,6 +14,36 @@ node* create_lv_node(lex_val* val, int child_num, ...) {
 
     // Write value.
     nodeptr->val = val;
+
+    // Write children.
+    if (child_num) {
+        node** children = malloc(child_num * sizeof(struct node*));
+
+        va_list valist;
+
+        va_start(valist, child_num);
+
+        for (int i = 0; i < child_num; i++) {
+            children[i] = va_arg(valist, node*);
+        }
+
+        nodeptr->child_num = child_num;
+        nodeptr->children = children;
+    };
+
+    return nodeptr;
+}
+
+node* named_node(char* name, int child_num, ...) {
+    
+    // Allocate memory.
+    node *nodeptr = (struct node*) malloc(sizeof(struct node));
+
+    // Write label.
+    nodeptr->label = strdup(name);
+
+    // Write value.
+    nodeptr->val = NULL;
 
     // Write children.
     if (child_num) {

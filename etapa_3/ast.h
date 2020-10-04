@@ -10,10 +10,10 @@ typedef struct node {
 } node;
 
 // Nodes from lex objects
-node* create_lv_node(lex_val* val, int child_num, ...);
+node* lexval_node(lex_val* val, int child_num, ...);
 
 // Nodes from reduced labels
-node* create_node(lex_val* val, int child_num, ...);
+node* named_node(char* name, int child_num, ...);
 
 
 // Auxiliary
