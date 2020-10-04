@@ -15,6 +15,7 @@ int get_col();
 %union {
     struct lex_val* lex_val;
     struct node* node;
+    char* label;
 }
 
 %token TK_PR_INT
@@ -164,7 +165,7 @@ cmds:
 ;
 
 local_decl:
-    type local_list { printf("Reduziu local_decl\n"); print_children($2); }
+    type local_list { printf("Reduziu local_decl\n\n"); print_children($2); }
 |   TK_PR_CONST type local_list 
 |   TK_PR_STATIC TK_PR_CONST type local_list 
 |   TK_PR_STATIC type local_list 
@@ -173,37 +174,37 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR 
         { 
-        $$ = create_id_node($1); 
+        $$ = create_lv_node($1, 0); 
         }
 |   TK_IDENTIFICADOR ',' local_list 
         { 
-        $$ = create_node($1, 3, $1); 
+        $$ = create_lv_node($1, 3, $1); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
         { 
-        $$ = create_node($2, 2, create_id_node($3), create_id_node($1)); 
+        $$ = create_lv_node($2, 2, create_lv_node($3, 0), create_lv_node($1, 0)); 
         } 
 |   TK_IDENTIFICADOR TK_OC_LE literal 
         { 
-        $$ = create_node($2, 2, $3, create_id_node($1)); 
+        $$ = create_lv_node($2, 2, create_lv_node($1, 0), $3); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list 
         { 
-        $$ = create_node($2, 3, $1); 
+        $$ = create_lv_node($2, 3, $1); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list 
     { 
-    $$ = create_node($2, 3, $1); 
+    $$ = create_lv_node($2, 3, $1); 
     }
 ;
 
 literal:
-    TK_LIT_CHAR    { $$ = create_node($1, 0); }
-|   TK_LIT_FALSE   { $$ = create_node($1, 0); }
-|   TK_LIT_FLOAT   { $$ = create_node($1, 0); }
-|   TK_LIT_INT     { $$ = create_node($1, 0); }
-|   TK_LIT_STRING  { $$ = create_node($1, 0); }
-|   TK_LIT_TRUE    { $$ = create_node($1, 0); }
+    TK_LIT_CHAR    { $$ = create_lv_node($1, 0); }
+|   TK_LIT_FALSE   { $$ = create_lv_node($1, 0); }
+|   TK_LIT_FLOAT   { $$ = create_lv_node($1, 0); }
+|   TK_LIT_INT     { $$ = create_lv_node($1, 0); }
+|   TK_LIT_STRING  { $$ = create_lv_node($1, 0); }
+|   TK_LIT_TRUE    { $$ = create_lv_node($1, 0); }
 ;
 
 attrib:

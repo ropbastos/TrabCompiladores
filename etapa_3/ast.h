@@ -9,16 +9,15 @@ typedef struct node {
     struct node** children; 
 } node;
 
-enum node_type{lit, id};
+// Nodes from lex objects
+node* create_lv_node(lex_val* val, int child_num, ...);
 
+// Nodes from reduced labels
 node* create_node(lex_val* val, int child_num, ...);
 
-// Nodes with no children.
-node* create_literal_node(lex_val* val);
-node* create_id_node(lex_val* val);
 
-// Special char nodes
-node* create_cop_node(lex_val* val, int child_num, node** children);
+// Auxiliary
+char* get_label(lex_val* val);
 
 // DEBUG
 void print_children(node* parent);
