@@ -17,17 +17,19 @@ node* create_node(lex_val* val, int child_num, ...) {
 
         printf("antes de imprimir label do primeiro filho\n");
 
-        printf("label do primeiro filho: %s\n", (va_arg(valist, node*))->label);
+        //printf("label do primeiro filho: %s\n", (va_arg(valist, node*))->label);
 
-        // children = malloc(child_num * sizeof(struct node));
+        children = malloc(child_num * sizeof(struct node));
 
-        // for (int i = 0; i < child_num; i++) {
-        //     children[i] = va_arg(valist, node*);
-        // }
+        for (int i = 0; i < child_num; i++) {
+            children[i] = va_arg(valist, node*);
+        }
 
-        // for (int i = 0; i < child_num; i++) {
-        //     printf("label do filho: %s\n", children[i]->label);
-        // }
+        for (int i = 0; i < child_num-1; i++) {
+            printf("label do filho: %s\n", children[i]->label);
+        }
+
+        printf("Terminou o que ocorre dentro do if child_num\n");
     };
  
     switch ( val->lex_type ) {
