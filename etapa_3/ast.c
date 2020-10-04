@@ -25,7 +25,7 @@ node* create_node(lex_val* val, int child_num, ...) {
         case ID_TK:
             return create_id_node(val);
         case COP_TK:
-            printf("vai criar cop node\n");
+            printf("Vai criar cop_node\n");
             return create_cop_node(val, child_num, children);
     };
 
@@ -39,14 +39,14 @@ node* create_cop_node(lex_val* val, int child_num, node** children) {
 
     // Write label
     nodeptr->label = strdup(val->value.s); // hidden malloc
-    printf("cop_node: escreveu label\n");
+
     // Write value
     nodeptr->val = val;
-    printf("cop_node: escreveu valor\n");
+
     // Write children
     nodeptr->child_num = child_num + 1;
     nodeptr->children = children;
-    printf("cop_node: escreveu filhos\n");
+
     return nodeptr;
 }
 
@@ -158,7 +158,7 @@ node*  create_literal_node(lex_val* val) {
 // DEBUG
 
 void print_children(node* parent){
-    printf("Vai imprimir as criancas\n");
+    printf("Parent label: %s\n", parent->label);
     for (int i = 0; i < parent->child_num - 1; i++) {
         printf("child label: %s\n", ((parent->children)[i])->label);
     };

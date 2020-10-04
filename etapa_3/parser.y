@@ -171,12 +171,30 @@ local_decl:
 ;
 
 local_list:
-    TK_IDENTIFICADOR { $$ = create_node($1, 0, NULL); }
-|   TK_IDENTIFICADOR ',' local_list { $$ = create_node($1, 3, $1); }
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR { $$ = create_node($2, 3, $1); } 
-|   TK_IDENTIFICADOR TK_OC_LE literal { $$ = create_node($2, 2, $3, create_id_node($1)); }
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list { $$ = create_node($2, 3, $1); }
-|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list { $$ = create_node($2, 3, $1); }
+    TK_IDENTIFICADOR 
+        { 
+        $$ = create_id_node($1); 
+        }
+|   TK_IDENTIFICADOR ',' local_list 
+        { 
+        $$ = create_node($1, 3, $1); 
+        }
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
+        { 
+        $$ = create_node($2, 2, create_id_node($3), create_id_node($1)); 
+        } 
+|   TK_IDENTIFICADOR TK_OC_LE literal 
+        { 
+        $$ = create_node($2, 2, $3, create_id_node($1)); 
+        }
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list 
+        { 
+        $$ = create_node($2, 3, $1); 
+        }
+|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list 
+    { 
+    $$ = create_node($2, 3, $1); 
+    }
 ;
 
 literal:
