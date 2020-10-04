@@ -171,7 +171,10 @@ block:
 cmds:
     %empty    { $$ = NULL; }
 |   block ';' cmds
-|   local_decl ';' cmds { $$ = $1; add_children($$, 1, $3); }
+|   local_decl ';' cmds 
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+    }
 |   attrib ';' cmds
 |   io ';' cmds
     {
