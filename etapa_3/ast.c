@@ -4,33 +4,41 @@
 #include "ast.h"
 
 node* create_node(lex_val* val, int child_num, ...) {
-
-    va_list valist;
-
-    va_start(valist, child_num);
-
-    printf("Label do primeiro filho: %s\n", va_arg(valist, node*)->label);
-
+    
     node** children;
 
-    children = malloc(child_num * sizeof(struct node));
+    if (child_num) {
 
-    // for (int i = 0; i < child_num; i++) {
-    //     children[i] = va_arg(valist, node*);
-    // }
+        printf("entro if child_num\n");
 
-    // for (int i = 0; i < child_num; i++) {
-    //     printf("label do filho: %s\n", children[i]->label);
-    // }
+        va_list valist;
 
-    // switch ( val->lex_type ) {
-    //     case LIT_TK:
-    //         return create_literal_node(val);
-    //     case ID_TK:
-    //         return create_id_node(val);
-    //     case COP_TK:
-    //         return create_cop_node(val, child_num, children);
-    // };
+        va_start(valist, child_num);
+
+        printf("antes de imprimir label do primeiro filho\n");
+
+        printf("label do primeiro filho: %s\n", (va_arg(valist, node*))->label);
+
+        // children = malloc(child_num * sizeof(struct node));
+
+        // for (int i = 0; i < child_num; i++) {
+        //     children[i] = va_arg(valist, node*);
+        // }
+
+        // for (int i = 0; i < child_num; i++) {
+        //     printf("label do filho: %s\n", children[i]->label);
+        // }
+    };
+ 
+    switch ( val->lex_type ) {
+        case LIT_TK:
+            return create_literal_node(val);
+        case ID_TK:
+            return create_id_node(val);
+        case COP_TK:
+            printf("vai criar cop node\n");
+            return create_cop_node(val, child_num, children);
+    };
 
     return NULL;
 }
