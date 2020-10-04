@@ -20,6 +20,10 @@ void add_children(node* parent, int child_num, ...);
 // Auxiliary
 char* get_label(lex_val* val);
 
+void print_csv_tree(node* tree);
+
+void print_tree_labels(node* tree);
+
 // DEBUG
 void print_children(node* parent);
 

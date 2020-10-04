@@ -7,6 +7,8 @@ int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
 int get_col();
+
+extern void* arvore;
 %}
 
 %define parse.error verbose
@@ -115,7 +117,7 @@ int get_col();
 program:
     %empty
 |   global_decl program
-|   func program { print_children($1); }
+|   func program { arvore = $1; }
 ;
 
 global_decl:

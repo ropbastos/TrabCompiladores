@@ -6,7 +6,13 @@ default: scanner.l main.c ast.c parser.y
 	cp parser etapa3
 
 clean:
-	rm lex.* parser.tab* parser.out* parser main.o ast.o etapa*
-
+	rm -f lex.* parser.tab* parser.out* parser main.o ast.o etapa* diag* out*
+	
 dev:
 	bison -v -d parser.y
+
+diag:
+	make
+	./etapa3 < tests2 > out.txt
+	python3 txt_to_diag.py out.txt diag.txt
+	dot diag.txt -Tpng > diag.png

@@ -95,6 +95,18 @@ void add_children(node* parent, int child_num, ...) {
 
 }
 
+void exporta (void* arvore) {
+
+    node* tree = (node*) arvore;
+
+    // Print CSV structure
+    print_csv_tree(tree);
+
+    // Print labeled nodes.
+    print_tree_labels(tree);
+
+}
+
 // Auxiliary
 char* get_label(lex_val* val) {
 
@@ -139,6 +151,40 @@ char* get_label(lex_val* val) {
     }
 
     return label;
+}
+
+void print_csv_tree(node* tree) {
+     // Print CSV structure
+    for (int i = 0; i < tree->child_num; i++) {
+        if ( ((tree->children)[i])->label ) {
+            printf("%p, %p\n", tree, (tree->children)[i]);
+            
+            if ( ((tree->children)[i])->children ) {
+                print_csv_tree( tree->children[i] );
+            };
+        }
+        else
+        {
+            return;
+        }       
+    };
+}
+
+void print_tree_labels(node* tree) {
+    printf("%p [label=\"%s\"];\n", tree, tree->label);
+    for (int i = 0; i < tree->child_num; i++) {
+        if ( ((tree->children)[i])->label ) {
+            printf("%p [label=\"%s\"];\n", (tree->children)[i], (tree->children[i])->label);
+            
+            if ( ((tree->children)[i])->children ) {
+                print_tree_labels( tree->children[i] );
+            };
+        }
+        else
+        {
+            return;
+        }       
+    };
 }
 
 // DEBUG
