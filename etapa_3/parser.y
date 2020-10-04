@@ -69,6 +69,10 @@ int get_col();
 %type<node> io
 %type<node> cmds
 %type<node> local_decl
+%type<node> block
+%type<node> body
+%type<node> header
+%type<node> func
 /* %type<node> func_call
 %type<node> exp
 %type<node> shift
@@ -111,7 +115,7 @@ int get_col();
 program:
     %empty
 |   global_decl program
-|   func program
+|   func program { print_children($1); }
 ;
 
 global_decl:
@@ -137,11 +141,11 @@ type:
 ;
 
 func:
-    header body
+    header body { $$ = $1; add_children($$, 1, $2); }
 ;
 
 header:
-    type TK_IDENTIFICADOR '(' ')'
+    type TK_IDENTIFICADOR '(' ')' { $$ = lexval_node($2); }
 |   type TK_IDENTIFICADOR '(' params ')'
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')'
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')'
@@ -155,11 +159,11 @@ params:
 ;
 
 body:
-    block
+    block { $$ = $1; }
 ;
 
 block:
-   '{' cmds '}' { print_children($2); }
+   '{' cmds '}' { $$ = $2; }
 ;
 
 cmds:
