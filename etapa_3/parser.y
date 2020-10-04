@@ -68,13 +68,13 @@ int get_col();
 %type<node> local_list
 %type<node> io
 %type<node> cmds
-%type<node> func_call
+/* %type<node> func_call
 %type<node> exp
 %type<node> shift
 %type<node> jmp_stmt
 %type<node> if
 %type<node> for
-%type<node> while
+%type<node> while */
 
 %token TOKEN_ERRO
 
@@ -190,23 +190,23 @@ local_list:
         }
 |   TK_IDENTIFICADOR ',' local_list
         {
-        $$ = lexval_node($1);
+        $$ = lexval_node($1); add_children($$, 1, $3);
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
         {
-        $$ = lexval_node($2);
+        $$ = lexval_node($2); add_children($$, 2, lexval_node($1), lexval_node($3));
         }
 |   TK_IDENTIFICADOR TK_OC_LE literal
         {
-        $$ = lexval_node($2);
+        $$ = lexval_node($2); add_children($$, 2, lexval_node($1), $3);
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
         {
-        $$ = lexval_node($2);
+        $$ = lexval_node($2); add_children($$, 3, lexval_node($1), lexval_node($3), $5);
         }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
         {
-        $$ = lexval_node($2);
+        $$ = lexval_node($2); add_children($$, 3, lexval_node($1), $3, $5);
         }
 ;
 
