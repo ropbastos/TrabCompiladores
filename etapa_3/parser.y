@@ -185,9 +185,9 @@ cmds:
 
 local_decl:
     type local_list { $$ = $2; }
-|   TK_PR_CONST type local_list
-|   TK_PR_STATIC TK_PR_CONST type local_list
-|   TK_PR_STATIC type local_list
+|   TK_PR_CONST type local_list { $$ = $3; }
+|   TK_PR_STATIC TK_PR_CONST type local_list { $$ = $4; }
+|   TK_PR_STATIC type local_list { $$ = $3; }
 ;
 
 local_list:
