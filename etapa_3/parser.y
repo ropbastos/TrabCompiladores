@@ -161,7 +161,7 @@ cmds:
 |   attrib ';' cmds
 |   io ';' cmds 
     { 
-    if ($3 != NULL) $$ = named_node($1->label, 2, $1->children[0], $3); else $$ = named_node($1->label, 0); 
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;}; 
     }
 |   func_call ';' cmds
 |   shift ';' cmds
@@ -179,37 +179,37 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR 
         { 
-        $$ = lexval_node($1, 0); 
+        $$ = lexval_node($1); 
         }
 |   TK_IDENTIFICADOR ',' local_list 
         { 
-        $$ = lexval_node($1, 3, $1); 
+        $$ = lexval_node($1); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
         { 
-        $$ = lexval_node($2, 2, lexval_node($3, 0), lexval_node($1, 0)); 
+        $$ = lexval_node($2); 
         } 
 |   TK_IDENTIFICADOR TK_OC_LE literal 
         { 
-        $$ = lexval_node($2, 2, lexval_node($1, 0), $3); 
+        $$ = lexval_node($2); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list 
         { 
-        $$ = lexval_node($2, 3, $1); 
+        $$ = lexval_node($2); 
         }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list 
-    { 
-    $$ = lexval_node($2, 3, $1); 
-    }
+        { 
+        $$ = lexval_node($2); 
+        }
 ;
 
 literal:
-    TK_LIT_CHAR    { $$ = lexval_node($1, 0); }
-|   TK_LIT_FALSE   { $$ = lexval_node($1, 0); }
-|   TK_LIT_FLOAT   { $$ = lexval_node($1, 0); }
-|   TK_LIT_INT     { $$ = lexval_node($1, 0); }
-|   TK_LIT_STRING  { $$ = lexval_node($1, 0); }
-|   TK_LIT_TRUE    { $$ = lexval_node($1, 0); }
+    TK_LIT_CHAR    { $$ = lexval_node($1); }
+|   TK_LIT_FALSE   { $$ = lexval_node($1); }
+|   TK_LIT_FLOAT   { $$ = lexval_node($1); }
+|   TK_LIT_INT     { $$ = lexval_node($1); }
+|   TK_LIT_STRING  { $$ = lexval_node($1); }
+|   TK_LIT_TRUE    { $$ = lexval_node($1); }
 ;
 
 attrib:
@@ -218,9 +218,18 @@ attrib:
 ;
 
 io:
-    TK_PR_INPUT TK_IDENTIFICADOR { $$ = named_node("input", 1, lexval_node($2, 0)); }
-|   TK_PR_OUTPUT TK_IDENTIFICADOR { $$ = named_node("output", 1, lexval_node($2, 0)); }
-|   TK_PR_OUTPUT literal { $$ = named_node("output", 1, $2); }
+    TK_PR_INPUT TK_IDENTIFICADOR 
+        { 
+        $$ = named_node("input"); add_children($$, 1, lexval_node($2)); 
+        }
+|   TK_PR_OUTPUT TK_IDENTIFICADOR 
+        { 
+        $$ = named_node("output"); add_children($$, 1, lexval_node($2)); 
+        }
+|   TK_PR_OUTPUT literal 
+        { 
+        $$ = named_node("output"); add_children($$, 1, $2); 
+        }
 ;
 
 func_call:

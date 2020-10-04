@@ -4,7 +4,7 @@
 #include "ast.h"
 
 
-node* lexval_node(lex_val* val, int child_num, ...) {
+node* lexval_node(lex_val* val) {
     
     // Allocate memory.
     node *nodeptr = (struct node*) malloc(sizeof(struct node));
@@ -16,26 +16,13 @@ node* lexval_node(lex_val* val, int child_num, ...) {
     nodeptr->val = val;
 
     // Write children.
+    nodeptr->child_num = 0;
     nodeptr->children = NULL;
-    if (child_num) {
-        node** children = malloc(child_num * sizeof(struct node*));
-
-        va_list valist;
-
-        va_start(valist, child_num);
-
-        for (int i = 0; i < child_num; i++) {
-            children[i] = va_arg(valist, node*);
-        }
-
-        nodeptr->child_num = child_num;
-        nodeptr->children = children;
-    };
 
     return nodeptr;
 }
 
-node* named_node(char* name, int child_num, ...) {
+node* named_node(char* name) {
     
     // Allocate memory.
     node *nodeptr = (struct node*) malloc(sizeof(struct node));
@@ -47,23 +34,34 @@ node* named_node(char* name, int child_num, ...) {
     nodeptr->val = NULL;
 
     // Write children.
+    nodeptr->child_num = 0;
     nodeptr->children = NULL;
-    if (child_num) {
-        node** children = malloc(child_num * sizeof(struct node*));
-
-        va_list valist;
-
-        va_start(valist, child_num);
-
-        for (int i = 0; i < child_num; i++) {
-            children[i] = va_arg(valist, node*);
-        }
-
-        nodeptr->child_num = child_num;
-        nodeptr->children = children;
-    };
 
     return nodeptr;
+}
+
+void add_children(node* parent, int child_num, ...) {
+    if ( parent == NULL || child_num == 0) return;
+
+    // Get new children.
+    node* children[child_num];
+
+    va_list valist;
+
+    va_start(valist, child_num);
+
+    for (int i = 0; i < child_num; i++) {
+        children[i] = va_arg(valist, node*);
+    }
+
+    // Add the new children to the parent.
+    parent->child_num = parent->child_num + child_num;
+
+    parent->children = realloc(parent->children, parent->child_num * sizeof(node*));
+
+    for (int i = 0; i < child_num; i++) {
+        parent->children[parent->child_num-1 + i] = children[i];
+    }
 }
 
 // Auxiliary
@@ -130,5 +128,4 @@ void print_children(node* parent){
             printf("child label: NULL\n");
         }       
     };
-    printf("\n");
 }
