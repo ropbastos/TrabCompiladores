@@ -54,43 +54,44 @@ void add_children(node* parent, int child_num, ...) {
         children[i] = va_arg(valist, node*);
     }
 
-    printf("Inside add_children, gonna print the new children:\n");
-    for (int i = 0; i < child_num; i++) {
-        if ( ((children)[i])->label ) {
-            printf("child label: %s\n", ((children)[i])->label);
-        }
-        else
-        {
-            printf("child label: NULL\n");
-        }       
-    }
+    // printf("Inside add_children, gonna print the new children:\n");
+    // for (int i = 0; i < child_num; i++) {
+    //     if ( ((children)[i])->label ) {
+    //         printf("child label: %s\n", ((children)[i])->label);
+    //     }
+    //     else
+    //     {
+    //         printf("child label: NULL\n");
+    //     }       
+    // }
+    
     // Add the new children to the parent.
     parent->child_num = parent->child_num + child_num;
 
-    printf("New child_num: %d\n", parent->child_num);
+    // printf("New child_num: %d\n", parent->child_num);
 
     parent->children = realloc(parent->children, parent->child_num * sizeof(node*));
 
     for (int i = 0; i < child_num; i++) {
-        parent->children[parent->child_num-1 + i] = children[i];
+        parent->children[parent->child_num-child_num + i] = children[i];
     }
 
-    printf("First child: %s\n", (parent->children[1])->label);
+    // printf("First child: %s\n", (parent->children[1])->label);
 
-    printf("Inside add_children, gonna print the full list of children:\n");
-    for (int i = 0; i < parent->child_num; i++) {
-        if ( ((parent->children)[i])->label ) {
-            printf("child label: %s\n", ((parent->children)[i])->label);
+    // printf("Inside add_children, gonna print the full list of children:\n");
+    // for (int i = 0; i < parent->child_num; i++) {
+    //     if ( ((parent->children)[i])->label ) {
+    //         printf("child label: %s\n", ((parent->children)[i])->label);
             
-            if ( ((parent->children)[i])->children ) {
-                print_children( parent->children[i] );
-            };
-        }
-        else
-        {
-            printf("child label: NULL\n");
-        }       
-    };
+    //         if ( ((parent->children)[i])->children ) {
+    //             print_children( parent->children[i] );
+    //         };
+    //     }
+    //     else
+    //     {
+    //         printf("child label: NULL\n");
+    //     }       
+    // };
 
 }
 

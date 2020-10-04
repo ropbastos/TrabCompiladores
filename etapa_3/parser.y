@@ -177,7 +177,7 @@ cmds:
 ;
 
 local_decl:
-    type local_list { printf("Reduziu local_decl\n\n"); print_children($2); }
+    type local_list { printf("Reduziu local_decl\n"); print_children($2); }
 |   TK_PR_CONST type local_list
 |   TK_PR_STATIC TK_PR_CONST type local_list
 |   TK_PR_STATIC type local_list
