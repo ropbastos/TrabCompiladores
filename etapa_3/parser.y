@@ -67,6 +67,7 @@ int get_col();
 %type<node> literal
 %type<node> local_list
 %type<node> io
+%type<node> cmds
 
 %token TOKEN_ERRO
 
@@ -150,15 +151,18 @@ body:
 ;
 
 block:
-   '{' cmds '}'
+   '{' cmds '}' { print_children($2); }
 ;
 
 cmds: 
-    %empty                 
+    %empty    { $$ = NULL; }             
 |   block ';' cmds
 |   local_decl ';' cmds
 |   attrib ';' cmds
-|   io ';' cmds { print_children($1); }
+|   io ';' cmds 
+    { 
+    if ($3 != NULL) $$ = named_node($1->label, 2, $1->children[0], $3); else $$ = named_node($1->label, 0); 
+    }
 |   func_call ';' cmds
 |   shift ';' cmds
 |   jmp_stmt ';' cmds

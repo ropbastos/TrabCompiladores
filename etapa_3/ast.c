@@ -16,6 +16,7 @@ node* lexval_node(lex_val* val, int child_num, ...) {
     nodeptr->val = val;
 
     // Write children.
+    nodeptr->children = NULL;
     if (child_num) {
         node** children = malloc(child_num * sizeof(struct node*));
 
@@ -46,6 +47,7 @@ node* named_node(char* name, int child_num, ...) {
     nodeptr->val = NULL;
 
     // Write children.
+    nodeptr->children = NULL;
     if (child_num) {
         node** children = malloc(child_num * sizeof(struct node*));
 
@@ -113,11 +115,16 @@ char* get_label(lex_val* val) {
 // DEBUG
 
 void print_children(node* parent){
-    printf("Parent label: %s\n", parent->label);
+    printf("\nParent label: %s\n", parent->label);
     printf("Number of children: %d\n", parent->child_num);
     for (int i = 0; i < parent->child_num; i++) {
-        if ( ((parent->children)[i])->label )
+        if ( ((parent->children)[i])->label ) {
             printf("child label: %s\n", ((parent->children)[i])->label);
+            
+            if ( ((parent->children)[i])->children ) {
+                print_children( parent->children[i] );
+            };
+        }
         else
         {
             printf("child label: NULL\n");
