@@ -66,6 +66,7 @@ int get_col();
 
 %type<node> literal
 %type<node> local_list
+%type<node> io
 
 %token TOKEN_ERRO
 
@@ -157,7 +158,7 @@ cmds:
 |   block ';' cmds
 |   local_decl ';' cmds
 |   attrib ';' cmds
-|   io ';' cmds
+|   io ';' cmds { print_children($1); }
 |   func_call ';' cmds
 |   shift ';' cmds
 |   jmp_stmt ';' cmds
@@ -213,9 +214,9 @@ attrib:
 ;
 
 io:
-    TK_PR_INPUT TK_IDENTIFICADOR 
-|   TK_PR_OUTPUT TK_IDENTIFICADOR 
-|   TK_PR_OUTPUT literal 
+    TK_PR_INPUT TK_IDENTIFICADOR { $$ = named_node("input", 1, lexval_node($2, 0)); }
+|   TK_PR_OUTPUT TK_IDENTIFICADOR { $$ = named_node("output", 1, lexval_node($2, 0)); }
+|   TK_PR_OUTPUT literal { $$ = named_node("output", 1, $2); }
 ;
 
 func_call:
