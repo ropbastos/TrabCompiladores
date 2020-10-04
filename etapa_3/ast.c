@@ -147,12 +147,12 @@ void print_children(node* parent){
     printf("\nParent label: %s\n", parent->label);
     printf("Number of children: %d\n", parent->child_num);
     for (int i = 0; i < parent->child_num; i++) {
-        printf("I value: %d\n", i);
+        //printf("I value: %d\n", i);
         if ( ((parent->children)[i])->label ) {
             printf("child label: %s\n", ((parent->children)[i])->label);
             
             if ( ((parent->children)[i])->children ) {
-                printf("Tem filhos\n");
+                //printf("Tem filhos\n");
                 print_children( parent->children[i] );
             };
         }
@@ -161,5 +161,4 @@ void print_children(node* parent){
             printf("child label: NULL\n");
         }       
     };
-    printf("Saiu da print_children\n");
 }

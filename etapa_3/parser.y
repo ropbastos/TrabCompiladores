@@ -68,6 +68,7 @@ int get_col();
 %type<node> local_list
 %type<node> io
 %type<node> cmds
+%type<node> local_decl
 /* %type<node> func_call
 %type<node> exp
 %type<node> shift
@@ -158,13 +159,13 @@ body:
 ;
 
 block:
-   '{' cmds '}' { /*print_children($2);*/ }
+   '{' cmds '}' { print_children($2); }
 ;
 
 cmds:
     %empty    { $$ = NULL; }
 |   block ';' cmds
-|   local_decl ';' cmds
+|   local_decl ';' cmds { $$ = $1; add_children($$, 1, $3); }
 |   attrib ';' cmds
 |   io ';' cmds
     {
@@ -177,7 +178,7 @@ cmds:
 ;
 
 local_decl:
-    type local_list { print_children($2); }
+    type local_list { $$ = $2; }
 |   TK_PR_CONST type local_list
 |   TK_PR_STATIC TK_PR_CONST type local_list
 |   TK_PR_STATIC type local_list
