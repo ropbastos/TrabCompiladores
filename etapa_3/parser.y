@@ -174,7 +174,7 @@ local_list:
     TK_IDENTIFICADOR { $$ = create_node($1, 0, NULL); }
 |   TK_IDENTIFICADOR ',' local_list { $$ = create_node($1, 3, $1); }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR { $$ = create_node($2, 3, $1); } 
-|   TK_IDENTIFICADOR TK_OC_LE literal { printf("AQUI!\n");$$ = create_node($2, 3, $3, $3); } // ESSA
+|   TK_IDENTIFICADOR TK_OC_LE literal { $$ = create_node($2, 2, $3, create_id_node($1)); }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list { $$ = create_node($2, 3, $1); }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list { $$ = create_node($2, 3, $1); }
 ;
@@ -183,7 +183,7 @@ literal:
     TK_LIT_CHAR    { $$ = create_node($1, 0); }
 |   TK_LIT_FALSE   { $$ = create_node($1, 0); }
 |   TK_LIT_FLOAT   { $$ = create_node($1, 0); }
-|   TK_LIT_INT     { printf("LIT INT\n"); $$ = create_node($1, 0); }
+|   TK_LIT_INT     { $$ = create_node($1, 0); }
 |   TK_LIT_STRING  { $$ = create_node($1, 0); }
 |   TK_LIT_TRUE    { $$ = create_node($1, 0); }
 ;
