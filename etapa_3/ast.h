@@ -20,6 +20,9 @@ node* create_id_node(lex_val* val);
 // Special char nodes
 node* create_cop_node(lex_val* val, int child_num, node** children);
 
+// DEBUG
+void print_children(node* parent);
+
 int traverse(node* tree);
 
 

@@ -5,38 +5,24 @@
 
 node* create_node(lex_val* val, int child_num, ...) {
     
+    // Write children.
     node** children;
-
     if (child_num) {
-
-        printf("entro if child_num\n");
-
         va_list valist;
 
         va_start(valist, child_num);
 
-        printf("antes de imprimir label do primeiro filho\n");
-
-        //printf("label do primeiro filho: %s\n", (va_arg(valist, node*))->label);
-
-        children = malloc(child_num * sizeof(struct node));
+        children = malloc(child_num * sizeof(struct node*));
 
         for (int i = 0; i < child_num; i++) {
             children[i] = va_arg(valist, node*);
         }
-
-        for (int i = 0; i < child_num; i++) {
-            printf("label do filho: %s\n", children[i]->label);
-        }
-
-        printf("Terminou o que ocorre dentro do if child_num\n");
     };
  
     switch ( val->lex_type ) {
         case LIT_TK:
             return create_literal_node(val);
         case ID_TK:
-            printf("vai criar id node\n");
             return create_id_node(val);
         case COP_TK:
             printf("vai criar cop node\n");
@@ -53,16 +39,15 @@ node* create_cop_node(lex_val* val, int child_num, node** children) {
 
     // Write label
     nodeptr->label = strdup(val->value.s); // hidden malloc
-
+    printf("cop_node: escreveu label\n");
     // Write value
     nodeptr->val = val;
-
+    printf("cop_node: escreveu valor\n");
     // Write children
-    nodeptr->child_num = 0;
-    nodeptr->children = NULL;
-
+    nodeptr->child_num = child_num + 1;
+    nodeptr->children = children;
+    printf("cop_node: escreveu filhos\n");
     return nodeptr;
-
 }
 
 node* create_id_node(lex_val* val) {
@@ -72,10 +57,7 @@ node* create_id_node(lex_val* val) {
     nodeptr = (struct node*) malloc(sizeof(struct node));
 
     // Write label
-    nodeptr->label = (char*) malloc(sizeof(val->value.s));
-    strcpy(nodeptr->label, val->value.s);
-
-    printf("id_node nodeptr: %s\n", nodeptr->label);
+    nodeptr->label = strdup(val->value.s); // hidden malloc
 
     // Write value
     nodeptr->val = val;
@@ -171,4 +153,13 @@ node*  create_literal_node(lex_val* val) {
     }
 
     return nodeptr;
+}
+
+// DEBUG
+
+void print_children(node* parent){
+    printf("Vai imprimir as criancas\n");
+    for (int i = 0; i < parent->child_num - 1; i++) {
+        printf("child label: %s\n", ((parent->children)[i])->label);
+    };
 }
