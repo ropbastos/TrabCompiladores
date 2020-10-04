@@ -75,13 +75,24 @@ extern void* arvore;
 %type<node> body
 %type<node> header
 %type<node> func
-/* %type<node> func_call
+%type<node> attrib
+%type<node> func_call
 %type<node> exp
 %type<node> shift
 %type<node> jmp_stmt
 %type<node> if
 %type<node> for
-%type<node> while */
+%type<node> while 
+%type<node> control 
+%type<node> exp_list
+%type<node> operand
+%type<node> num
+%type<node> unary
+%type<node> laoperand
+%type<node> bool
+%type<node> boperator
+%type<node> aoperator
+%type<node> loperator
 
 %token TOKEN_ERRO
 
@@ -148,9 +159,9 @@ func:
 
 header:
     type TK_IDENTIFICADOR '(' ')' { $$ = lexval_node($2); }
-|   type TK_IDENTIFICADOR '(' params ')'
-|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')'
-|   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')'
+|   type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($2); }
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' { $$ = lexval_node($3); }
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($3); }
 ;
 
 params:
@@ -165,25 +176,43 @@ body:
 ;
 
 block:
-   '{' cmds '}' { $$ = $2; }
+   '{' cmds '}' { if ($2 != NULL) $$ = $2; else $$ = named_node("{}"); }
 ;
 
 cmds:
     %empty    { $$ = NULL; }
 |   block ';' cmds
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+    }
 |   local_decl ';' cmds 
     {
     if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
     }
 |   attrib ';' cmds
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+    }
 |   io ';' cmds
     {
     if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
     }
 |   func_call ';' cmds
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+    }
 |   shift ';' cmds
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+    }
 |   jmp_stmt ';' cmds
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+    }
 |   control ';' cmds
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+    }
 ;
 
 local_decl:
@@ -196,11 +225,11 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR
         {
-        $$ = lexval_node($1);
+        $$ = lexval_node($1); // SEPA NULL
         }
 |   TK_IDENTIFICADOR ',' local_list
         {
-        $$ = lexval_node($1); add_children($$, 1, $3);
+        $$ = lexval_node($1); add_children($$, 1, $3); // SEPA NULL
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
         {
@@ -230,8 +259,16 @@ literal:
 ;
 
 attrib:
-    TK_IDENTIFICADOR '=' exp
+    TK_IDENTIFICADOR '=' exp 
+        { 
+        $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
+        }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
+        { 
+        node* vector = named_node("[]");
+        add_children(vector, 2, lexval_node($1), $3);
+        $$ = named_node("="); add_children($$, 2, vector, $6); 
+        }
 ;
 
 io:
@@ -250,116 +287,179 @@ io:
 ;
 
 func_call:
-    TK_IDENTIFICADOR '(' ')'
-|   TK_IDENTIFICADOR '(' exp_list ')'
+    TK_IDENTIFICADOR '(' exp_list ')' 
+        { 
+        $$ = lexval_node($1); add_children($$, 1, $3); 
+        }
 ;
 
 exp_list:
-    exp
-|   exp ',' exp_list
+    exp { $$ = $1; };
+|   exp ',' exp_list { $$ = $1; add_children($$, 1, $3); }
 ;
 
 shift:
     TK_IDENTIFICADOR TK_OC_SL TK_LIT_INT
+        {
+        $$ = lexval_node($2); 
+        add_children($$, 2, lexval_node($1), lexval_node($3));
+        }
 |   TK_IDENTIFICADOR TK_OC_SR TK_LIT_INT
+        {
+        $$ = lexval_node($2); 
+        add_children($$, 2, lexval_node($1), lexval_node($3));
+        }
 |   TK_IDENTIFICADOR TK_OC_SL '+' TK_LIT_INT
+        {
+        $$ = lexval_node($2); 
+        add_children($$, 2, lexval_node($1), lexval_node($4));
+        }
 |   TK_IDENTIFICADOR TK_OC_SR '+' TK_LIT_INT
+        {
+        $$ = lexval_node($2); 
+        add_children($$, 2, lexval_node($1), lexval_node($4));
+        }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
+        {
+        node* vector = named_node("[]");
+        add_children(vector, 2, lexval_node($1), $3);
+        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
+        }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR TK_LIT_INT
+        {
+        node* vector = named_node("[]");
+        add_children(vector, 2, lexval_node($1), $3);
+        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
+        }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL '+' TK_LIT_INT
+        {
+        node* vector = named_node("[]");
+        add_children(vector, 2, lexval_node($1), $3);
+        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
+        }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR '+' TK_LIT_INT
+        {
+        node* vector = named_node("[]");
+        add_children(vector, 2, lexval_node($1), $3);
+        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
+        }
 ;
 
 jmp_stmt:
-    TK_PR_RETURN exp
-|   TK_PR_BREAK
-|   TK_PR_CONTINUE
+    TK_PR_RETURN exp { $$ = named_node("return"); add_children($$, 1, $2); }
+|   TK_PR_BREAK { $$ = named_node("break"); }
+|   TK_PR_CONTINUE { $$ = named_node("continue"); }
 ;
 
 control:
-    if
-|   for
-|   while
+    if  { $$ = $1; }
+|   for { $$ = $1; }
+|   while { $$ = $1; }
 ;
 
 if:
-    TK_PR_IF '(' exp ')' block
+    TK_PR_IF '(' exp ')' block 
+    {  
+        $$ = named_node("if");
+        add_children($$, 2, $3, $5);
+    }
 |   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
+    {  
+        $$ = named_node("if");
+        add_children($$, 3, $3, $5, $7);
+    }
 ;
 
 for:
     TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
+    {  
+        $$ = named_node("for");
+        add_children($$, 4, $3, $5, $7, $9);
+    }
 ;
 
 while:
     TK_PR_WHILE '(' exp ')' TK_PR_DO block
+    {  
+        $$ = named_node("while");
+        add_children($$, 2, $3, $6);
+    }
 ;
 
 exp:
-    operand
-|   exp boperator operand
-|   exp '?' exp ':' exp   %prec TERNARY
+    operand { $$ = $1; }
+|   exp boperator operand { $$ = $2; add_children($$, 2, $1, $3); }
+|   exp '?' exp ':' exp   %prec TERNARY 
+    { 
+    $$ = named_node("?:");
+    add_children($$, 3, $1, $3, $5);
+    }
 ;
 
 operand:
-    num
-|   unary
+    num { $$ = $1; }
+|   unary { $$ = $1; }
 ;
 
 num:
-    TK_LIT_FLOAT
-|   TK_LIT_INT
+    TK_LIT_FLOAT { $$ = lexval_node($1); }
+|   TK_LIT_INT { $$ = lexval_node($1); }
 ;
 
 unary:
-    '+' unary
-|   '-' unary
-|   '!' unary
-|   '&' unary
-|   '*' unary
-|   '?' unary
-|   '#' unary
-|   laoperand
+    '+' unary { $$ = named_node("+"); add_children($$, 1, $2); }
+|   '-' unary { $$ = named_node("-"); add_children($$, 1, $2); }
+|   '!' unary { $$ = named_node("!"); add_children($$, 1, $2); }
+|   '&' unary { $$ = named_node("&"); add_children($$, 1, $2); }
+|   '*' unary { $$ = named_node("*"); add_children($$, 1, $2); }
+|   '?' unary { $$ = named_node("?"); add_children($$, 1, $2); }
+|   '#' unary { $$ = named_node("#"); add_children($$, 1, $2); }
+|   laoperand { $$ = $1; }
 ;
 
 laoperand:
-    TK_IDENTIFICADOR
+    TK_IDENTIFICADOR { $$ = lexval_node($1); }
 |   TK_IDENTIFICADOR '[' exp ']'
-|   bool
-|   func_call
-|   '(' exp ')'
+    {
+    node* vector = named_node("[]");
+    $$ = vector;
+    add_children(vector, 2, lexval_node($1), $3);
+    }
+|   bool { $$ = $1; }
+|   func_call { $$ = $1; }
+|   '(' exp ')' { $$ = $2; }
 ;
 
 bool:
-    TK_LIT_FALSE
-|   TK_LIT_TRUE
+    TK_LIT_FALSE { $$ = lexval_node($1); }
+|   TK_LIT_TRUE { $$ = lexval_node($1); }
 ;
 
 boperator:
-    aoperator
-|   loperator
+    aoperator { $$ = $1; }
+|   loperator { $$ = $1; }
 ;
 
 aoperator:
-    '+'
-|   '-'
-|   '*'
-|   '/'
-|   '%'
-|   '^'
+    '+' { $$ = named_node("+"); }
+|   '-' { $$ = named_node("-"); }
+|   '*' { $$ = named_node("*"); }
+|   '/' { $$ = named_node("/"); }
+|   '%' { $$ = named_node("%"); }
+|   '^' { $$ = named_node("^"); }
 ;
 
 loperator:
-    '|'
-|   '&'
-|   '<'
-|   '>'
-|   TK_OC_AND
-|   TK_OC_EQ
-|   TK_OC_GE
-|   TK_OC_LE
-|   TK_OC_NE
-|   TK_OC_OR
+    '|' { $$ = named_node("|"); }
+|   '&' { $$ = named_node("&"); }
+|   '<' { $$ = named_node("<"); }
+|   '>' { $$ = named_node(">"); }
+|   TK_OC_AND { $$ = lexval_node($1); }
+|   TK_OC_EQ { $$ = lexval_node($1); }
+|   TK_OC_GE { $$ = lexval_node($1); }
+|   TK_OC_LE { $$ = lexval_node($1); }
+|   TK_OC_NE { $$ = lexval_node($1); }
+|   TK_OC_OR { $$ = lexval_node($1); }
 ;
 
 %%
