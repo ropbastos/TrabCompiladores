@@ -68,6 +68,13 @@ int get_col();
 %type<node> local_list
 %type<node> io
 %type<node> cmds
+%type<node> func_call
+%type<node> exp
+%type<node> shift
+%type<node> jmp_stmt
+%type<node> if
+%type<node> for
+%type<node> while
 
 %token TOKEN_ERRO
 
@@ -88,8 +95,8 @@ int get_col();
 %left TK_OC_EQ TK_OC_NE
 %left TK_OC_GE '>'
 %left TK_OC_LE '<'
-// Bitwise shift 
-%left TK_OC_SL TK_OC_SR 
+// Bitwise shift
+%left TK_OC_SL TK_OC_SR
 // Sum and subtraction
 %left '+' '-'
 // Multiplication, division, modulo, exponentiation
@@ -112,10 +119,10 @@ global_decl:
 ;
 
 global_list:
-    TK_IDENTIFICADOR 
+    TK_IDENTIFICADOR
 |   TK_IDENTIFICADOR ',' global_list
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' 
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']'
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']'
 ;
@@ -128,7 +135,7 @@ type:
 |   TK_PR_STRING
 ;
 
-func: 
+func:
     header body
 ;
 
@@ -140,28 +147,28 @@ header:
 ;
 
 params:
-    type TK_IDENTIFICADOR ',' params 
+    type TK_IDENTIFICADOR ',' params
 |   type TK_IDENTIFICADOR
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
-|   TK_PR_CONST type TK_IDENTIFICADOR  
+|   TK_PR_CONST type TK_IDENTIFICADOR
 ;
 
 body:
-    block 
+    block
 ;
 
 block:
    '{' cmds '}' { print_children($2); }
 ;
 
-cmds: 
-    %empty    { $$ = NULL; }             
+cmds:
+    %empty    { $$ = NULL; }
 |   block ';' cmds
 |   local_decl ';' cmds
 |   attrib ';' cmds
-|   io ';' cmds 
-    { 
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;}; 
+|   io ';' cmds
+    {
+    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
     }
 |   func_call ';' cmds
 |   shift ';' cmds
@@ -171,35 +178,35 @@ cmds:
 
 local_decl:
     type local_list { printf("Reduziu local_decl\n\n"); print_children($2); }
-|   TK_PR_CONST type local_list 
-|   TK_PR_STATIC TK_PR_CONST type local_list 
-|   TK_PR_STATIC type local_list 
+|   TK_PR_CONST type local_list
+|   TK_PR_STATIC TK_PR_CONST type local_list
+|   TK_PR_STATIC type local_list
 ;
 
 local_list:
-    TK_IDENTIFICADOR 
-        { 
-        $$ = lexval_node($1); 
+    TK_IDENTIFICADOR
+        {
+        $$ = lexval_node($1);
         }
-|   TK_IDENTIFICADOR ',' local_list 
-        { 
-        $$ = lexval_node($1); 
+|   TK_IDENTIFICADOR ',' local_list
+        {
+        $$ = lexval_node($1);
         }
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR 
-        { 
-        $$ = lexval_node($2); 
-        } 
-|   TK_IDENTIFICADOR TK_OC_LE literal 
-        { 
-        $$ = lexval_node($2); 
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
+        {
+        $$ = lexval_node($2);
         }
-|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list 
-        { 
-        $$ = lexval_node($2); 
+|   TK_IDENTIFICADOR TK_OC_LE literal
+        {
+        $$ = lexval_node($2);
         }
-|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list 
-        { 
-        $$ = lexval_node($2); 
+|   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
+        {
+        $$ = lexval_node($2);
+        }
+|   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
+        {
+        $$ = lexval_node($2);
         }
 ;
 
@@ -218,17 +225,17 @@ attrib:
 ;
 
 io:
-    TK_PR_INPUT TK_IDENTIFICADOR 
-        { 
-        $$ = named_node("input"); add_children($$, 1, lexval_node($2)); 
+    TK_PR_INPUT TK_IDENTIFICADOR
+        {
+        $$ = named_node("input"); add_children($$, 1, lexval_node($2));
         }
-|   TK_PR_OUTPUT TK_IDENTIFICADOR 
-        { 
-        $$ = named_node("output"); add_children($$, 1, lexval_node($2)); 
+|   TK_PR_OUTPUT TK_IDENTIFICADOR
+        {
+        $$ = named_node("output"); add_children($$, 1, lexval_node($2));
         }
-|   TK_PR_OUTPUT literal 
-        { 
-        $$ = named_node("output"); add_children($$, 1, $2); 
+|   TK_PR_OUTPUT literal
+        {
+        $$ = named_node("output"); add_children($$, 1, $2);
         }
 ;
 
@@ -271,7 +278,7 @@ if:
 ;
 
 for:
-    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block 
+    TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
 ;
 
 while:
@@ -280,7 +287,7 @@ while:
 
 exp:
     operand
-|   exp boperator operand 
+|   exp boperator operand
 |   exp '?' exp ':' exp   %prec TERNARY
 ;
 
@@ -291,7 +298,7 @@ operand:
 
 num:
     TK_LIT_FLOAT
-|   TK_LIT_INT    
+|   TK_LIT_INT
 ;
 
 unary:
@@ -324,15 +331,15 @@ boperator:
 ;
 
 aoperator:
-    '+' 
-|   '-' 
-|   '*' 
-|   '/' 
-|   '%' 
+    '+'
+|   '-'
+|   '*'
+|   '/'
+|   '%'
 |   '^'
 ;
 
-loperator:   
+loperator:
     '|'
 |   '&'
 |   '<'
@@ -344,7 +351,7 @@ loperator:
 |   TK_OC_NE
 |   TK_OC_OR
 ;
- 
+
 %%
 
 void yyerror(char const *s) {
