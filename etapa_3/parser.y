@@ -93,6 +93,7 @@ extern void* arvore;
 %type<node> boperator
 %type<node> aoperator
 %type<node> loperator
+%type<node> program
 
 %token TOKEN_ERRO
 
@@ -128,7 +129,12 @@ extern void* arvore;
 program:
     %empty
 |   global_decl program
-|   func program { arvore = $1; }
+|   func program 
+    { 
+    node* ast = named_node("AST");
+    add_children(ast, 2, $1, $2); 
+    arvore = $2;
+    }
 ;
 
 global_decl:
@@ -176,7 +182,7 @@ body:
 ;
 
 block:
-   '{' cmds '}' { if ($2 != NULL) $$ = $2; else $$ = named_node("{}"); }
+   '{' cmds '}' { if ($2 != NULL) $$ = $2; else $$ = named_node("{}"); } // VER
 ;
 
 cmds:
@@ -225,11 +231,11 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR
         {
-        $$ = lexval_node($1); // SEPA NULL
+        $$ = NULL; // SEPA NULL
         }
 |   TK_IDENTIFICADOR ',' local_list
         {
-        $$ = lexval_node($1); add_children($$, 1, $3); // SEPA NULL
+        if ($3 != NULL ) { $$ = $3; } else { $$ = NULL; }; // SEPA NULL
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
         {
