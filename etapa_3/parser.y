@@ -133,7 +133,7 @@ program:
     { 
     node* ast = named_node("AST");
     add_children(ast, 2, $1, $2); 
-    arvore = $2;
+    arvore = ast;
     }
 ;
 
@@ -182,7 +182,7 @@ body:
 ;
 
 block:
-   '{' cmds '}' { if ($2 != NULL) $$ = $2; else $$ = named_node("{}"); } // VER
+   '{' cmds '}' { if ($2 != NULL) $$ = $2; else $$ = named_node("{}"); }
 ;
 
 cmds:
@@ -235,7 +235,7 @@ local_list:
         }
 |   TK_IDENTIFICADOR ',' local_list
         {
-        if ($3 != NULL ) { $$ = $3; } else { $$ = NULL; }; // SEPA NULL
+        if ($3 != NULL ) { $$ = $3; } else { $$ = NULL; };
         }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
         {

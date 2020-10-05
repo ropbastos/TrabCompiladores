@@ -17,6 +17,10 @@ node* named_node(char* name);
 
 void add_children(node* parent, int child_num, ...);
 
+void free_node(node* node);
+
+void free_aux(node* node);
+
 // Auxiliary
 char* get_label(lex_val* val);
 
