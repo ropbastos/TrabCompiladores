@@ -85,10 +85,8 @@ extern void* arvore;
 %type<node> while 
 %type<node> control 
 %type<node> exp_list
-%type<node> operand
 %type<node> num
 %type<node> unary
-%type<node> laoperand
 %type<node> bool
 %type<node> boperator
 %type<node> aoperator
@@ -123,10 +121,10 @@ extern void* arvore;
 
 // Ternary Operator
 %right TERNARY
-// Expressões com operador binário
+// Binary operator expressions
 %left BINARY
-// Expressões com operador unário
-//%right UNARY
+// Unary operator expressions
+%right UNARY
 
 %%
 root: program { arvore = $1; };
@@ -136,10 +134,10 @@ program:
 |   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
 |   func program 
     { 
-    if ($2 != NULL) {
-        $$ = $1;
-        add_children($$, 1, $2);
-    };
+        if ($2 != NULL) {
+            $$ = $1;
+            add_children($$, 1, $2);
+        };
     }
 ;
 
@@ -166,7 +164,7 @@ type:
 ;
 
 func:
-    header body { $$ = $1; add_children($$, 1, $2); }
+    header body { $$ = $1; if ($2 != NULL) add_children($$, 1, $2); }
 ;
 
 header:
@@ -188,7 +186,7 @@ body:
 ;
 
 block:
-   '{' cmds '}' { if ($2 != NULL) $$ = $2; else $$ = named_node("{}"); }
+   '{' cmds '}' { $$ = $2; }
 ;
 
 cmds:
@@ -236,29 +234,29 @@ local_decl:
 
 local_list:
     TK_IDENTIFICADOR
-        {
+    {
         $$ = NULL; // SEPA NULL
-        }
+    }
 |   TK_IDENTIFICADOR ',' local_list
-        {
+    {
         if ($3 != NULL ) { $$ = $3; } else { $$ = NULL; };
-        }
+    }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
-        {
+    {
         $$ = lexval_node($2); add_children($$, 2, lexval_node($1), lexval_node($3));
-        }
+    }
 |   TK_IDENTIFICADOR TK_OC_LE literal
-        {
+    {
         $$ = lexval_node($2); add_children($$, 2, lexval_node($1), $3);
-        }
+    }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
-        {
+    {
         $$ = lexval_node($2); add_children($$, 3, lexval_node($1), lexval_node($3), $5);
-        }
+    }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
-        {
+    {
         $$ = lexval_node($2); add_children($$, 3, lexval_node($1), $3, $5);
-        }
+    }
 ;
 
 literal:
@@ -272,37 +270,37 @@ literal:
 
 attrib:
     TK_IDENTIFICADOR '=' exp 
-        { 
+    { 
         $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
-        }
+    }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
-        { 
+    { 
         node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = named_node("="); add_children($$, 2, vector, $6); 
-        }
+    }
 ;
 
 io:
     TK_PR_INPUT TK_IDENTIFICADOR
-        {
+    {
         $$ = named_node("input"); add_children($$, 1, lexval_node($2));
-        }
+    }
 |   TK_PR_OUTPUT TK_IDENTIFICADOR
-        {
+    {
         $$ = named_node("output"); add_children($$, 1, lexval_node($2));
-        }
+    }
 |   TK_PR_OUTPUT literal
-        {
+    {
         $$ = named_node("output"); add_children($$, 1, $2);
-        }
+    }
 ;
 
 func_call:
     TK_IDENTIFICADOR '(' exp_list ')' 
-        { 
+    { 
         $$ = lexval_node($1); add_children($$, 1, $3); 
-        }
+    }
 ;
 
 exp_list:
@@ -312,49 +310,49 @@ exp_list:
 
 shift:
     TK_IDENTIFICADOR TK_OC_SL TK_LIT_INT
-        {
+    {
         $$ = lexval_node($2); 
         add_children($$, 2, lexval_node($1), lexval_node($3));
-        }
+    }
 |   TK_IDENTIFICADOR TK_OC_SR TK_LIT_INT
-        {
+    {
         $$ = lexval_node($2); 
         add_children($$, 2, lexval_node($1), lexval_node($3));
-        }
+    }
 |   TK_IDENTIFICADOR TK_OC_SL '+' TK_LIT_INT
-        {
+    {
         $$ = lexval_node($2); 
         add_children($$, 2, lexval_node($1), lexval_node($4));
-        }
+    }
 |   TK_IDENTIFICADOR TK_OC_SR '+' TK_LIT_INT
-        {
+    {
         $$ = lexval_node($2); 
         add_children($$, 2, lexval_node($1), lexval_node($4));
-        }
+    }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
-        {
+    {
         node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
-        }
+    }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR TK_LIT_INT
-        {
+    {
         node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
-        }
+    }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL '+' TK_LIT_INT
-        {
+    {
         node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
-        }
+    }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR '+' TK_LIT_INT
-        {
+    {
         node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
-        }
+    }
 ;
 
 jmp_stmt:
@@ -373,12 +371,23 @@ if:
     TK_PR_IF '(' exp ')' block 
     {  
         $$ = named_node("if");
-        add_children($$, 2, $3, $5);
+        if ($5 != NULL)
+            add_children($$, 2, $3, $5);
+        else
+            add_children($$, 1, $3);
     }
 |   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
     {  
         $$ = named_node("if");
-        add_children($$, 3, $3, $5, $7);
+        if ($5 != NULL && $7 != NULL) {
+            add_children($$, 3, $3, $5, $7);
+        } else if ($5 == NULL && $7 != NULL) {
+            /* To differentiate "if (e) {} else {cmd}" from "if (e) {cmd} else {}" */
+            node* empty_block = named_node("{}"); 
+            add_children($$, 3, $3, empty_block, $7);
+        } else {
+            add_children($$, 1, $3);
+        }
     }
 ;
 
@@ -386,7 +395,10 @@ for:
     TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
     {  
         $$ = named_node("for");
-        add_children($$, 4, $3, $5, $7, $9);
+        if ($9 != NULL)
+            add_children($$, 4, $3, $5, $7, $9);
+        else
+            add_children($$, 3, $3, $5, $7);
     }
 ;
 
@@ -394,23 +406,32 @@ while:
     TK_PR_WHILE '(' exp ')' TK_PR_DO block
     {  
         $$ = named_node("while");
-        add_children($$, 2, $3, $6);
+        if ($6 != NULL)
+            add_children($$, 2, $3, $6);
+        else
+            add_children($$, 1, $3);
     }
 ;
 
 exp:
-    operand { $$ = $1; }
-|   exp boperator operand %prec BINARY { $$ = $2; add_children($$, 2, $1, $3); }
-|   exp '?' exp ':' exp   %prec TERNARY 
+    TK_IDENTIFICADOR { $$ = lexval_node($1); }
+|   TK_IDENTIFICADOR '[' exp ']'
+    {
+        node* vector = named_node("[]");
+        $$ = vector;
+        add_children(vector, 2, lexval_node($1), $3);
+    }
+|   num { $$ = $1; }
+|   bool { $$ = $1; }
+|   func_call { $$ = $1; }
+|   '(' exp ')' { $$ = $2; }
+|   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); }
+|   exp boperator exp %prec BINARY { $$ = $2; add_children($$, 2, $1, $3); }
+|   exp '?' exp ':' exp %prec TERNARY 
     { 
     $$ = named_node("?:");
     add_children($$, 3, $1, $3, $5);
     }
-;
-
-operand:
-    num { $$ = $1; }
-|   unary { $$ = $1; }
 ;
 
 num:
@@ -419,27 +440,13 @@ num:
 ;
 
 unary:
-    '+' unary { $$ = named_node("+"); add_children($$, 1, $2); }
-|   '-' unary { $$ = named_node("-"); add_children($$, 1, $2); }
-|   '!' unary { $$ = named_node("!"); add_children($$, 1, $2); }
-|   '&' unary { $$ = named_node("&"); add_children($$, 1, $2); }
-|   '*' unary { $$ = named_node("*"); add_children($$, 1, $2); }
-|   '?' unary { $$ = named_node("?"); add_children($$, 1, $2); }
-|   '#' unary { $$ = named_node("#"); add_children($$, 1, $2); }
-|   laoperand { $$ = $1; }
-;
-
-laoperand:
-    TK_IDENTIFICADOR { $$ = lexval_node($1); }
-|   TK_IDENTIFICADOR '[' exp ']'
-    {
-    node* vector = named_node("[]");
-    $$ = vector;
-    add_children(vector, 2, lexval_node($1), $3);
-    }
-|   bool { $$ = $1; }
-|   func_call { $$ = $1; }
-|   '(' exp ')' { $$ = $2; }
+    '+' { $$ = named_node("+"); }
+|   '-' { $$ = named_node("-"); }
+|   '!' { $$ = named_node("!"); }
+|   '&' { $$ = named_node("&"); }
+|   '*' { $$ = named_node("*"); }
+|   '?' { $$ = named_node("?"); }
+|   '#' { $$ = named_node("#"); }
 ;
 
 bool:

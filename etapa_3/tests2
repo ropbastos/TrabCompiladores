@@ -16,10 +16,11 @@ int main() {
 
   func(a); 
 
-  return(2 + 2 * 1);
+  return(2 + 2 ? vdd : falso);
 
-  if (3 + 3) { 
-    output verdade; 
+  return(2 - &var + -1);
+
+  if (4 + 5) { 
   };
 
   if (3 + 3) { 
@@ -43,5 +44,5 @@ int segunda(){
 }
 
 int terceira(){
-  output segunda;
+  output terceira;
 }
