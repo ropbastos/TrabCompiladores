@@ -193,35 +193,35 @@ cmds:
     %empty    { $$ = NULL; }
 |   block ';' cmds
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   local_decl ';' cmds 
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   attrib ';' cmds
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   io ';' cmds
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   func_call ';' cmds
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   shift ';' cmds
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   jmp_stmt ';' cmds
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   control ';' cmds
     {
-    if ($3 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $1;};
+        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 ;
 
@@ -235,7 +235,7 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR
     {
-        $$ = NULL; // SEPA NULL
+        $$ = NULL;
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
@@ -371,23 +371,12 @@ if:
     TK_PR_IF '(' exp ')' block 
     {  
         $$ = named_node("if");
-        if ($5 != NULL)
-            add_children($$, 2, $3, $5);
-        else
-            add_children($$, 1, $3);
+        add_children($$, 3, $3, $5, NULL);
     }
 |   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
     {  
         $$ = named_node("if");
-        if ($5 != NULL && $7 != NULL) {
-            add_children($$, 3, $3, $5, $7);
-        } else if ($5 == NULL && $7 != NULL) {
-            /* To differentiate "if (e) {} else {cmd}" from "if (e) {cmd} else {}" */
-            node* empty_block = named_node("{}"); 
-            add_children($$, 3, $3, empty_block, $7);
-        } else {
-            add_children($$, 1, $3);
-        }
+        add_children($$, 3, $3, $5, $7);
     }
 ;
 
@@ -395,10 +384,7 @@ for:
     TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
     {  
         $$ = named_node("for");
-        if ($9 != NULL)
-            add_children($$, 4, $3, $5, $7, $9);
-        else
-            add_children($$, 3, $3, $5, $7);
+        add_children($$, 4, $3, $5, $7, $9);
     }
 ;
 
@@ -406,10 +392,7 @@ while:
     TK_PR_WHILE '(' exp ')' TK_PR_DO block
     {  
         $$ = named_node("while");
-        if ($6 != NULL)
-            add_children($$, 2, $3, $6);
-        else
-            add_children($$, 1, $3);
+        add_children($$, 2, $3, $6);
     }
 ;
 

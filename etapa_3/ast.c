@@ -41,7 +41,9 @@ node* named_node(char* name) {
 }
 
 void add_children(node* parent, int child_num, ...) {
-    if ( parent == NULL || child_num == 0) return;
+    if ( parent == NULL || child_num == 0) {
+        fprintf(stderr, "%s", "ERROR: NULL parent or zero children\n");
+    }
 
     // Get new children.
     node* children[child_num];
@@ -131,17 +133,13 @@ void print_csv_tree(node* tree) {
      // Print CSV structure
     if ( tree->child_num ) {
         for (int i = 0; i < tree->child_num; i++) {
-            if ( ((tree->children)[i])->label ) {
+            if ( tree->children[i] != NULL ) {
                 printf("%p, %p\n", tree, (tree->children)[i]);
                 
                 if ( ((tree->children)[i])->children ) {
                     print_csv_tree( tree->children[i] );
                 };
-            }
-            else
-            {
-                return;
-            }       
+            }    
         };
     };
 }
@@ -151,13 +149,9 @@ void print_tree_labels(node* tree) {
     printf("%p [label=\"%s\"];\n", tree, tree->label);
     if (tree->child_num) {
         for (int i = 0; i < tree->child_num; i++) {
-            if ( ((tree->children)[i])->label ) {
+            if ( tree->children[i] != NULL ) {
                 print_tree_labels( tree->children[i] );
-            }
-            else
-            {
-                return;
-            }       
+            };    
         };
     };
 }

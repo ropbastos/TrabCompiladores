@@ -16,3 +16,10 @@ diag:
 	./etapa3 < tests2 > out.txt
 	python3 txt_to_diag.py out.txt diag.txt
 	dot diag.txt -Tpng > diag.png
+
+debug: scanner.l main.c ast.c parser.y
+	bison -d parser.y
+	flex scanner.l
+	gcc -g -c lex.yy.c parser.tab.c main.c ast.c
+	gcc -o parser main.o ast.o lex.yy.o parser.tab.o -lfl
+	cp parser etapa3
