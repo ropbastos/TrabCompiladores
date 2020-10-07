@@ -419,7 +419,7 @@ exp:
     {
         node* vector = named_node("[]");
         $$ = vector;
-        add_children(vector, 2, lexval_node($1), $3);
+        add_children($$, 2, lexval_node($1), $3);
     }
 |   num { $$ = $1; }
 |   bool { $$ = $1; }
@@ -429,8 +429,8 @@ exp:
 |   exp boperator exp %prec BINARY { $$ = $2; add_children($$, 2, $1, $3); }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
-    $$ = named_node("?:");
-    add_children($$, 3, $1, $3, $5);
+        $$ = named_node("?:");
+        add_children($$, 3, $1, $3, $5);
     }
 ;
 

@@ -20,6 +20,8 @@ int main() {
 
   return(2 - &var + -1);
 
+  return(T && F);
+
   if (4 + 5) { 
   };
 
