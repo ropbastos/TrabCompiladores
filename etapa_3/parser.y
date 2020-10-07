@@ -123,17 +123,23 @@ extern void* arvore;
 
 // Ternary Operator
 %right TERNARY
+// Expressões com operador binário
+%left BINARY
+// Expressões com operador unário
+//%right UNARY
 
 %%
+root: program { arvore = $1; };
 
 program:
-    %empty
-|   global_decl program
+    %empty { $$ = NULL; }
+|   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
 |   func program 
     { 
-    node* ast = named_node("AST");
-    add_children(ast, 2, $1, $2); 
-    arvore = ast;
+    if ($2 != NULL) {
+        $$ = $1;
+        add_children($$, 1, $2);
+    };
     }
 ;
 
@@ -394,7 +400,7 @@ while:
 
 exp:
     operand { $$ = $1; }
-|   exp boperator operand { $$ = $2; add_children($$, 2, $1, $3); }
+|   exp boperator operand %prec BINARY { $$ = $2; add_children($$, 2, $1, $3); }
 |   exp '?' exp ':' exp   %prec TERNARY 
     { 
     $$ = named_node("?:");

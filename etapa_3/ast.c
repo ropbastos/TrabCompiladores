@@ -76,46 +76,52 @@ void exporta (void* arvore) {
 
 }
 
+void libera (void* arvore) {
+    node* tree = (node*) arvore;
+    clear_tree(tree);
+}
+
+
+void clear_tree(node* tree) {
+    if ( tree->child_num ) {
+        for (int i = 0; i < tree->child_num; i++) {
+            clear_tree(tree->children[i]);
+        };
+    };
+
+    free(tree);
+}
+
+
 // Auxiliary
 char* get_label(lex_val* val) {
 
     char* label;
+    char aux[12];
 
     switch ( val->lit_type ) {
         case INT_LT:
-            label = (char*) malloc(2);
-            label = (char*) &(val->value.i);
-            *label += '0';
-            label[1] = '\0';
-
+            sprintf(aux, "%d", val->value.i);
+            label = strdup(aux);
             break;
         case FLOAT_LT:
-            label = (char*) malloc(5);
-            gcvt(val->value.f, 4, label);
-
+            gcvt(val->value.f, 4, aux);
+            label = strdup(aux);
             break;
         case CHAR_LT:
-            label = (char*) malloc(2);
-            label = (char*) &(val->value.c);
-            label[1] = '\0';
-
+            aux[0] = val->value.c;
+            aux[1] = '\0';
+            label = strdup(aux);
             break;
         case BOOL_LT:
             if (val->value.b == 1) {
-                label = "True";
+                label = strdup("True");
             } else {
-                label = "False";
+                label = strdup("False");
             };
-
             break;
-        case STR_LT:
-            label = strdup(val->value.s);
-
-            break;
-        case NA:
-            label = strdup(val->value.s);
-
-            break;
+        default: // STR_LT and NA(non-literals, ID, COP, SPCHAR) 
+            label = strdup(val->value.s); 
     }
 
     return label;
@@ -159,6 +165,7 @@ void print_tree_labels(node* tree) {
 // DEBUG
 
 void print_children(node* parent){
+
     printf("\nParent label: %s\n", parent->label);
     printf("Number of children: %d\n", parent->child_num);
     for (int i = 0; i < parent->child_num; i++) {
@@ -175,4 +182,8 @@ void print_children(node* parent){
             printf("child label: NULL\n");
         }       
     };
+}
+
+node* return_first_child(node* parent){
+    return parent->children[0];
 }

@@ -17,9 +17,9 @@ node* named_node(char* name);
 
 void add_children(node* parent, int child_num, ...);
 
-void free_node(node* node);
+void libera (void* arvore);
 
-void free_aux(node* node);
+void clear_tree(node* tree);
 
 // Auxiliary
 char* get_label(lex_val* val);
@@ -32,6 +32,8 @@ void print_tree_labels(node* tree);
 void print_children(node* parent);
 
 int traverse(node* tree);
+
+node* return_first_child(node* parent);
 
 
 

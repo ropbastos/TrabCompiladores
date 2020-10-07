@@ -85,12 +85,12 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
     /* Literals */
 
-{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+|\;|\,|\)) { 
+{sign}*{dig}+\.{dig}+((e|E){sign}*{dig}+)*/({invisible}|{operator}+|\;|\,|\)|:) { 
     yylval.lex_val = get_float_val();
     return TK_LIT_FLOAT; 
     }
 
-{dig}+/({invisible}|{operator}+|\]|\;|\,|\))  { 
+{dig}+/({invisible}|{operator}+|\]|\;|\,|\)|:)  { 
     yylval.lex_val = get_int_val();
     return TK_LIT_INT; 
     }
@@ -98,7 +98,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 "false" { yylval.lex_val = get_false_val(); return TK_LIT_FALSE; } 
 "true"  { yylval.lex_val = get_true_val(); return TK_LIT_TRUE; } 
 
-'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;) { 
+'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;|:) { 
     yylval.lex_val = get_char_val();
     return TK_LIT_CHAR; 
     }

@@ -1,19 +1,47 @@
 int main() {
-    int a, b <= 3;
-    const int b <= 5.1234;
-    static const int t <= false;
-    static int t <= true;
-    int t <= 'A';
-    int t <= "streng";
-    int a <= b;
 
-    input banana;
-    output saida;
-    output 5;
-    output "streng";
-    output 3.14;
+  int a <= 5;
+
+  b = 1;
+
+  vec[2+2] = 4-4;
+
+  output a;
+
+  static int b <= "streng";
+
+  shifted << 2;
+
+  array[3] >> 5;
+
+  func(a); 
+
+  return(2 + 2 * 1);
+
+  if (3 + 3) { 
+    output verdade; 
+  };
+
+  if (3 + 3) { 
+    output verdade; 
+  } else {
+    output falso;
+  };
+
+  for (i = 0: i < 2: i = 1) {
+    output infor;
+  };
+
+  while ( 24 ^ 69 ) do {
+    output inwhile;
+  };
+
 }
 
-int func() {
-    output segunda;
+int segunda(){
+  output segunda;
+}
+
+int terceira(){
+  output segunda;
 }
