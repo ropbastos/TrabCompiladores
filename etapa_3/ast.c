@@ -78,21 +78,35 @@ void exporta (void* arvore) {
 
 }
 
+void free_node(node* node) {
+    if (node->val != NULL) {
+        if (node->val->lit_type == STR_LT
+            || node->val->lit_type == NA) 
+            free(node->val->value.s); 
+
+        free(node->val);  
+    }
+
+    if (node->label != NULL) free(node->label);
+    if (node->children != NULL) free(node->children);
+    free(node);
+}
+
+void free_aux(node* node) {
+    if(node == NULL) return;
+
+    for (int i = 0; i < node->child_num; i++) {
+        free_aux(node->children[i]);
+    }
+
+    free_node(node);
+}
+
 void libera (void* arvore) {
     node* tree = (node*) arvore;
-    clear_tree(tree);
+    free_aux(tree);
 }
 
-
-void clear_tree(node* tree) {
-    if ( tree->child_num ) {
-        for (int i = 0; i < tree->child_num; i++) {
-            clear_tree(tree->children[i]);
-        };
-    };
-
-    free(tree);
-}
 
 
 // Auxiliary

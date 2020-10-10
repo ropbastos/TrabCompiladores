@@ -8,7 +8,7 @@ default: scanner.l main.c ast.c parser.y
 clean:
 	rm -f lex.* parser.tab* parser.out* parser main.o ast.o etapa* diag* out*
 	
-dev:
+fsm:
 	bison -v -d parser.y
 
 diag:
@@ -23,3 +23,7 @@ debug: scanner.l main.c ast.c parser.y
 	gcc -g -c lex.yy.c parser.tab.c main.c ast.c
 	gcc -o parser main.o ast.o lex.yy.o parser.tab.o -lfl
 	cp parser etapa3
+
+val:
+	make
+	valgrind --leak-check=full ./etapa3 < tests2

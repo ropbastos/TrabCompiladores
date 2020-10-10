@@ -15,11 +15,13 @@ node* lexval_node(lex_val* val);
 // Nodes from reduced labels
 node* named_node(char* name);
 
+// Add children to nodes
 void add_children(node* parent, int child_num, ...);
 
+// Free tree memory
 void libera (void* arvore);
 
-void clear_tree(node* tree);
+void free_node(node* node);
 
 // Auxiliary
 char* get_label(lex_val* val);
@@ -27,6 +29,8 @@ char* get_label(lex_val* val);
 void print_csv_tree(node* tree);
 
 void print_tree_labels(node* tree);
+
+void free_aux(node* node);
 
 // DEBUG
 void print_children(node* parent);

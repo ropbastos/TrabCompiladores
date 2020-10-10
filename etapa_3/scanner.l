@@ -70,7 +70,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 
     /* Special Characters */ 
 
-{special_char}  { yylval.lex_val = get_spchar_val(); return yytext[0];      }
+{special_char}  { return yytext[0];      }
 
     /* Composite Operators */
 
@@ -202,20 +202,7 @@ struct lex_val* get_str_val() {
     lvptr->lit_type = STR_LT;
     
     // String values must be stripped from their quotes
-    char trim_quotes[strlen(yytext) - 2];  // Does that leak?
-
-    int j = 0;
-    for (int i = 0; i < strlen(yytext); i++) {
-        if (yytext[i] == '"')
-            continue;
-        
-        trim_quotes[j++] = yytext[i];
-    }
-    
-    // Terminating char
-    if (j > 0) trim_quotes[j] = '\0';
-
-    lvptr->value.s = strdup(trim_quotes);
+    lvptr->value.s = strndup(yytext+1, strlen(yytext)-2);
 
     return lvptr;
 }
