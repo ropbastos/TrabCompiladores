@@ -88,9 +88,6 @@ extern void* arvore;
 %type<node> num
 %type<node> unary
 %type<node> bool
-%type<node> boperator
-%type<node> aoperator
-%type<node> loperator
 %type<node> program
 
 %token TOKEN_ERRO
@@ -121,8 +118,6 @@ extern void* arvore;
 
 // Ternary Operator
 %right TERNARY
-// Binary operator expressions
-%left BINARY
 // Unary operator expressions
 %right UNARY
 
@@ -409,7 +404,22 @@ exp:
 |   func_call { $$ = $1; }
 |   '(' exp ')' { $$ = $2; }
 |   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); }
-|   exp boperator exp %prec BINARY { $$ = $2; add_children($$, 2, $1, $3); }
+|   exp '+' exp { $$ = named_node("+"); add_children($$, 2, $1, $3); }
+|   exp '-' exp { $$ = named_node("-"); add_children($$, 2, $1, $3); }
+|   exp '*' exp { $$ = named_node("*"); add_children($$, 2, $1, $3); }
+|   exp '/' exp { $$ = named_node("/"); add_children($$, 2, $1, $3); }
+|   exp '%' exp { $$ = named_node("%"); add_children($$, 2, $1, $3); }
+|   exp '^' exp { $$ = named_node("^"); add_children($$, 2, $1, $3); }
+|   exp '|' exp { $$ = named_node("|"); add_children($$, 2, $1, $3); }
+|   exp '&' exp { $$ = named_node("&"); add_children($$, 2, $1, $3); }
+|   exp '<' exp { $$ = named_node("<"); add_children($$, 2, $1, $3); }
+|   exp '>' exp { $$ = named_node(">"); add_children($$, 2, $1, $3); }
+|   exp TK_OC_AND exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
+|   exp TK_OC_EQ exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
+|   exp TK_OC_GE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
+|   exp TK_OC_LE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
+|   exp TK_OC_NE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
+|   exp TK_OC_OR exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
         $$ = named_node("?:");
@@ -435,33 +445,6 @@ unary:
 bool:
     TK_LIT_FALSE { $$ = lexval_node($1); }
 |   TK_LIT_TRUE { $$ = lexval_node($1); }
-;
-
-boperator:
-    aoperator { $$ = $1; }
-|   loperator { $$ = $1; }
-;
-
-aoperator:
-    '+' { $$ = named_node("+"); }
-|   '-' { $$ = named_node("-"); }
-|   '*' { $$ = named_node("*"); }
-|   '/' { $$ = named_node("/"); }
-|   '%' { $$ = named_node("%"); }
-|   '^' { $$ = named_node("^"); }
-;
-
-loperator:
-    '|' { $$ = named_node("|"); }
-|   '&' { $$ = named_node("&"); }
-|   '<' { $$ = named_node("<"); }
-|   '>' { $$ = named_node(">"); }
-|   TK_OC_AND { $$ = lexval_node($1); }
-|   TK_OC_EQ { $$ = lexval_node($1); }
-|   TK_OC_GE { $$ = lexval_node($1); }
-|   TK_OC_LE { $$ = lexval_node($1); }
-|   TK_OC_NE { $$ = lexval_node($1); }
-|   TK_OC_OR { $$ = lexval_node($1); }
 ;
 
 %%
