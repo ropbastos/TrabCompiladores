@@ -106,7 +106,6 @@ void ht_free(ht_entry** ht)
       free(ht[i]->symbol->label);
       if (ht[i]->symbol->args) free(ht[i]->symbol->args);
       free(ht[i]->symbol);
-      free(ht[i]->next);
       free(ht[i]);
     }   
   }
