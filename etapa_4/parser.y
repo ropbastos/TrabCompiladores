@@ -131,23 +131,10 @@ program:
       symbol* sb = malloc(sizeof(struct symbol));
       sb->label = $1->label;
       printf("sb label: %s\n", sb->label);
-      
-      item* newptr = malloc(sizeof(item));
-      newptr->symbol = sb;
-      newptr->next = NULL;
-      printf("newptr label: %s\n", newptr->symbol->label);
-      ht[2%TABLE_SIZE] = newptr;
-      printf("table entry label: %s\n\n", (ht[2%TABLE_SIZE])->symbol->label);
 
-      printf("hash(sb) primeira vez: %d\n", hash(sb));
-      printf("hash(sb) segunda vez: %d\n", hash(sb));
-      //hash(sb);
-      //printf("hash(sb): %d\n", hash(sb));
-      //int mod = hash(sb) % TABLE_SIZE;
-      //printf("hash(sb) mod TABLE_SIZE: %d\n\n", mod);
+      ht_insert(sb, ht);
 
-      //mod = 98 % 26;
-      //printf("98 mod TABLE_SIZE: %d\n\n", mod);
+      printf("table entry label: %s\n\n", (ht[hash(sb)%TABLE_SIZE])->symbol->label);
       
       $$ = $1;
       add_children($$, 1, $2);
