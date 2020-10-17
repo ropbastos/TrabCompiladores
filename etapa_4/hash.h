@@ -2,26 +2,26 @@
 #define TABLE_SIZE 26
 
 // Table symbol.
-typedef struct symbol {
+typedef struct symbol_entry {
   char* label;
   char** args;
   int line;
   int node_type;
   int data_type;
   int size;
-} symbol;
+} symbol_entry;
 
 /* Linked lists in each entry for handling collisions */
 // List item.
-typedef struct item
+typedef struct ht_entry
 {
-  symbol* symbol;
-  struct item* next;
+  symbol_entry* symbol;
+  struct ht_entry* next;
 }
-item;
+ht_entry;
 
-item** hash_table();
-int hash(symbol* item);
-void ht_insert(symbol* symbol, item** ht);
-item* ht_lookup(symbol* symbol, item** ht);
-void print_ht_entry(item** ht, unsigned long key);
+ht_entry** hash_table();
+int hash(symbol_entry* item);
+void ht_insert(symbol_entry* symbol, ht_entry** ht);
+ht_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht);
+void print_ht_entry(ht_entry** ht, int key);

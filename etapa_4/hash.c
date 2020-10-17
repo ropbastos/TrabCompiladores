@@ -5,14 +5,14 @@
 
 
 // Create hash table.
-item** hash_table()
+ht_entry** hash_table()
 {
-  item** ht = calloc(TABLE_SIZE, sizeof(struct item));
+  ht_entry** ht = calloc(TABLE_SIZE, sizeof(struct ht_entry));
   return ht;
 }
 
 // Hash symbol.
-int hash(symbol* symbol)
+int hash(symbol_entry* symbol)
 { 
   // Simple sum of characters.
   int hash = 0;
@@ -26,7 +26,7 @@ int hash(symbol* symbol)
 }
 
 // Insert symbol in hashtable.
-void ht_insert(symbol* symbol, item** ht)
+void ht_insert(symbol_entry* symbol, ht_entry** ht)
 {
   int key = hash(symbol);
 
@@ -35,7 +35,7 @@ void ht_insert(symbol* symbol, item** ht)
   printf("INSERT GENERATED KEY: %d\n", key);
 
   // Make new table entry.
-  item* newptr = malloc(sizeof(item));
+  ht_entry* newptr = malloc(sizeof(ht_entry));
   newptr->symbol = symbol;
   newptr->next = NULL;
 
@@ -46,7 +46,7 @@ void ht_insert(symbol* symbol, item** ht)
   }
   else
   {
-    item* prevptr = ht[key];
+    ht_entry* prevptr = ht[key];
     while (1)
     {
       // Insert at tail.
@@ -61,8 +61,8 @@ void ht_insert(symbol* symbol, item** ht)
   }
 }
 
-
-item* ht_lookup(symbol* symbol, item** ht)
+// Look symbol up in hash tablw 
+ht_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
 {
   int key = hash(symbol);
 
@@ -70,7 +70,7 @@ item* ht_lookup(symbol* symbol, item** ht)
 
   if (ht[key] == NULL) return NULL;
 
-  item* present_item = ht[key];
+  ht_entry* present_item = ht[key];
 
   do {
     if (strcmp(present_item->symbol->label, symbol->label) == 0)
@@ -81,7 +81,7 @@ item* ht_lookup(symbol* symbol, item** ht)
   } while (present_item != NULL);
 }
 
-void print_ht_entry(item** ht, unsigned long key)
+void print_ht_entry(ht_entry** ht, int key)
 {
   printf("HT entry label is: %s\n", ht[key%TABLE_SIZE]->symbol->label);
 }

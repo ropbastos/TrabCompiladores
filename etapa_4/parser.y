@@ -127,8 +127,8 @@ program:
 |   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
 |   func program 
     { 
-      item** ht = hash_table();
-      symbol* sb = malloc(sizeof(struct symbol));
+      ht_entry** ht = hash_table();
+      symbol_entry* sb = malloc(sizeof(struct symbol_entry));
       sb->label = $1->label;
       printf("sb label: %s\n", sb->label);
 
@@ -136,7 +136,7 @@ program:
 
       printf("table entry label: %s\n\n", ht_lookup(sb, ht)->symbol->label);
 
-      symbol* sb2 = malloc(sizeof(struct symbol));
+      symbol_entry* sb2 = malloc(sizeof(struct symbol_entry));
       sb2->label = "A1";
       printf("sb label: %s\n", sb2->label);
 
