@@ -10,6 +10,7 @@ int get_line_number();
 int get_col();
 
 extern void* arvore;
+stack* global_scope = NULL;
 %}
 
 %define parse.error verbose
@@ -18,6 +19,7 @@ extern void* arvore;
 %union {
   struct lex_val* lex_val;
   struct node* node;
+  char** id_list;
 }
 
 %token TK_PR_INT
@@ -90,6 +92,8 @@ extern void* arvore;
 %type<node> bool
 %type<node> program
 
+%type<id_list> global_list
+
 %token TOKEN_ERRO
 
 /* Define precedences */
@@ -126,57 +130,39 @@ root: program { arvore = $1; };
 
 program:
     %empty { $$ = NULL; }
-|   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
+|   global_decl program 
+    { 
+      if ($2 != NULL) $$ = $2; else $$ = NULL; 
+    }
 |   func program 
     { 
-      stack* st = new_stack();
-
-      ht_entry** ht1 = hash_table();
-      ht_entry** ht2 = hash_table();
-
-      symbol_entry* sb = new_symbol_entry("r", 2, 5, 7, 7, 1, NULL, NULL);
-      ht_insert(sb, ht1);
-
-      push(&st, ht1);
-      push(&st, ht2);
-
-      symbol_entry* sbentry = ht_lookup(sb, pop(&st));
-      if (sbentry != NULL)
-      {
-        printf("ht2 entry label: %s\n\n", sbentry->label);
-      }
-      else
-      {
-        printf("Entry not found on ht2.\n");
-      }
-
-      sbentry = ht_lookup(sb, pop(&st));
-      if (sbentry != NULL)
-      {
-        printf("ht1 entry label: %s\n\n", sbentry->label);
-      }
-      else
-      {
-        printf("Entry not found on ht1.\n");
-      }
-
       $$ = $1;
       add_children($$, 1, $2);
     }
 ;
 
 global_decl:
-    type global_list ';'
+    type global_list ';' 
+    {
+      // Create global scope symbol table.
+      ht_entry** global_st = hash_table();
+
+    }
 |   TK_PR_STATIC type global_list ';'
 ;
 
 global_list:
-    TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR ',' global_list
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']'
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']'
+    TK_IDENTIFICADOR 
+    { 
+      char** id_list;
+      printf("LABEL DO ID GLOBAL: %s\n", $1->value.s);
+      $$ = id_list;
+    }
+|   TK_IDENTIFICADOR ',' global_list { char** id_list; $$ = id_list; }
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list { char** id_list; $$ = id_list; }
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' { char** id_list; $$ = id_list; }
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list { char** id_list; $$ = id_list; }
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' { char** id_list; $$ = id_list; }
 ;
 
 type:

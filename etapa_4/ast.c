@@ -73,6 +73,7 @@ void add_children(node* parent, int child_num, ...) {
 }
 
 void exporta (void* arvore) {
+    if (arvore == NULL) return;
 
     node* tree = (node*) arvore;
 
@@ -109,6 +110,7 @@ void free_aux(node* node) {
 }
 
 void libera (void* arvore) {
+    if (arvore == NULL) return;
     node* tree = (node*) arvore;
     free_aux(tree);
 }

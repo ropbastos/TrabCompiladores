@@ -1,5 +1,1 @@
-int r() {
-
-  return(var);
-
-}
+int a;
