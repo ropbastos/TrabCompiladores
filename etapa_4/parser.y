@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "errors.h"
 #include "stack.h"
 int yylex(void);
 void yyerror (char const *s);
@@ -294,28 +295,28 @@ literal:
 attrib:
     TK_IDENTIFICADOR '=' exp 
     { 
-        $$ = named_node("=", UDEF_TYPE); add_children($$, 2, lexval_node($1), $3); 
+        $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
-        node* vector = named_node("[]", UDEF_TYPE);
+        node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
-        $$ = named_node("=", UDEF_TYPE); add_children($$, 2, vector, $6); 
+        $$ = named_node("="); add_children($$, 2, vector, $6); 
     }
 ;
 
 io:
     TK_PR_INPUT TK_IDENTIFICADOR
     {
-        $$ = named_node("input", UDEF_TYPE); add_children($$, 1, lexval_node($2));
+        $$ = named_node("input"); add_children($$, 1, lexval_node($2));
     }
 |   TK_PR_OUTPUT TK_IDENTIFICADOR
     {
-        $$ = named_node("output", UDEF_TYPE); add_children($$, 1, lexval_node($2));
+        $$ = named_node("output"); add_children($$, 1, lexval_node($2));
     }
 |   TK_PR_OUTPUT literal
     {
-        $$ = named_node("output", UDEF_TYPE); add_children($$, 1, $2);
+        $$ = named_node("output"); add_children($$, 1, $2);
     }
 ;
 
@@ -354,34 +355,34 @@ shift:
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
     {
-        node* vector = named_node("[]", UDEF_TYPE);
+        node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR TK_LIT_INT
     {
-        node* vector = named_node("[]", UDEF_TYPE);
+        node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL '+' TK_LIT_INT
     {
-        node* vector = named_node("[]", UDEF_TYPE);
+        node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR '+' TK_LIT_INT
     {
-        node* vector = named_node("[]", UDEF_TYPE);
+        node* vector = named_node("[]");
         add_children(vector, 2, lexval_node($1), $3);
         $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
     }
 ;
 
 jmp_stmt:
-    TK_PR_RETURN exp { $$ = named_node("return", UDEF_TYPE); add_children($$, 1, $2); }
-|   TK_PR_BREAK { $$ = named_node("break", UDEF_TYPE); }
-|   TK_PR_CONTINUE { $$ = named_node("continue", UDEF_TYPE); }
+    TK_PR_RETURN exp { $$ = named_node("return"); add_children($$, 1, $2); }
+|   TK_PR_BREAK { $$ = named_node("break"); }
+|   TK_PR_CONTINUE { $$ = named_node("continue"); }
 ;
 
 control:
@@ -393,12 +394,12 @@ control:
 if:
     TK_PR_IF '(' exp ')' block 
     {  
-        $$ = named_node("if", UDEF_TYPE);
+        $$ = named_node("if");
         add_children($$, 3, $3, $5, NULL);
     }
 |   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
     {  
-        $$ = named_node("if", UDEF_TYPE);
+        $$ = named_node("if");
         add_children($$, 3, $3, $5, $7);
     }
 ;
@@ -406,7 +407,7 @@ if:
 for:
     TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
     {  
-        $$ = named_node("for", UDEF_TYPE);
+        $$ = named_node("for");
         add_children($$, 4, $3, $5, $7, $9);
     }
 ;
@@ -414,7 +415,7 @@ for:
 while:
     TK_PR_WHILE '(' exp ')' TK_PR_DO block
     {  
-        $$ = named_node("while", UDEF_TYPE);
+        $$ = named_node("while");
         add_children($$, 2, $3, $6);
     }
 ;
@@ -423,24 +424,37 @@ exp:
     TK_IDENTIFICADOR { $$ = lexval_node($1); }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
-        $$ = named_node("[]", UDEF_TYPE);
+        $$ = named_node("[]");
         add_children($$, 2, lexval_node($1), $3);
     }
 |   num { $$ = $1; }
 |   bool { $$ = $1; }
 |   func_call { $$ = $1; }
 |   '(' exp ')' { $$ = $2; }
-|   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); }
-|   exp '+' exp { $$ = named_node("+", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '-' exp { $$ = named_node("-", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '*' exp { $$ = named_node("*", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '/' exp { $$ = named_node("/", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '%' exp { $$ = named_node("%", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '^' exp { $$ = named_node("^", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '|' exp { $$ = named_node("|", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '&' exp { $$ = named_node("&", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '<' exp { $$ = named_node("<", UDEF_TYPE); add_children($$, 2, $1, $3); }
-|   exp '>' exp { $$ = named_node(">", UDEF_TYPE); add_children($$, 2, $1, $3); }
+|   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $1->data_type = $2->data_type;}
+|   exp '+' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '-' exp { $$ = named_node("-"); add_children($$, 2, $1, $3); }
+|   exp '*' exp { $$ = named_node("*"); add_children($$, 2, $1, $3); }
+|   exp '/' exp { $$ = named_node("/"); add_children($$, 2, $1, $3); }
+|   exp '%' exp { $$ = named_node("%"); add_children($$, 2, $1, $3); }
+|   exp '^' exp { $$ = named_node("^"); add_children($$, 2, $1, $3); }
+|   exp '|' exp { $$ = named_node("|"); add_children($$, 2, $1, $3); }
+|   exp '&' exp { $$ = named_node("&"); add_children($$, 2, $1, $3); }
+|   exp '<' exp { $$ = named_node("<"); add_children($$, 2, $1, $3); }
+|   exp '>' exp { $$ = named_node(">"); add_children($$, 2, $1, $3); }
 |   exp TK_OC_AND exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
 |   exp TK_OC_EQ exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
 |   exp TK_OC_GE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
@@ -449,7 +463,7 @@ exp:
 |   exp TK_OC_OR exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
-        $$ = named_node("?:", UDEF_TYPE);
+        $$ = named_node("?:");
         add_children($$, 3, $1, $3, $5);
     }
 ;
@@ -460,13 +474,13 @@ num:
 ;
 
 unary:
-    '+' { $$ = named_node("+", UDEF_TYPE); }
-|   '-' { $$ = named_node("-", UDEF_TYPE); }
-|   '!' { $$ = named_node("!", UDEF_TYPE); }
-|   '&' { $$ = named_node("&", UDEF_TYPE); }
-|   '*' { $$ = named_node("*", UDEF_TYPE); }
-|   '?' { $$ = named_node("?", UDEF_TYPE); }
-|   '#' { $$ = named_node("#", UDEF_TYPE); }
+    '+' { $$ = named_node("+"); }
+|   '-' { $$ = named_node("-"); }
+|   '!' { $$ = named_node("!"); }
+|   '&' { $$ = named_node("&"); }
+|   '*' { $$ = named_node("*"); }
+|   '?' { $$ = named_node("?"); }
+|   '#' { $$ = named_node("#"); }
 ;
 
 bool:

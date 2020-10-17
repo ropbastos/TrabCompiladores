@@ -14,3 +14,5 @@
 #define ERR_WRONG_PAR_OUTPUT 51
 #define ERR_WRONG_PAR_RETURN 52
 #define ERR_WRONG_PAR_SHIFT  53
+
+void syntactic_error(int error_code);

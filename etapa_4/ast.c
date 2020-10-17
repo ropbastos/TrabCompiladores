@@ -25,7 +25,7 @@ node* lexval_node(lex_val* val) {
     return nodeptr;
 }
 
-node* named_node(char* name, int data_type) {
+node* named_node(char* name) {
     
     // Allocate memory.
     node *nodeptr = (struct node*) malloc(sizeof(struct node));
@@ -34,7 +34,7 @@ node* named_node(char* name, int data_type) {
     nodeptr->label = strdup(name);
 
     // Write type.
-    nodeptr->data_type = data_type;
+    nodeptr->data_type = UDEF_TYPE;
 
     // Write value.
     nodeptr->val = NULL;
@@ -166,7 +166,7 @@ void print_csv_tree(node* tree) {
 
 void print_tree_labels(node* tree) {
 
-    printf("%p [label=\"%s\"];\n", tree, tree->label);
+    printf("%p [label=\"%s\" type=\"%d\"];\n", tree, tree->label, tree->data_type);
     if (tree->child_num) {
         for (int i = 0; i < tree->child_num; i++) {
             if ( tree->children[i] != NULL ) {
