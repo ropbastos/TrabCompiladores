@@ -149,10 +149,10 @@ global_decl:
       ht_entry** global_st = hash_table();
 
       // Print global variable names.
-      // for (int i = 0; i < $2->size; i++)
-      // {
-      //   printf("var global %d: %s\n", i, $2->ids[i]);
-      // }
+      for (int i = 0; i < $2->size; i++)
+      {
+        printf("var global %d: %s\n", i, $2->ids[i]);
+      }
 
     }
 |   TK_PR_STATIC type global_list ';'
@@ -162,9 +162,10 @@ global_list:
     TK_IDENTIFICADOR 
     { 
       id_list global_ids;
+      global_ids.ids = malloc(sizeof(char*));
       int size = 0;
       printf("vai inserir primeiro id.\n");
-      global_ids.ids[size] = strdup($1->value.s);
+      global_ids.ids[size] = $1->value.s;
       global_ids.size = size;
       printf("montou global_ids\n");
       $$ = &global_ids;
