@@ -26,8 +26,8 @@ void push(struct StackNode** root, ht_entry** ht)
   
 ht_entry** pop(struct StackNode** root) 
 { 
-  if (isEmpty(*root)) 
-      return INT_MIN; 
+  if (is_empty(*root)) 
+      return NULL; 
   struct StackNode* temp = *root; 
   *root = (*root)->next; 
   ht_entry** popped = temp->ht; 
@@ -38,8 +38,8 @@ ht_entry** pop(struct StackNode** root)
   
 ht_entry** peek(struct StackNode* root) 
 { 
-  if (isEmpty(root)) 
-    return INT_MIN; 
+  if (is_empty(root)) 
+    return NULL; 
   return root->ht; 
 } 
 
