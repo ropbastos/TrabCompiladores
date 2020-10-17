@@ -61,7 +61,7 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht)
   }
 }
 
-// Look symbol up in hash tablw 
+// Look symbol up in hash table. 
 ht_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
 {
   int key = hash(symbol);
@@ -79,6 +79,40 @@ ht_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
     }
     present_item = present_item->next;
   } while (present_item != NULL);
+}
+
+// Free up hash table memory.
+void ht_free_aux(ht_entry* entry)
+{
+  if (entry->next)
+  {
+    ht_free_aux(entry->next);
+  }
+  free(entry->symbol->label);
+  if (entry->symbol->args) free(entry->symbol->args);
+  free(entry->symbol);
+  free(entry->next);
+  free(entry);
+}
+
+void ht_free(ht_entry** ht)
+{
+  for (int i = 0; i < TABLE_SIZE; i++)
+  {
+    if (ht[i] != NULL)
+    {
+      if (ht[i]->next)
+      {
+        ht_free_aux(ht[i]->next);
+      }
+      free(ht[i]->symbol->label);
+      if (ht[i]->symbol->args) free(ht[i]->symbol->args);
+      free(ht[i]->symbol);
+      free(ht[i]->next);
+      free(ht[i]);
+    }   
+  }
+  free(ht);
 }
 
 void print_ht_entry(ht_entry** ht, int key)

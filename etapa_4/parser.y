@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "hash.h"
 int yylex(void);
 void yyerror (char const *s);
@@ -129,7 +130,7 @@ program:
     { 
       ht_entry** ht = hash_table();
       symbol_entry* sb = malloc(sizeof(struct symbol_entry));
-      sb->label = $1->label;
+      sb->label = strdup($1->label);
       printf("sb label: %s\n", sb->label);
 
       ht_insert(sb, ht);
@@ -137,12 +138,14 @@ program:
       printf("table entry label: %s\n\n", ht_lookup(sb, ht)->symbol->label);
 
       symbol_entry* sb2 = malloc(sizeof(struct symbol_entry));
-      sb2->label = "A1";
+      sb2->label = strdup("A1");
       printf("sb label: %s\n", sb2->label);
 
       ht_insert(sb2, ht);
 
       printf("table entry label: %s\n\n", ht_lookup(sb2, ht)->symbol->label);
+      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->symbol->label);
+      ht_free(ht);
       
       $$ = $1;
       add_children($$, 1, $2);
