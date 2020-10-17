@@ -131,6 +131,7 @@ program:
       ht_entry** ht = hash_table();
       symbol_entry* sb = malloc(sizeof(struct symbol_entry));
       sb->label = strdup("r");
+      sb->args = NULL;
       printf("sb label: %s\n", sb->label);
 
       ht_insert(sb, ht);
@@ -139,6 +140,7 @@ program:
 
       symbol_entry* sb2 = malloc(sizeof(struct symbol_entry));
       sb2->label = strdup("A1");
+      sb2->args = NULL;
       printf("sb label: %s\n", sb2->label);
 
       ht_insert(sb2, ht);

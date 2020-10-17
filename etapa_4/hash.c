@@ -32,8 +32,6 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht)
 
   key %= TABLE_SIZE;
 
-  printf("INSERT GENERATED KEY: %d\n", key);
-
   // Make new table entry.
   ht_entry* newptr = malloc(sizeof(ht_entry));
   newptr->symbol = symbol;
