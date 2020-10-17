@@ -17,7 +17,6 @@ extern void* arvore;
 %union {
     struct lex_val* lex_val;
     struct node* node;
-    char* label;
 }
 
 %token TK_PR_INT
@@ -129,10 +128,8 @@ program:
 |   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
 |   func program 
     { 
-        if ($2 != NULL) {
-            $$ = $1;
-            add_children($$, 1, $2);
-        };
+      $$ = $1;
+      add_children($$, 1, $2);
     }
 ;
 
@@ -395,8 +392,7 @@ exp:
     TK_IDENTIFICADOR { $$ = lexval_node($1); }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
-        node* vector = named_node("[]");
-        $$ = vector;
+        $$ = named_node("[]");
         add_children($$, 2, lexval_node($1), $3);
     }
 |   num { $$ = $1; }
