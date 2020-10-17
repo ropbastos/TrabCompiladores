@@ -14,8 +14,12 @@ int main (int argc, char **argv)
 {
   int ret = yyparse(); 
   exporta (arvore);
+  printf("SAIU DE EXPORTA\n");
   libera(arvore);
+  printf("SAIU DE LIBERA\n");
   arvore = NULL;
+  printf("NULLOU ARVORE\n");
   yylex_destroy();
+  printf("SAIU YYLEX_DESTROY()\n");
   return ret;
 }

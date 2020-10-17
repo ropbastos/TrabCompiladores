@@ -130,12 +130,12 @@ program:
     { 
       ht_entry** ht = hash_table();
       symbol_entry* sb = malloc(sizeof(struct symbol_entry));
-      sb->label = strdup($1->label);
+      sb->label = strdup("r");
       printf("sb label: %s\n", sb->label);
 
       ht_insert(sb, ht);
 
-      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->symbol->label);
+      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->label);
 
       symbol_entry* sb2 = malloc(sizeof(struct symbol_entry));
       sb2->label = strdup("A1");
@@ -143,10 +143,10 @@ program:
 
       ht_insert(sb2, ht);
 
-      printf("table entry label: %s\n\n", ht_lookup(sb2, ht)->symbol->label);
-      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->symbol->label);
+      printf("table entry label: %s\n\n", ht_lookup(sb2, ht)->label);
+      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->label);
       ht_free(ht);
-      
+
       $$ = $1;
       add_children($$, 1, $2);
     }

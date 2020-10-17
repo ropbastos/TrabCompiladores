@@ -62,7 +62,7 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht)
 }
 
 // Look symbol up in hash table. 
-ht_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
+symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
 {
   int key = hash(symbol);
 
@@ -75,7 +75,7 @@ ht_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
   do {
     if (strcmp(present_item->symbol->label, symbol->label) == 0)
     {
-      return present_item;
+      return present_item->symbol;
     }
     present_item = present_item->next;
   } while (present_item != NULL);
