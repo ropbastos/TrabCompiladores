@@ -1,9 +1,16 @@
 #include <stdarg.h>
 #include "lexval.h"
 
+#define INT 47
+#define FLOAT 48
+#define CHAR 49
+#define STR 50
+#define BOOL 51
+
 // Node struct
 typedef struct node {
     char* label;
+    int data_type;
     lex_val* val;
     int child_num;
     struct node** children; 

@@ -1,6 +1,8 @@
 #include "ast.h"
 #define TABLE_SIZE 26
 
+#define FUNC 80
+
 // Table symbol.
 typedef struct symbol_entry {
   char* label;
@@ -11,6 +13,9 @@ typedef struct symbol_entry {
   char** args;
   TOKEN_VAL val;
 } symbol_entry;
+
+symbol_entry* new_symbol_entry(char* label, int line, int column, int symbol_type,
+                               int data_type, int size, char** args, lex_val* val);
 
 /* Linked lists in each entry for handling collisions */
 // List item.

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hash.h"
+#include "stack.h"
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
@@ -128,12 +128,12 @@ program:
 |   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
 |   func program 
     { 
-      ht_entry** ht = hash_table();
-      symbol_entry* sb = malloc(sizeof(struct symbol_entry));
-      sb->label = strdup("r");
-      sb->args = NULL;
+      stack* st = new_stack();
+      push(&st, hash_table());
+      symbol_entry* sb = new_symbol_entry("r", 2, 5, FUNC, FLOAT, 1, NULL, NULL);
       printf("sb label: %s\n", sb->label);
 
+      ht_entry** ht = pop(&st);
       ht_insert(sb, ht);
 
       printf("table entry label: %s\n\n", ht_lookup(sb, ht)->label);
