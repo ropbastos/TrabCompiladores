@@ -127,14 +127,22 @@ program:
 |   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
 |   func program 
     { 
-      item** ht = calloc(TABLE_SIZE, sizeof(struct item));
+      item** ht = hash_table();
       symbol* sb = malloc(sizeof(struct symbol));
       sb->label = $1->label;
       printf("sb label: %s\n", sb->label);
 
       ht_insert(sb, ht);
 
-      printf("table entry label: %s\n\n", (ht[hash(sb)%TABLE_SIZE])->symbol->label);
+      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->symbol->label);
+
+      symbol* sb2 = malloc(sizeof(struct symbol));
+      sb2->label = "A1";
+      printf("sb label: %s\n", sb2->label);
+
+      ht_insert(sb2, ht);
+
+      printf("table entry label: %s\n\n", ht_lookup(sb2, ht)->symbol->label);
       
       $$ = $1;
       add_children($$, 1, $2);

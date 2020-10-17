@@ -28,9 +28,11 @@ int hash(symbol* symbol)
 // Insert symbol in hashtable.
 void ht_insert(symbol* symbol, item** ht)
 {
-  unsigned long key = hash(symbol);
+  int key = hash(symbol);
 
   key %= TABLE_SIZE;
+
+  printf("INSERT GENERATED KEY: %d\n", key);
 
   // Make new table entry.
   item* newptr = malloc(sizeof(item));
@@ -57,6 +59,26 @@ void ht_insert(symbol* symbol, item** ht)
       prevptr = prevptr->next;
     }
   }
+}
+
+
+item* ht_lookup(symbol* symbol, item** ht)
+{
+  int key = hash(symbol);
+
+  key %= TABLE_SIZE;
+
+  if (ht[key] == NULL) return NULL;
+
+  item* present_item = ht[key];
+
+  do {
+    if (strcmp(present_item->symbol->label, symbol->label) == 0)
+    {
+      return present_item;
+    }
+    present_item = present_item->next;
+  } while (present_item != NULL);
 }
 
 void print_ht_entry(item** ht, unsigned long key)

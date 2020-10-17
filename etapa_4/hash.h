@@ -23,4 +23,5 @@ item;
 item** hash_table();
 int hash(symbol* item);
 void ht_insert(symbol* symbol, item** ht);
+item* ht_lookup(symbol* symbol, item** ht);
 void print_ht_entry(item** ht, unsigned long key);
