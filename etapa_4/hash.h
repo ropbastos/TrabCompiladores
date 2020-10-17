@@ -4,8 +4,8 @@
 // Table symbol.
 typedef struct symbol_entry {
   char* label;
-  int line;
-  int node_type;
+  int line, column;
+  int symbol_type;
   int data_type;
   int size;
   char** args;
