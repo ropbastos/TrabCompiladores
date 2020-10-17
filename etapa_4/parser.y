@@ -431,7 +431,7 @@ exp:
 |   bool { $$ = $1; }
 |   func_call { $$ = $1; }
 |   '(' exp ')' { $$ = $2; }
-|   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $1->data_type = $2->data_type;}
+|   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $$->data_type = $2->data_type;}
 |   exp '+' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
@@ -446,25 +446,119 @@ exp:
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
     }
-|   exp '-' exp { $$ = named_node("-"); add_children($$, 2, $1, $3); }
-|   exp '*' exp { $$ = named_node("*"); add_children($$, 2, $1, $3); }
-|   exp '/' exp { $$ = named_node("/"); add_children($$, 2, $1, $3); }
-|   exp '%' exp { $$ = named_node("%"); add_children($$, 2, $1, $3); }
-|   exp '^' exp { $$ = named_node("^"); add_children($$, 2, $1, $3); }
-|   exp '|' exp { $$ = named_node("|"); add_children($$, 2, $1, $3); }
-|   exp '&' exp { $$ = named_node("&"); add_children($$, 2, $1, $3); }
-|   exp '<' exp { $$ = named_node("<"); add_children($$, 2, $1, $3); }
-|   exp '>' exp { $$ = named_node(">"); add_children($$, 2, $1, $3); }
-|   exp TK_OC_AND exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
-|   exp TK_OC_EQ exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
-|   exp TK_OC_GE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
-|   exp TK_OC_LE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
-|   exp TK_OC_NE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
-|   exp TK_OC_OR exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); }
+|   exp '-' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '*' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '/' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '%' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '^' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '|' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '&' exp 
+    { 
+      $$ = named_node("+"); add_children($$, 2, $1, $3);
+
+      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
+      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
+      if ($1->data_type == FLOAT && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
+      if ($1->data_type == BOOL && $3->data_type == INT
+        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
+      if ($1->data_type == BOOL && $3->data_type == FLOAT
+        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+    }
+|   exp '<' exp { $$ = named_node("<"); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp '>' exp { $$ = named_node(">"); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp TK_OC_AND exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp TK_OC_EQ exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp TK_OC_GE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp TK_OC_LE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp TK_OC_NE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp TK_OC_OR exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
         $$ = named_node("?:");
         add_children($$, 3, $1, $3, $5);
+        if ($1->data_type != BOOL && $1->data_type != INT
+          	&& $1->data_type != FLOAT)
+          syntactic_error(ERR_WRONG_TYPE);
     }
 ;
 
