@@ -4,11 +4,12 @@
 // Table symbol.
 typedef struct symbol_entry {
   char* label;
-  char** args;
   int line;
   int node_type;
   int data_type;
   int size;
+  char** args;
+  TOKEN_VAL val;
 } symbol_entry;
 
 /* Linked lists in each entry for handling collisions */
