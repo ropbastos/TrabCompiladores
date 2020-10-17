@@ -77,6 +77,8 @@ symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
     }
     present_item = present_item->next;
   } while (present_item != NULL);
+
+  return NULL;
 }
 
 // Free up hash table memory.
@@ -124,7 +126,7 @@ symbol_entry* new_symbol_entry(char* label, int line, int column, int symbol_typ
     sb->data_type = data_type;
     sb->size = size;
     sb->args = args;
-    sb->val = val->value;
+    sb->val = val;
 
     return sb;
   }

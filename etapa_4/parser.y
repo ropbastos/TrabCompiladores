@@ -129,25 +129,35 @@ program:
 |   func program 
     { 
       stack* st = new_stack();
-      push(&st, hash_table());
-      symbol_entry* sb = new_symbol_entry("r", 2, 5, FUNC, FLOAT, 1, NULL, NULL);
-      printf("sb label: %s\n", sb->label);
 
-      ht_entry** ht = pop(&st);
-      ht_insert(sb, ht);
+      ht_entry** ht1 = hash_table();
+      ht_entry** ht2 = hash_table();
 
-      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->label);
+      symbol_entry* sb = new_symbol_entry("r", 2, 5, 7, 7, 1, NULL, NULL);
+      ht_insert(sb, ht1);
 
-      symbol_entry* sb2 = malloc(sizeof(struct symbol_entry));
-      sb2->label = strdup("A1");
-      sb2->args = NULL;
-      printf("sb label: %s\n", sb2->label);
+      push(&st, ht1);
+      push(&st, ht2);
 
-      ht_insert(sb2, ht);
+      symbol_entry* sbentry = ht_lookup(sb, pop(&st));
+      if (sbentry != NULL)
+      {
+        printf("ht2 entry label: %s\n\n", sbentry->label);
+      }
+      else
+      {
+        printf("Entry not found on ht2.\n");
+      }
 
-      printf("table entry label: %s\n\n", ht_lookup(sb2, ht)->label);
-      printf("table entry label: %s\n\n", ht_lookup(sb, ht)->label);
-      ht_free(ht);
+      sbentry = ht_lookup(sb, pop(&st));
+      if (sbentry != NULL)
+      {
+        printf("ht1 entry label: %s\n\n", sbentry->label);
+      }
+      else
+      {
+        printf("Entry not found on ht1.\n");
+      }
 
       $$ = $1;
       add_children($$, 1, $2);

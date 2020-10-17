@@ -11,7 +11,7 @@ typedef struct symbol_entry {
   int data_type;
   int size;
   char** args;
-  TOKEN_VAL val;
+  lex_val* val;
 } symbol_entry;
 
 symbol_entry* new_symbol_entry(char* label, int line, int column, int symbol_type,
