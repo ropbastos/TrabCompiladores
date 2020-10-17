@@ -1,11 +1,13 @@
 #include <stdarg.h>
 #include "lexval.h"
 
-#define INT 47
-#define FLOAT 48
-#define CHAR 49
-#define STR 50
-#define BOOL 51
+#define INT INT_LT
+#define FLOAT FLOAT_LT
+#define CHAR CHAR_LT
+#define STR STR_LT
+#define BOOL BOOL_LT
+
+#define UDEF_TYPE 78
 
 // Node struct
 typedef struct node {
@@ -20,7 +22,7 @@ typedef struct node {
 node* lexval_node(lex_val* val);
 
 // Nodes from reduced labels
-node* named_node(char* name);
+node* named_node(char* name, int data_type);
 
 // Add children to nodes
 void add_children(node* parent, int child_num, ...);

@@ -12,6 +12,9 @@ node* lexval_node(lex_val* val) {
     // Write label.
     nodeptr->label = get_label(val);
 
+    // Write type.
+    nodeptr->data_type = val->lit_type;
+
     // Write value.
     nodeptr->val = val;
 
@@ -22,13 +25,16 @@ node* lexval_node(lex_val* val) {
     return nodeptr;
 }
 
-node* named_node(char* name) {
+node* named_node(char* name, int data_type) {
     
     // Allocate memory.
     node *nodeptr = (struct node*) malloc(sizeof(struct node));
 
     // Write label.
     nodeptr->label = strdup(name);
+
+    // Write type.
+    nodeptr->data_type = data_type;
 
     // Write value.
     nodeptr->val = NULL;
