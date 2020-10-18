@@ -9,7 +9,7 @@ int get_line_number();
 int get_col();
 
 extern void* arvore;
-stack* global_scope = NULL;
+stack* scope_stack = NULL;
 %}
 
 %define parse.error verbose
@@ -145,24 +145,71 @@ program:
 global_decl:
     type global_list ';' 
     {
-      // Create global scope symbol table.
-      ht_entry** global_st = hash_table();
+      // Find global scope.
+      stack* aux;
 
-      // Print global_list.
-      print_ids($2);
+      push(&aux, pop(&scope_stack));
+      while (peek(aux) != NULL)
+      {
+        push(&aux, pop(&scope_stack));
+      }
+
+      ht_entry** global_scope; 
+      global_scope = pop(&aux);
+      if (global_scope == NULL)
+      {
+        // Create new global scope symbol table if one doesn't already exist.
+        global_scope = hash_table();
+      }
 
       // Add globals to symbol table.
       id_list* current = $2;
       while(current != NULL)
       {
         symbol_entry* sb = new_symbol_entry(current->id, current->line, 1, $1, 1, NULL, NULL);
-        if (ht_lookup(sb, global_st) != NULL) syntactic_error(ERR_DECLARED, -1, sb);
-        ht_insert(sb, global_st);
+        if (ht_lookup(sb, global_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, global_scope);
         current = current->next;
       }
 
+      // Stack global sb table.
+      push(&scope_stack, global_scope);
+
+      // Push every other scope that was also there.
+      ht_entry** scope;
+      scope = pop(&aux);
+      while (scope != NULL)
+      {
+        push(&scope_stack, scope);
+        scope = pop(&aux);
+      }
+
+      ht_print(pop(&scope_stack));
     }
-|   TK_PR_STATIC type global_list ';'
+|   TK_PR_STATIC type global_list ';' 
+    {
+      // // Create global scope symbol table.
+      // ht_entry** global_st = hash_table();
+
+      // // Add globals to symbol table.
+      // id_list* current = $3;
+      // while(current != NULL)
+      // {
+      //   symbol_entry* sb = new_symbol_entry(current->id, current->line, 1, $2, 1, NULL, NULL);
+      //   if (ht_lookup(sb, global_st) != NULL)
+      //   {
+      //    syntactic_error(ERR_DECLARED, -1, sb);
+      //   }
+      //   ht_insert(sb, global_st);
+      //   current = current->next;
+      // }
+
+      // // Stack global sb.
+      // push(&global_scope, global_st);
+    }
 ;
 
 global_list:

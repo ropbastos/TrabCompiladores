@@ -130,6 +130,19 @@ symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
     return sb;
   }
 
+void ht_print(ht_entry** ht)
+{
+  for (int i = 0; i < TABLE_SIZE; i++)
+  {
+    ht_entry* current_entry = ht[i];
+    while (current_entry != NULL)
+    {
+      printf("Entry label: %s\n", current_entry->symbol->label);
+      current_entry = current_entry->next;
+    }
+  }
+}
+
 void print_ht_entry(ht_entry** ht, int key)
 {
   printf("HT entry label is: %s\n", ht[key%TABLE_SIZE]->symbol->label);

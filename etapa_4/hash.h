@@ -32,4 +32,5 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht);
 symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht);
 void ht_free_aux(ht_entry* entry);
 void ht_free(ht_entry** ht);
+void ht_print(ht_entry** ht);
 void print_ht_entry(ht_entry** ht, int key);
