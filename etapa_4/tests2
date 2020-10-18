@@ -1,6 +1,8 @@
 int a, b[2], 
 c, d[3];
 
-int main(){}
+int main(){
+  int z <= 2;
+}
 
 int h, i;

@@ -10,6 +10,11 @@ int get_col();
 
 extern void* arvore;
 stack* scope_stack = NULL;
+
+typedef struct prod_val {
+  struct node* ast_node;
+  struct id_list_item* id_list;
+} prod;
 %}
 
 %define parse.error verbose
@@ -19,6 +24,7 @@ stack* scope_stack = NULL;
   struct lex_val* lex_val;
   struct node* node;
   struct id_list_item* id_list;
+  struct prod_val* prod;
   int type;
 }
 
@@ -69,7 +75,7 @@ stack* scope_stack = NULL;
 %token<lex_val> TK_IDENTIFICADOR
 
 %type<node> literal
-%type<node> local_list
+%type<prod> local_list
 %type<node> io
 %type<node> cmds
 %type<node> local_decl
@@ -393,36 +399,36 @@ cmds:
 ;
 
 local_decl:
-    type local_list { $$ = $2; }
-|   TK_PR_CONST type local_list { $$ = $3; }
-|   TK_PR_STATIC TK_PR_CONST type local_list { $$ = $4; }
-|   TK_PR_STATIC type local_list { $$ = $3; }
+    type local_list { $$ = $2->ast_node; }
+|   TK_PR_CONST type local_list { $$ = $3->ast_node; }
+|   TK_PR_STATIC TK_PR_CONST type local_list { $$ = $4->ast_node; }
+|   TK_PR_STATIC type local_list { $$ = $3->ast_node; }
 ;
 
 local_list:
     TK_IDENTIFICADOR
     {
-        $$ = NULL;
+        $$->ast_node = NULL;
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
-        if ($3 != NULL ) { $$ = $3; } else { $$ = NULL; };
+        if ($3->ast_node != NULL ) { $$->ast_node = $3->ast_node; } else { $$->ast_node = NULL; };
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
     {
-        $$ = lexval_node($2); add_children($$, 2, lexval_node($1), lexval_node($3));
+        $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), lexval_node($3));
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal
     {
-        $$ = lexval_node($2); add_children($$, 2, lexval_node($1), $3);
+        $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), $3);
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
     {
-        $$ = lexval_node($2); add_children($$, 3, lexval_node($1), lexval_node($3), $5);
+        $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), lexval_node($3), $5->ast_node);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
     {
-        $$ = lexval_node($2); add_children($$, 3, lexval_node($1), $3, $5);
+        $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), $3, $5->ast_node);
     }
 ;
 
