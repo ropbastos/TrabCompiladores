@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "errors.h"
-#include "stack.h"
 #include "idlist.h"
 int yylex(void);
 void yyerror (char const *s);
@@ -20,7 +19,7 @@ stack* global_scope = NULL;
 %union {
   struct lex_val* lex_val;
   struct node* node;
-  struct id_list* id_list;
+  struct id_list_item* id_list;
 }
 
 %token TK_PR_INT
@@ -148,11 +147,8 @@ global_decl:
       // Create global scope symbol table.
       ht_entry** global_st = hash_table();
 
-      // Print global variable names.
-      for (int i = 0; i < $2->size; i++)
-      {
-        printf("var global %d: %s\n", i, $2->ids[i]);
-      }
+      // Print global_list.
+      print_ids($2);
 
     }
 |   TK_PR_STATIC type global_list ';'
@@ -161,19 +157,15 @@ global_decl:
 global_list:
     TK_IDENTIFICADOR 
     { 
-      id_list global_ids;
-      global_ids.ids = malloc(sizeof(char*));
-      int size = 0;
-      printf("vai inserir primeiro id.\n");
-      global_ids.ids[size] = $1->value.s;
-      global_ids.size = size;
-      printf("montou global_ids\n");
-      $$ = &global_ids;
+      id_list* global_ids = malloc(sizeof(struct id_list_item));
+      global_ids->id = $1->value.s;
+      global_ids->line = $1->line;
+      global_ids->next = NULL;
+      $$ = global_ids;
     }
 |   TK_IDENTIFICADOR ',' global_list 
     { 
-      printf("entrou 'id , list'\n");
-      $3->ids[++$3->size] = $1->value.s;
+      add_id($3, $1);
       $$ = $3; 
     }
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list { id_list* id_list; $$ = id_list; }
