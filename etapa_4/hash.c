@@ -132,13 +132,15 @@ symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
 
 void ht_print(ht_entry** ht)
 {
+  int j = 0;
   for (int i = 0; i < TABLE_SIZE; i++)
   {
     ht_entry* current_entry = ht[i];
     while (current_entry != NULL)
     {
-      printf("Entry label: %s\n", current_entry->symbol->label);
+      printf("Entry %d label: %s - size: %d\n", j, current_entry->symbol->label, current_entry->symbol->size);
       current_entry = current_entry->next;
+      j++;
     }
   }
 }

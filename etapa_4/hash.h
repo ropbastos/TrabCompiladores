@@ -2,6 +2,8 @@
 #define TABLE_SIZE 26
 
 #define FUNC 80
+#define VAR 81
+#define LIT 82
 
 // Table symbol.
 typedef struct symbol_entry {
