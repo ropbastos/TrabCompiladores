@@ -146,7 +146,7 @@ global_decl:
     type global_list ';' 
     {
       // Find global scope.
-      stack* aux;
+      stack* aux = NULL;
 
       push(&aux, pop(&scope_stack));
       while (peek(aux) != NULL)
@@ -230,50 +230,50 @@ global_decl:
     }
 |   TK_PR_STATIC type global_list ';' 
     {
-      // printf("EXECUTOU STATIC\n");
-      // // Find global scope.
-      // stack* aux;
+      printf("EXECUTOU STATIC\n");
+      // Find global scope.
+      stack* aux;
 
-      // push(&aux, pop(&scope_stack));
-      // while (peek(aux) != NULL)
-      // {
-      //   push(&aux, pop(&scope_stack));
-      // }
+      push(&aux, pop(&scope_stack));
+      while (peek(aux) != NULL)
+      {
+        push(&aux, pop(&scope_stack));
+      }
 
-      // ht_entry** global_scope; 
-      // global_scope = pop(&aux); // Essa linha causa segfault mesmo que a entrada n tenha a palavra 'static', n faco ideia de como isso é possivel, esse caminho de codigo n devia ser executado nesse caso.
-      // if (global_scope == NULL)
-      // {
-      //   // Create new global scope symbol table if one doesn't already exist.
-      //   global_scope = hash_table();
-      // }
+      ht_entry** global_scope; 
+      global_scope = pop(&aux); // Essa linha causa segfault mesmo que a entrada n tenha a palavra 'static', n faco ideia de como isso é possivel, esse caminho de codigo n devia ser executado nesse caso.
+      if (global_scope == NULL)
+      {
+        // Create new global scope symbol table if one doesn't already exist.
+        global_scope = hash_table();
+      }
 
-      // // Add globals to symbol table.
-      // id_list* current = $3;
-      // while(current != NULL)
-      // {
-      //   symbol_entry* sb = new_symbol_entry(current->id, current->line, 1, $2, 1, NULL, NULL);
-      //   if (ht_lookup(sb, global_scope) != NULL)
-      //   {
-      //    syntactic_error(ERR_DECLARED, -1, sb);
-      //   }
-      //   ht_insert(sb, global_scope);
-      //   current = current->next;
-      // }
+      // Add globals to symbol table.
+      id_list* current = $3;
+      while(current != NULL)
+      {
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, 1, $2, 1, NULL, NULL);
+        if (ht_lookup(sb, global_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, global_scope);
+        current = current->next;
+      }
 
-      // // Stack global sb table.
-      // push(&scope_stack, global_scope);
+      // Stack global sb table.
+      push(&scope_stack, global_scope);
 
-      // // Push every other scope that was also there.
-      // ht_entry** scope;
-      // scope = pop(&aux);
-      // while (scope != NULL)
-      // {
-      //   push(&scope_stack, scope);
-      //   scope = pop(&aux);
-      // }
+      // Push every other scope that was also there.
+      ht_entry** scope;
+      scope = pop(&aux);
+      while (scope != NULL)
+      {
+        push(&scope_stack, scope);
+        scope = pop(&aux);
+      }
 
-      // ht_print(pop(&scope_stack));
+      ht_print(pop(&scope_stack));
     }
 ;
 
@@ -312,17 +312,13 @@ global_list:
     }
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list 
     { 
-      // printf("EXECUTOU TK_ID [ TK_LIT_INT ] , global_list\n\n\n");
-      // add_id($6, $1, $3->value.i); 
-      // printf("addedou o vetor\n");
-      // $$ = $6; 
-      id_list* id_list; $$ = id_list;
+      add_id($6, $1, $3->value.i); 
+      $$ = $6; 
     }
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list 
     { 
-      // add_id($7, $1, $4->value.i); 
-      // $$ = $7; 
-      id_list* id_list; $$ = id_list;
+      add_id($7, $1, $4->value.i); 
+      $$ = $7; 
     }
 ;
 

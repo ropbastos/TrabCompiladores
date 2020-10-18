@@ -1,2 +1,6 @@
-int a, b, 
-c, d[2];
+int a, b[2], 
+c, d[3];
+
+int main(){}
+
+int h, i;
