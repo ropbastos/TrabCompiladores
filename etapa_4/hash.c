@@ -115,13 +115,12 @@ void ht_free(ht_entry** ht)
 }
 
 
-symbol_entry* new_symbol_entry(char* label, int line, int column, int symbol_type,
+symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
                                int data_type, int size, char** args, lex_val* val)
   {
     symbol_entry* sb = malloc(sizeof(struct symbol_entry));
     sb->label = strdup(label);
     sb->line = line;
-    sb->column = column;
     sb->symbol_type = symbol_type;
     sb->data_type = data_type;
     sb->size = size;

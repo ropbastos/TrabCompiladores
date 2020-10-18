@@ -14,8 +14,8 @@ typedef struct symbol_entry {
   lex_val* val;
 } symbol_entry;
 
-symbol_entry* new_symbol_entry(char* label, int line, int column, int symbol_type,
-                               int data_type, int size, char** args, lex_val* val);
+symbol_entry* new_symbol_entry(char* label, int line, int symbol_type, int data_type,
+                               int size, char** args, lex_val* val);
 
 /* Linked lists in each entry for handling collisions */
 // List item.

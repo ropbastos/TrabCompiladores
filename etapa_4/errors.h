@@ -1,3 +1,5 @@
+#include "idlist.h"
+
 #define ERR_UNDECLARED       10
 #define ERR_DECLARED         11
 #define ERR_VARIABLE         20
@@ -15,4 +17,4 @@
 #define ERR_WRONG_PAR_RETURN 52
 #define ERR_WRONG_PAR_SHIFT  53
 
-void syntactic_error(int error_code);
+void syntactic_error(int error_code, int line, symbol_entry* sb);

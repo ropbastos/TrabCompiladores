@@ -1,7 +1,19 @@
 #include <stdio.h>
 #include "errors.h"
 
-void syntactic_error(int error_code)
+
+void syntactic_error(int error_code, int line, symbol_entry* sb)
 {
-  fprintf(stderr, "ERRO: %d\n", error_code);
+  if (sb != NULL)
+  {
+    switch (error_code)
+    {
+      case ERR_DECLARED:
+        fprintf(stderr, "ERROR: symbol '%s' declared multiple times; first declaration on line %d.\n", sb->label, sb->line);
+    }
+  }
+  else if (line != -1)
+    fprintf(stderr, "ERROR %d on line %d\n", error_code, line);
+  else
+    fprintf(stderr, "ERROR %d\n", error_code);
 }

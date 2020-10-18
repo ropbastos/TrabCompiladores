@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "errors.h"
-#include "idlist.h"
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
@@ -20,6 +19,7 @@ stack* global_scope = NULL;
   struct lex_val* lex_val;
   struct node* node;
   struct id_list_item* id_list;
+  int type;
 }
 
 %token TK_PR_INT
@@ -93,6 +93,7 @@ stack* global_scope = NULL;
 %type<node> program
 
 %type<id_list> global_list
+%type<type> type;
 
 %token TOKEN_ERRO
 
@@ -150,6 +151,16 @@ global_decl:
       // Print global_list.
       print_ids($2);
 
+      // Add globals to symbol table.
+      id_list* current = $2;
+      while(current != NULL)
+      {
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, 1, $1, 1, NULL, NULL);
+        if (ht_lookup(sb, global_st) != NULL) syntactic_error(ERR_DECLARED, -1, sb);
+        ht_insert(sb, global_st);
+        current = current->next;
+      }
+
     }
 |   TK_PR_STATIC type global_list ';'
 ;
@@ -175,11 +186,11 @@ global_list:
 ;
 
 type:
-    TK_PR_INT
-|   TK_PR_FLOAT
-|   TK_PR_BOOL
-|   TK_PR_CHAR
-|   TK_PR_STRING
+    TK_PR_INT { $$ = INT; }
+|   TK_PR_FLOAT { $$ = FLOAT; }
+|   TK_PR_BOOL { $$ = BOOL; }
+|   TK_PR_CHAR { $$ = CHAR; }
+|   TK_PR_STRING { $$ = STR; }
 ;
 
 func:
@@ -553,7 +564,7 @@ exp:
         add_children($$, 3, $1, $3, $5);
         if ($1->data_type != BOOL && $1->data_type != INT
           	&& $1->data_type != FLOAT)
-          syntactic_error(ERR_WRONG_TYPE);
+          syntactic_error(ERR_WRONG_TYPE, get_line_number(), NULL);
     }
 ;
 
