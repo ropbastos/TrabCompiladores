@@ -28,6 +28,8 @@ int hash(symbol_entry* symbol)
 // Insert symbol in hashtable.
 void ht_insert(symbol_entry* symbol, ht_entry** ht)
 {
+  if (ht == NULL) return;
+
   int key = hash(symbol);
 
   key %= TABLE_SIZE;
@@ -62,6 +64,8 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht)
 // Look symbol up in hash table. 
 symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
 {
+  if (ht == NULL) return NULL;
+
   int key = hash(symbol);
 
   key %= TABLE_SIZE;
