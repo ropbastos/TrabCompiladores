@@ -6,7 +6,7 @@ default: scanner.l main.c ast.c parser.y
 	cp parser etapa4
 
 clean:
-	rm -f lex.* parser.tab* parser.out* parser main.o ast.o etapa* diag* out*
+	rm -f lex.* parser.tab* parser.out* parser *.o etapa* diag* out*
 	
 fsm:
 	bison -v -d parser.y

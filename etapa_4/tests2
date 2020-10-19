@@ -1,10 +1,10 @@
-int a;
+int a, b[2];
 
 int main(){
   int t, a;
   {int z, t;};
   {int z;};
-  int t;
+  int l;
 }
 
-int aux(){}
+int main(){}
