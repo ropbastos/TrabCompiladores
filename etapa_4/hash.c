@@ -7,7 +7,7 @@
 // Create hash table.
 ht_entry** hash_table()
 {
-  ht_entry** ht = calloc(TABLE_SIZE, sizeof(struct ht_entry));
+  ht_entry** ht = (ht_entry**) calloc(TABLE_SIZE, sizeof(struct ht_entry));
   return ht;
 }
 

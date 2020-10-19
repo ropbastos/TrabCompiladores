@@ -1,8 +1,5 @@
-int a, b[2], 
-c, d[3];
-
 int main(){
-  int r;
+  int t;
+  {int z, t;};
+  int t;
 }
-
-int h, i;

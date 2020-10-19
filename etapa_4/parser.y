@@ -424,6 +424,7 @@ local_decl:
       if (local_scope == NULL)
       {
         printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $2->id_list->id);
       }
 
       // Add locals to symbol table.
@@ -476,6 +477,7 @@ local_decl:
         ht_insert(sb, local_scope);
         current = current->next;
       }
+      push(&scope_stack, local_scope);
 
       $$ = $2->ast_node; 
     }
