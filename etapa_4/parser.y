@@ -350,6 +350,41 @@ func:
 header:
     type TK_IDENTIFICADOR '(' ')' 
     { 
+      ht_entry** scope;
+      scope = pop(&scope_stack);
+      if (scope == NULL)
+      {
+        scope = hash_table();
+      }
+      // Determine size.
+      int size;
+      switch ($1)
+      {
+        case CHAR:
+        case BOOL:
+          size = 1;
+          break;
+        case INT:
+          size = 4;
+          break;
+        case FLOAT:
+          size = 8;
+          break;
+        default:
+          size = -1;
+      }
+
+      // Add function name to scope.
+      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
+      if (ht_lookup(sb, scope) != NULL)
+      {
+        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+      }
+      ht_insert(sb, scope);
+
+      // Re-stack scope.
+      push(&scope_stack, scope);
+
       $$ = lexval_node($2); 
     }
 |   type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($2); }
@@ -481,9 +516,204 @@ local_decl:
 
       $$ = $2->ast_node; 
     }
-|   TK_PR_CONST type local_list { $$ = $3->ast_node; }
-|   TK_PR_STATIC TK_PR_CONST type local_list { $$ = $4->ast_node; }
-|   TK_PR_STATIC type local_list { $$ = $3->ast_node; }
+|   TK_PR_CONST type local_list 
+    {
+      // Get scope
+      ht_entry** local_scope;
+      local_scope = pop(&scope_stack);
+
+      if (local_scope == NULL)
+      {
+        printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $3->id_list->id);
+      }
+
+      // Add locals to symbol table.
+      id_list* current = $3->id_list;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
+        if (ht_lookup(sb, local_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, local_scope);
+        current = current->next;
+      }
+      push(&scope_stack, local_scope);
+
+      $$ = $3->ast_node; 
+    }
+|   TK_PR_STATIC TK_PR_CONST type local_list 
+    { 
+      // Get scope
+      ht_entry** local_scope;
+      local_scope = pop(&scope_stack);
+
+      if (local_scope == NULL)
+      {
+        printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $4->id_list->id);
+      }
+
+      // Add locals to symbol table.
+      id_list* current = $4->id_list;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($3)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($3)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $3, size, NULL, NULL);
+        if (ht_lookup(sb, local_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, local_scope);
+        current = current->next;
+      }
+      push(&scope_stack, local_scope);
+
+      $$ = $4->ast_node; 
+    }
+|   TK_PR_STATIC type local_list 
+    {
+      // Get scope
+      ht_entry** local_scope;
+      local_scope = pop(&scope_stack);
+
+      if (local_scope == NULL)
+      {
+        printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $3->id_list->id);
+      }
+
+      // Add locals to symbol table.
+      id_list* current = $3->id_list;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
+        if (ht_lookup(sb, local_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, local_scope);
+        current = current->next;
+      }
+      push(&scope_stack, local_scope);
+
+      $$ = $3->ast_node; 
+    }
 ;
 
 local_list:
