@@ -24,6 +24,7 @@ typedef struct prod_val {
   struct lex_val* lex_val;
   struct node* node;
   struct id_list_item* id_list;
+  struct arg_list_item* arg_list;
   struct prod_val* prod;
   int type;
 }
@@ -99,6 +100,7 @@ typedef struct prod_val {
 %type<node> program
 
 %type<id_list> global_list
+// %type<arg_list> params
 %type<type> type;
 
 %token TOKEN_ERRO
@@ -214,7 +216,7 @@ global_decl:
       // Stack global sb table.
       push(&scope_stack, global_scope);
 
-      ht_print(pop(&scope_stack));
+      // ht_print(pop(&scope_stack));
     }
 |   TK_PR_STATIC type global_list ';' 
     {
@@ -281,7 +283,7 @@ global_decl:
       // Stack global sb table.
       push(&scope_stack, global_scope);
 
-      ht_print(pop(&scope_stack));
+      // ht_print(pop(&scope_stack));
     }
 ;
 
@@ -341,8 +343,6 @@ type:
 func:
     header body 
     {
-
-
       $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
     }
 ;
@@ -387,16 +387,120 @@ header:
 
       $$ = lexval_node($2); 
     }
-|   type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($2); }
-|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' { $$ = lexval_node($3); }
+|   type TK_IDENTIFICADOR '(' params ')' 
+    { 
+      ht_entry** scope;
+      scope = pop(&scope_stack);
+      if (scope == NULL)
+      {
+        scope = hash_table();
+      }
+      // Determine size.
+      int size;
+      switch ($1)
+      {
+        case CHAR:
+        case BOOL:
+          size = 1;
+          break;
+        case INT:
+          size = 4;
+          break;
+        case FLOAT:
+          size = 8;
+          break;
+        default:
+          size = -1;
+      }
+
+      // Get args.
+      
+
+
+      // Add function name to scope.
+      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
+      if (ht_lookup(sb, scope) != NULL)
+      {
+        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+      }
+      ht_insert(sb, scope);
+
+      // Re-stack scope.
+      push(&scope_stack, scope);
+
+      $$ = lexval_node($2); 
+    }
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' 
+    { 
+      ht_entry** scope;
+      scope = pop(&scope_stack);
+      if (scope == NULL)
+      {
+        scope = hash_table();
+      }
+      // Determine size.
+      int size;
+      switch ($2)
+      {
+        case CHAR:
+        case BOOL:
+          size = 1;
+          break;
+        case INT:
+          size = 4;
+          break;
+        case FLOAT:
+          size = 8;
+          break;
+        default:
+          size = -1;
+      }
+
+      // Add function name to scope.
+      symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, NULL, $3);
+      if (ht_lookup(sb, scope) != NULL)
+      {
+        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+      }
+      ht_insert(sb, scope);
+
+      // Re-stack scope.
+      push(&scope_stack, scope);
+
+      $$ = lexval_node($3); 
+    }
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($3); }
 ;
 
 params:
     type TK_IDENTIFICADOR ',' params
+    {
+      // add_arg($4, $2, $1);
+      // $$ = $4;
+    }
 |   type TK_IDENTIFICADOR
+    {
+      // arg_list* param_list = malloc(sizeof(struct arg_list_item));
+      // param_list->id = $2->value.s;
+      // param_list->line = $2->line;
+      // param_list->type = $1;
+      // param_list->next = NULL;
+      // $$ = param_list;
+    }
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
-|   TK_PR_CONST type TK_IDENTIFICADOR
+    {
+      // add_arg($5, $3, $2);
+      // $$ = $5;
+    }
+|   TK_PR_CONST type TK_IDENTIFICADOR 
+    {
+      // arg_list* param_list = malloc(sizeof(struct arg_list_item));
+      // param_list->id = $3->value.s;
+      // param_list->line = $3->line;
+      // param_list->type = $2;
+      // param_list->next = NULL;
+      // $$ = param_list;
+    }
 ;
 
 body:
@@ -507,7 +611,7 @@ local_decl:
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
         if (ht_lookup(sb, local_scope) != NULL)
         {
-         syntactic_error(ERR_DECLARED, -1, sb);
+         syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, local_scope));
         }
         ht_insert(sb, local_scope);
         current = current->next;
