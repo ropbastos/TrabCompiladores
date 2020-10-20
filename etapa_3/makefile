@@ -6,14 +6,14 @@ default: scanner.l main.c ast.c parser.y
 	cp parser etapa3
 
 clean:
-	rm -f lex.* parser.tab* parser.out* parser main.o ast.o etapa* diag* out*
+	rm -f lex.* parser.tab* parser.out* parser *.o etapa* diag* out* w*
 	
 fsm:
 	bison -v -d parser.y
 
 diag:
 	make
-	./etapa3 < tests2 > out.txt
+	./etapa3 < w09 > out.txt
 	python3 txt_to_diag.py out.txt diag.txt
 	dot diag.txt -Tpng > diag.png
 
@@ -27,3 +27,9 @@ debug: scanner.l main.c ast.c parser.y
 val:
 	make
 	valgrind --leak-check=full ./etapa3 < tests2
+
+valbatch:
+	make
+	tar xf E3_testes_prof.tgz
+	./val_batch_test.zsh
+	make clean

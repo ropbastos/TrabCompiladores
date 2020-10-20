@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-//#include "lexval.h"
+#include <string.h>
 #include "ast.h"
 int yylex(void);
 void yyerror (char const *s);
@@ -128,8 +128,10 @@ program:
 |   global_decl program { if ($2 != NULL) $$ = $2; else $$ = NULL; }
 |   func program 
     { 
-      $$ = $1;
-      add_children($$, 1, $2);
+        if ($2 != NULL) {
+            $$ = $1;
+            add_children($$, 1, $2);
+        };
     }
 ;
 
@@ -139,12 +141,12 @@ global_decl:
 ;
 
 global_list:
-    TK_IDENTIFICADOR
-|   TK_IDENTIFICADOR ',' global_list
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']'
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']'
+    TK_IDENTIFICADOR { free($1->value.s); free($1); }
+|   TK_IDENTIFICADOR ',' global_list { free($1->value.s); free($1); } 
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list { free($1->value.s); free($1); free($3); }
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' { free($1->value.s); free($1); free($3); }
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list { free($1->value.s); free($1); free($4); }
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' { free($1->value.s); free($1); free($4); }
 ;
 
 type:
@@ -167,10 +169,10 @@ header:
 ;
 
 params:
-    type TK_IDENTIFICADOR ',' params
-|   type TK_IDENTIFICADOR
-|   TK_PR_CONST type TK_IDENTIFICADOR ',' params
-|   TK_PR_CONST type TK_IDENTIFICADOR
+    type TK_IDENTIFICADOR ',' params { free($2->value.s); free($2); }
+|   type TK_IDENTIFICADOR { free($2->value.s); free($2); }
+|   TK_PR_CONST type TK_IDENTIFICADOR ',' params { free($3->value.s); free($3); }
+|   TK_PR_CONST type TK_IDENTIFICADOR { free($3->value.s); free($3); }
 ;
 
 body:
@@ -227,7 +229,7 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR
     {
-        $$ = NULL;
+        $$ = NULL; free($1->value.s); free($1);
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
@@ -291,7 +293,12 @@ io:
 func_call:
     TK_IDENTIFICADOR '(' exp_list ')' 
     { 
-        $$ = lexval_node($1); add_children($$, 1, $3); 
+        $$ = lexval_node($1); add_children($$, 1, $3);
+        char* func_call = strdup("call ");
+        func_call = (char*) realloc(func_call, strlen($$->label) + strlen(func_call) + 1);
+        strcat(func_call, $$->label);
+        free($$->label);
+        $$->label = func_call;
     }
 ;
 
