@@ -10,6 +10,11 @@ int get_col();
 
 extern void* arvore;
 stack* scope_stack = NULL;
+
+typedef struct prod_val {
+  struct node* ast_node;
+  struct id_list_item* id_list;
+} prod;
 %}
 
 %define parse.error verbose
@@ -19,6 +24,8 @@ stack* scope_stack = NULL;
   struct lex_val* lex_val;
   struct node* node;
   struct id_list_item* id_list;
+  struct arg_list_item* arg_list;
+  struct prod_val* prod;
   int type;
 }
 
@@ -69,7 +76,7 @@ stack* scope_stack = NULL;
 %token<lex_val> TK_IDENTIFICADOR
 
 %type<node> literal
-%type<node> local_list
+%type<prod> local_list
 %type<node> io
 %type<node> cmds
 %type<node> local_decl
@@ -93,6 +100,7 @@ stack* scope_stack = NULL;
 %type<node> program
 
 %type<id_list> global_list
+// %type<arg_list> params
 %type<type> type;
 
 %token TOKEN_ERRO
@@ -146,16 +154,8 @@ global_decl:
     type global_list ';' 
     {
       // Find global scope.
-      stack* aux;
-
-      push(&aux, pop(&scope_stack));
-      while (peek(aux) != NULL)
-      {
-        push(&aux, pop(&scope_stack));
-      }
-
       ht_entry** global_scope; 
-      global_scope = pop(&aux);
+      global_scope = pop(&scope_stack);
       if (global_scope == NULL)
       {
         // Create new global scope symbol table if one doesn't already exist.
@@ -164,9 +164,47 @@ global_decl:
 
       // Add globals to symbol table.
       id_list* current = $2;
+      int size;
       while(current != NULL)
       {
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, 1, $1, 1, NULL, NULL);
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($1)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($1)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
         if (ht_lookup(sb, global_scope) != NULL)
         {
          syntactic_error(ERR_DECLARED, -1, sb);
@@ -178,37 +216,74 @@ global_decl:
       // Stack global sb table.
       push(&scope_stack, global_scope);
 
-      // Push every other scope that was also there.
-      ht_entry** scope;
-      scope = pop(&aux);
-      while (scope != NULL)
-      {
-        push(&scope_stack, scope);
-        scope = pop(&aux);
-      }
-
-      ht_print(pop(&scope_stack));
+      // ht_print(pop(&scope_stack));
     }
 |   TK_PR_STATIC type global_list ';' 
     {
-      // // Create global scope symbol table.
-      // ht_entry** global_st = hash_table();
+      // Find global scope.
+      ht_entry** global_scope; 
+      global_scope = pop(&scope_stack);
+      if (global_scope == NULL)
+      {
+        // Create new global scope symbol table if one doesn't already exist.
+        global_scope = hash_table();
+      }
 
-      // // Add globals to symbol table.
-      // id_list* current = $3;
-      // while(current != NULL)
-      // {
-      //   symbol_entry* sb = new_symbol_entry(current->id, current->line, 1, $2, 1, NULL, NULL);
-      //   if (ht_lookup(sb, global_st) != NULL)
-      //   {
-      //    syntactic_error(ERR_DECLARED, -1, sb);
-      //   }
-      //   ht_insert(sb, global_st);
-      //   current = current->next;
-      // }
+      // Add globals to symbol table.
+      id_list* current = $3;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
 
-      // // Stack global sb.
-      // push(&global_scope, global_st);
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
+        if (ht_lookup(sb, global_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, global_scope);
+        current = current->next;
+      }
+
+      // Stack global sb table.
+      push(&scope_stack, global_scope);
+
+      // ht_print(pop(&scope_stack));
     }
 ;
 
@@ -218,18 +293,43 @@ global_list:
       id_list* global_ids = malloc(sizeof(struct id_list_item));
       global_ids->id = $1->value.s;
       global_ids->line = $1->line;
+      global_ids->vec_size = NOT_A_VECTOR;
+      global_ids->next = NULL;
+      $$ = global_ids;
+    }
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' 
+    { 
+      id_list* global_ids = malloc(sizeof(struct id_list_item));
+      global_ids->id = $1->value.s;
+      global_ids->line = $1->line;
+      global_ids->vec_size = $3->value.i;
+      global_ids->next = NULL;
+      $$ = global_ids;
+    }
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' 
+    { 
+      id_list* global_ids = malloc(sizeof(struct id_list_item));
+      global_ids->id = $1->value.s;
+      global_ids->line = $1->line;
+      global_ids->vec_size = $4->value.i;
       global_ids->next = NULL;
       $$ = global_ids;
     }
 |   TK_IDENTIFICADOR ',' global_list 
     { 
-      add_id($3, $1);
+      add_id($3, $1, NOT_A_VECTOR); 
       $$ = $3; 
     }
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list { id_list* id_list; $$ = id_list; }
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' { id_list* id_list; $$ = id_list; }
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list { id_list* id_list; $$ = id_list; }
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' { id_list* id_list; $$ = id_list; }
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list 
+    { 
+      add_id($6, $1, $3->value.i); 
+      $$ = $6; 
+    }
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list 
+    { 
+      add_id($7, $1, $4->value.i); 
+      $$ = $7; 
+    }
 ;
 
 type:
@@ -241,98 +341,539 @@ type:
 ;
 
 func:
-    header body { $$ = $1; if ($2 != NULL) add_children($$, 1, $2); }
+    header body 
+    {
+      $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
+    }
 ;
 
 header:
-    type TK_IDENTIFICADOR '(' ')' { $$ = lexval_node($2); }
-|   type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($2); }
-|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' { $$ = lexval_node($3); }
+    type TK_IDENTIFICADOR '(' ')' 
+    { 
+      ht_entry** scope;
+      scope = pop(&scope_stack);
+      if (scope == NULL)
+      {
+        scope = hash_table();
+      }
+      // Determine size.
+      int size;
+      switch ($1)
+      {
+        case CHAR:
+        case BOOL:
+          size = 1;
+          break;
+        case INT:
+          size = 4;
+          break;
+        case FLOAT:
+          size = 8;
+          break;
+        default:
+          size = -1;
+      }
+
+      // Add function name to scope.
+      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
+      if (ht_lookup(sb, scope) != NULL)
+      {
+        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+      }
+      ht_insert(sb, scope);
+
+      // Re-stack scope.
+      push(&scope_stack, scope);
+
+      $$ = lexval_node($2); 
+    }
+|   type TK_IDENTIFICADOR '(' params ')' 
+    { 
+      ht_entry** scope;
+      scope = pop(&scope_stack);
+      if (scope == NULL)
+      {
+        scope = hash_table();
+      }
+      // Determine size.
+      int size;
+      switch ($1)
+      {
+        case CHAR:
+        case BOOL:
+          size = 1;
+          break;
+        case INT:
+          size = 4;
+          break;
+        case FLOAT:
+          size = 8;
+          break;
+        default:
+          size = -1;
+      }
+
+      // Get args.
+      
+
+
+      // Add function name to scope.
+      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
+      if (ht_lookup(sb, scope) != NULL)
+      {
+        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+      }
+      ht_insert(sb, scope);
+
+      // Re-stack scope.
+      push(&scope_stack, scope);
+
+      $$ = lexval_node($2); 
+    }
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' 
+    { 
+      ht_entry** scope;
+      scope = pop(&scope_stack);
+      if (scope == NULL)
+      {
+        scope = hash_table();
+      }
+      // Determine size.
+      int size;
+      switch ($2)
+      {
+        case CHAR:
+        case BOOL:
+          size = 1;
+          break;
+        case INT:
+          size = 4;
+          break;
+        case FLOAT:
+          size = 8;
+          break;
+        default:
+          size = -1;
+      }
+
+      // Add function name to scope.
+      symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, NULL, $3);
+      if (ht_lookup(sb, scope) != NULL)
+      {
+        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+      }
+      ht_insert(sb, scope);
+
+      // Re-stack scope.
+      push(&scope_stack, scope);
+
+      $$ = lexval_node($3); 
+    }
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($3); }
 ;
 
 params:
     type TK_IDENTIFICADOR ',' params
+    {
+      // add_arg($4, $2, $1);
+      // $$ = $4;
+    }
 |   type TK_IDENTIFICADOR
+    {
+      // arg_list* param_list = malloc(sizeof(struct arg_list_item));
+      // param_list->id = $2->value.s;
+      // param_list->line = $2->line;
+      // param_list->type = $1;
+      // param_list->next = NULL;
+      // $$ = param_list;
+    }
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
-|   TK_PR_CONST type TK_IDENTIFICADOR
+    {
+      // add_arg($5, $3, $2);
+      // $$ = $5;
+    }
+|   TK_PR_CONST type TK_IDENTIFICADOR 
+    {
+      // arg_list* param_list = malloc(sizeof(struct arg_list_item));
+      // param_list->id = $3->value.s;
+      // param_list->line = $3->line;
+      // param_list->type = $2;
+      // param_list->next = NULL;
+      // $$ = param_list;
+    }
 ;
 
 body:
     block { $$ = $1; }
 ;
 
+block_start: '{' { push(&scope_stack, hash_table()); }
+block_end: '}' { pop(&scope_stack); }
+
 block:
-   '{' cmds '}' { $$ = $2; }
+  block_start cmds block_end 
+  { 
+    $$ = $2; 
+  }
 ;
 
 cmds:
     %empty    { $$ = NULL; }
 |   block ';' cmds
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   local_decl ';' cmds 
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   attrib ';' cmds
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   io ';' cmds
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   func_call ';' cmds
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   shift ';' cmds
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   jmp_stmt ';' cmds
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 |   control ';' cmds
     {
-        if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
 ;
 
 local_decl:
-    type local_list { $$ = $2; }
-|   TK_PR_CONST type local_list { $$ = $3; }
-|   TK_PR_STATIC TK_PR_CONST type local_list { $$ = $4; }
-|   TK_PR_STATIC type local_list { $$ = $3; }
+    type local_list 
+    { 
+      // Get scope
+      ht_entry** local_scope;
+      local_scope = pop(&scope_stack);
+
+      if (local_scope == NULL)
+      {
+        printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $2->id_list->id);
+      }
+
+      // Add locals to symbol table.
+      id_list* current = $2->id_list;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($1)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($1)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
+        if (ht_lookup(sb, local_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, local_scope));
+        }
+        ht_insert(sb, local_scope);
+        current = current->next;
+      }
+      push(&scope_stack, local_scope);
+
+      $$ = $2->ast_node; 
+    }
+|   TK_PR_CONST type local_list 
+    {
+      // Get scope
+      ht_entry** local_scope;
+      local_scope = pop(&scope_stack);
+
+      if (local_scope == NULL)
+      {
+        printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $3->id_list->id);
+      }
+
+      // Add locals to symbol table.
+      id_list* current = $3->id_list;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
+        if (ht_lookup(sb, local_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, local_scope);
+        current = current->next;
+      }
+      push(&scope_stack, local_scope);
+
+      $$ = $3->ast_node; 
+    }
+|   TK_PR_STATIC TK_PR_CONST type local_list 
+    { 
+      // Get scope
+      ht_entry** local_scope;
+      local_scope = pop(&scope_stack);
+
+      if (local_scope == NULL)
+      {
+        printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $4->id_list->id);
+      }
+
+      // Add locals to symbol table.
+      id_list* current = $4->id_list;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($3)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($3)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $3, size, NULL, NULL);
+        if (ht_lookup(sb, local_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, local_scope);
+        current = current->next;
+      }
+      push(&scope_stack, local_scope);
+
+      $$ = $4->ast_node; 
+    }
+|   TK_PR_STATIC type local_list 
+    {
+      // Get scope
+      ht_entry** local_scope;
+      local_scope = pop(&scope_stack);
+
+      if (local_scope == NULL)
+      {
+        printf("ERROR local scope is NULL\n");
+        printf("id on top of id_list: %s\n", $3->id_list->id);
+      }
+
+      // Add locals to symbol table.
+      id_list* current = $3->id_list;
+      int size;
+      while(current != NULL)
+      {
+        if (current->vec_size == NOT_A_VECTOR)
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1;
+              break;
+            case INT:
+              size = 4;
+              break;
+            case FLOAT:
+              size = 8;
+              break;
+            default:
+              size = -1;
+          }
+        }
+        else
+        {
+          switch ($2)
+          {
+            case CHAR:
+            case BOOL:
+              size = 1 * current->vec_size;
+              break;
+            case INT:
+              size = 4 * current->vec_size;
+              break;
+            case FLOAT:
+              size = 8 * current->vec_size;
+              break;
+            default:
+              size = -1;
+          }
+        }
+
+        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
+        if (ht_lookup(sb, local_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, -1, sb);
+        }
+        ht_insert(sb, local_scope);
+        current = current->next;
+      }
+      push(&scope_stack, local_scope);
+
+      $$ = $3->ast_node; 
+    }
 ;
 
 local_list:
     TK_IDENTIFICADOR
     {
-        $$ = NULL;
+      id_list* global_ids = malloc(sizeof(struct id_list_item));
+      global_ids->id = $1->value.s;
+      global_ids->line = $1->line;
+      global_ids->vec_size = NOT_A_VECTOR;
+      global_ids->next = NULL;
+      $$->id_list = global_ids;
+
+      $$->ast_node = NULL;
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
-        if ($3 != NULL ) { $$ = $3; } else { $$ = NULL; };
+      add_id($3->id_list, $1, NOT_A_VECTOR); 
+      $$->id_list = $3->id_list; 
+
+      if ($3->ast_node != NULL ) { $$->ast_node = $3->ast_node; } else { $$->ast_node = NULL; };
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
     {
-        $$ = lexval_node($2); add_children($$, 2, lexval_node($1), lexval_node($3));
+      id_list* global_ids = malloc(sizeof(struct id_list_item));
+      global_ids->id = $1->value.s;
+      global_ids->line = $1->line;
+      global_ids->vec_size = NOT_A_VECTOR;
+      global_ids->next = NULL;
+      $$->id_list = global_ids;
+
+      $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), lexval_node($3));
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal
     {
-        $$ = lexval_node($2); add_children($$, 2, lexval_node($1), $3);
+      id_list* global_ids = malloc(sizeof(struct id_list_item));
+      global_ids->id = $1->value.s;
+      global_ids->line = $1->line;
+      global_ids->vec_size = NOT_A_VECTOR;
+      global_ids->next = NULL;
+      $$->id_list = global_ids;
+
+      $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), $3);
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
     {
-        $$ = lexval_node($2); add_children($$, 3, lexval_node($1), lexval_node($3), $5);
+      add_id($5->id_list, $1, NOT_A_VECTOR); 
+      $$->id_list = $5->id_list; 
+
+      $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), lexval_node($3), $5->ast_node);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
     {
-        $$ = lexval_node($2); add_children($$, 3, lexval_node($1), $3, $5);
+      add_id($5->id_list, $1, NOT_A_VECTOR); 
+      $$->id_list = $5->id_list; 
+
+      $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), $3, $5->ast_node);
     }
 ;
 

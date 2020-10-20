@@ -1,4 +1,3 @@
-// C program for linked list implementation of stack 
 #include <limits.h> 
 #include <stdio.h> 
 #include <stdlib.h> 
@@ -27,7 +26,9 @@ void push(struct StackNode** root, ht_entry** ht)
 ht_entry** pop(struct StackNode** root) 
 { 
   if (is_empty(*root)) 
-      return NULL; 
+  {
+    return NULL; 
+  }
   struct StackNode* temp = *root; 
   *root = (*root)->next; 
   ht_entry** popped = temp->ht; 

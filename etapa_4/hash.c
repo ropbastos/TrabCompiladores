@@ -7,7 +7,7 @@
 // Create hash table.
 ht_entry** hash_table()
 {
-  ht_entry** ht = calloc(TABLE_SIZE, sizeof(struct ht_entry));
+  ht_entry** ht = (ht_entry**) calloc(TABLE_SIZE, sizeof(struct ht_entry));
   return ht;
 }
 
@@ -28,6 +28,8 @@ int hash(symbol_entry* symbol)
 // Insert symbol in hashtable.
 void ht_insert(symbol_entry* symbol, ht_entry** ht)
 {
+  if (ht == NULL) return;
+
   int key = hash(symbol);
 
   key %= TABLE_SIZE;
@@ -62,6 +64,8 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht)
 // Look symbol up in hash table. 
 symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
 {
+  if (ht == NULL) return NULL;
+
   int key = hash(symbol);
 
   key %= TABLE_SIZE;
@@ -132,13 +136,15 @@ symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
 
 void ht_print(ht_entry** ht)
 {
+  int j = 0;
   for (int i = 0; i < TABLE_SIZE; i++)
   {
     ht_entry* current_entry = ht[i];
     while (current_entry != NULL)
     {
-      printf("Entry label: %s\n", current_entry->symbol->label);
+      printf("Entry %d label: %s - size: %d\n", j, current_entry->symbol->label, current_entry->symbol->size);
       current_entry = current_entry->next;
+      j++;
     }
   }
 }

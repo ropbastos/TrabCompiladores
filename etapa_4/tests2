@@ -1,2 +1,10 @@
-int a, b, 
-c, d;
+int a, b[2];
+
+int main(){
+  int t, a;
+  {int z, t;};
+  {int z;};
+  int l;
+}
+
+int main(){}
