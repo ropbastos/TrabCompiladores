@@ -1,13 +1,15 @@
 int a, b[2];
+int aux(int a){}
 
 int main(){
   int p;
+  char c;
   {int z, t;};
-  {int z; t = 2;};
+  {int z;};
   int l;
-  l = 2;
+  p = l;
+  gelo(l);
 }
 
-int aux(int a){}
 
-int c;
+int k;

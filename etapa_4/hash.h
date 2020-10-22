@@ -4,6 +4,7 @@
 #define FUNC 80
 #define VAR 81
 #define LIT 82
+#define VEC 83
 
 // Arg lists
 

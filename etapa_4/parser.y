@@ -165,8 +165,15 @@ global_decl:
       // Add globals to symbol table.
       id_list* current = $2;
       int size;
+      symbol_entry* sb = NULL;
       while(current != NULL)
       {
+        // Check if declared already.
+        if (ht_lookup(current->id, global_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
+        }
+
         if (current->vec_size == NOT_A_VECTOR)
         {
           switch ($1)
@@ -184,6 +191,7 @@ global_decl:
             default:
               size = -1;
           }
+          sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
         }
         else
         {
@@ -202,13 +210,9 @@ global_decl:
             default:
               size = -1;
           }
+          sb = new_symbol_entry(current->id, current->line, VEC, $1, size, NULL, NULL);
         }
 
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        if (ht_lookup(sb->label, global_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, global_scope));
-        }
         ht_insert(sb, global_scope);
         current = current->next;
       }
@@ -923,17 +927,51 @@ literal:
 attrib:
     TK_IDENTIFICADOR '=' exp 
     { 
-      // See if symbol is declared.
-      if (st_lookup($1->value.s, scope_stack) == NULL)
+      symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
+      symbol_entry* src_lookup = st_lookup($3->label, scope_stack);
+      // See if dst is declared.
+      if (dst_lookup == NULL)
       {
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
+      // See if exp is declared.
+      if (st_lookup($3->label, scope_stack) == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $3->label, get_line_number(), NULL);
+      }
+      
+      // Check types.
+      if (dst_lookup->data_type == CHAR && src_lookup->data_type != CHAR
+          || dst_lookup->data_type == STR && src_lookup->data_type != STR
+          || src_lookup->data_type == CHAR && dst_lookup->data_type != CHAR
+          || src_lookup->data_type == STR && dst_lookup->data_type != STR)
+      {
+        syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
+      }
+ 
+      // See if dst is a variable.
+      else if (dst_lookup->symbol_type != VAR)
+      {
+        syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
+      }
 
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      // See if symbol is declared.
+      if (lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+      // See if symbol is a vector.
+      else if (lookup_result->symbol_type != VEC)
+      {
+        syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
+      }
+
       node* vector = named_node("[]");
       add_children(vector, 2, lexval_node($1), $3);
       $$ = named_node("="); add_children($$, 2, vector, $6); 
@@ -1198,8 +1236,41 @@ exp:
 ;
 
 num:
-    TK_LIT_FLOAT { $$ = lexval_node($1); }
-|   TK_LIT_INT { $$ = lexval_node($1); }
+    TK_LIT_FLOAT 
+    { 
+      char float_to_str[7];
+      gcvt($1->value.f, 4, float_to_str);
+      // Check if literal already on table.
+      symbol_entry* sb = st_lookup(float_to_str, scope_stack);
+      if (sb == NULL)
+      {
+        // If not, put it.
+        sb = new_symbol_entry(float_to_str, get_line_number(), LIT, FLOAT, 8, NULL, $1);
+        ht_entry** scope = pop(&scope_stack);
+        if (scope == NULL) printf("Scope is null on num.\n");
+        ht_insert(sb, scope);
+        push(&scope_stack, scope);
+      }
+      $$ = lexval_node($1); 
+    }
+|   TK_LIT_INT 
+    { 
+      int len = snprintf(NULL, 0, "%d", $1->value.i) + 1; 
+      char* int_to_str = malloc(len);
+      snprintf(int_to_str, len, "%d", $1->value.i);
+      // Check if literal already on table.
+      symbol_entry* sb = st_lookup(int_to_str, scope_stack);
+      if (sb == NULL)
+      {
+        // If not, put it.
+        sb = new_symbol_entry(int_to_str, get_line_number(), LIT, INT, 4, NULL, $1);
+        ht_entry** scope = pop(&scope_stack);
+        if (scope == NULL) printf("Scope is null on num.\n");
+        ht_insert(sb, scope);
+        push(&scope_stack, scope);
+      }
+      $$ = lexval_node($1); 
+    }
 ;
 
 unary:
