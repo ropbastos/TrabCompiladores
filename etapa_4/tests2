@@ -7,7 +7,7 @@ int main(){
   {int z, t;};
   {int z;};
   int l;
-  p = 2 * 2 + l;
+  p = b[1] + 2;
   gelo(l);
 }
 

@@ -1118,13 +1118,27 @@ exp:
       {
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
+      else if (lookup_result->symbol_type != VAR)
+      {
+        syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
+      }
 
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
     }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
-        $$ = named_node("[]");
-        add_children($$, 2, lexval_node($1), $3);
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+      else if (lookup_result->symbol_type != VEC)
+      {
+        syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
+      }
+
+      $$ = named_node("[]"); $$->data_type = lookup_result->data_type;
+      add_children($$, 2, lexval_node($1), $3);
     }
 |   num { $$ = $1; }
 |   bool { $$ = $1; }
