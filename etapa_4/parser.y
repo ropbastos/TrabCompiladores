@@ -936,16 +936,16 @@ attrib:
       }
 
       // See if exp is declared.
-      if (st_lookup($3->label, scope_stack) == NULL)
+      if (src_lookup == NULL && $3->val != NULL)
       {
         syntactic_error(ERR_UNDECLARED, $3->label, get_line_number(), NULL);
       }
       
       // Check types.
-      if (dst_lookup->data_type == CHAR && src_lookup->data_type != CHAR
-          || dst_lookup->data_type == STR && src_lookup->data_type != STR
-          || src_lookup->data_type == CHAR && dst_lookup->data_type != CHAR
-          || src_lookup->data_type == STR && dst_lookup->data_type != STR)
+      if ((dst_lookup->data_type == CHAR && $3->data_type != CHAR)
+          || (dst_lookup->data_type == STR && $3->data_type != STR)
+          || ($3->data_type == CHAR && dst_lookup->data_type != CHAR)
+          || ($3->data_type == STR && dst_lookup->data_type != STR))
       {
         syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
       }
@@ -960,14 +960,31 @@ attrib:
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      // See if symbol is declared.
-      if (lookup_result == NULL)
+      symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
+      symbol_entry* src_lookup = st_lookup($6->label, scope_stack);
+      // See if dst is declared.
+      if (dst_lookup == NULL)
       {
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
-      // See if symbol is a vector.
-      else if (lookup_result->symbol_type != VEC)
+
+      // See if src is declared.
+      if (src_lookup == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $6->label, get_line_number(), NULL);
+      }
+      
+      // Check types.
+      if (dst_lookup->data_type == CHAR && src_lookup->data_type != CHAR
+          || dst_lookup->data_type == STR && src_lookup->data_type != STR
+          || src_lookup->data_type == CHAR && dst_lookup->data_type != CHAR
+          || src_lookup->data_type == STR && dst_lookup->data_type != STR)
+      {
+        syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
+      }
+ 
+      // See if dst is a vector.
+      else if (dst_lookup->symbol_type != VEC)
       {
         syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
       }
@@ -1094,7 +1111,16 @@ while:
 ;
 
 exp:
-    TK_IDENTIFICADOR { $$ = lexval_node($1); }
+    TK_IDENTIFICADOR 
+    { 
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
+    }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
         $$ = named_node("[]");
@@ -1251,7 +1277,7 @@ num:
         ht_insert(sb, scope);
         push(&scope_stack, scope);
       }
-      $$ = lexval_node($1); 
+      $$ = lexval_node($1); $$->data_type = FLOAT; 
     }
 |   TK_LIT_INT 
     { 
@@ -1269,7 +1295,8 @@ num:
         ht_insert(sb, scope);
         push(&scope_stack, scope);
       }
-      $$ = lexval_node($1); 
+      
+      $$ = lexval_node($1); $$->data_type = INT;
     }
 ;
 

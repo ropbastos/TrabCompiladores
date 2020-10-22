@@ -37,9 +37,6 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
       case ERR_VECTOR:
         fprintf(stderr, "ERROR: vector '%s' used as variable on line %d.\n", symbol_name, line);
         break;
-      case ERR_WRONG_TYPE:
-        fprintf(stderr, "ERROR: variable '%s' used as variable on line %d.\n", symbol_name, line);
-        break;
     }
   }
   else
