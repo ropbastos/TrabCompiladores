@@ -12,14 +12,14 @@ ht_entry** hash_table()
 }
 
 // Hash symbol.
-int hash(symbol_entry* symbol)
+int hash(char* label)
 { 
   // Simple sum of characters.
   int hash = 0;
   
-  for(int i = 0; i < strlen(symbol->label); i++)
+  for(int i = 0; i < strlen(label); i++)
   {
-    hash += symbol->label[i];
+    hash += label[i];
   }
 
   return hash;
@@ -30,7 +30,7 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht)
 {
   if (ht == NULL) return;
 
-  int key = hash(symbol);
+  int key = hash(symbol->label);
 
   key %= TABLE_SIZE;
 
@@ -62,11 +62,11 @@ void ht_insert(symbol_entry* symbol, ht_entry** ht)
 }
 
 // Look symbol up in hash table. 
-symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
+symbol_entry* ht_lookup(char* label, ht_entry** ht)
 {
   if (ht == NULL) return NULL;
 
-  int key = hash(symbol);
+  int key = hash(label);
 
   key %= TABLE_SIZE;
 
@@ -75,7 +75,7 @@ symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht)
   ht_entry* present_item = ht[key];
 
   do {
-    if (strcmp(present_item->symbol->label, symbol->label) == 0)
+    if (strcmp(present_item->symbol->label, label) == 0)
     {
       return present_item->symbol;
     }
@@ -120,7 +120,7 @@ void ht_free(ht_entry** ht)
 
 
 symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
-                               int data_type, int size, char** args, lex_val* val)
+                               int data_type, int size, arg_list* args, lex_val* val)
   {
     symbol_entry* sb = malloc(sizeof(struct symbol_entry));
     sb->label = strdup(label);
@@ -152,4 +152,25 @@ void ht_print(ht_entry** ht)
 void print_ht_entry(ht_entry** ht, int key)
 {
   printf("HT entry label is: %s\n", ht[key%TABLE_SIZE]->symbol->label);
+}
+
+
+// Arg lists
+
+void add_arg(arg_list* list, lex_val* id, int type)
+{
+  if (list == NULL) return;
+
+  arg_list* current = list;
+
+  while (current->next != NULL)
+  {
+    current = current->next;
+  }
+
+  current->next = (arg_list*) malloc(sizeof(arg_list));
+  current->next->id = id->value.s;
+  current->next->line = id->line;
+  current->next->type = type;
+  current->next->next = NULL;
 }

@@ -1,4 +1,4 @@
-#include "idlist.h"
+#include "namelists.h"
 
 #define ERR_UNDECLARED       10
 #define ERR_DECLARED         11
@@ -17,4 +17,4 @@
 #define ERR_WRONG_PAR_RETURN 52
 #define ERR_WRONG_PAR_SHIFT  53
 
-void syntactic_error(int error_code, int line, symbol_entry* sb);
+void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* sb);

@@ -1,10 +1,13 @@
 int a, b[2];
 
 int main(){
-  int t, a;
+  int p;
   {int z, t;};
-  {int z;};
+  {int z; t = 2;};
   int l;
+  l = 2;
 }
 
-int main(){}
+int aux(int a){}
+
+int c;

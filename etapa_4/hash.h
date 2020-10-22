@@ -5,6 +5,17 @@
 #define VAR 81
 #define LIT 82
 
+// Arg lists
+
+typedef struct arg_list_item {
+  char* id;
+  int line;
+  int type;
+  struct arg_list_item* next;
+} arg_list;
+
+void add_arg(arg_list* list, lex_val* id, int type);
+
 // Table symbol.
 typedef struct symbol_entry {
   char* label;
@@ -12,12 +23,12 @@ typedef struct symbol_entry {
   int symbol_type;
   int data_type;
   int size;
-  char** args;
+  struct arg_list_item* args;
   lex_val* val;
 } symbol_entry;
 
 symbol_entry* new_symbol_entry(char* label, int line, int symbol_type, int data_type,
-                               int size, char** args, lex_val* val);
+                               int size, arg_list* args, lex_val* val);
 
 /* Linked lists in each entry for handling collisions */
 // List item.
@@ -29,9 +40,9 @@ typedef struct ht_entry
 ht_entry;
 
 ht_entry** hash_table();
-int hash(symbol_entry* item);
+int hash(char* label);
 void ht_insert(symbol_entry* symbol, ht_entry** ht);
-symbol_entry* ht_lookup(symbol_entry* symbol, ht_entry** ht);
+symbol_entry* ht_lookup(char* label, ht_entry** ht);
 void ht_free_aux(ht_entry* entry);
 void ht_free(ht_entry** ht);
 void ht_print(ht_entry** ht);

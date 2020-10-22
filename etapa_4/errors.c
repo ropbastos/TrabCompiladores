@@ -3,7 +3,7 @@
 #include "errors.h"
 
 
-void syntactic_error(int error_code, int line, symbol_entry* sb)
+void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* sb)
 {
   if (sb != NULL)
   {
@@ -22,7 +22,14 @@ void syntactic_error(int error_code, int line, symbol_entry* sb)
     }
   }
   else if (line != -1)
-    fprintf(stderr, "ERROR %d on line %d\n", error_code, line);
+  {
+    switch (error_code)
+    {
+      case ERR_UNDECLARED:
+        fprintf(stderr, "ERROR: undeclared symbol '%s' used on line %d.\n", symbol_name, line);
+        break;
+    }
+  }
   else
     fprintf(stderr, "ERROR %d\n", error_code);
 

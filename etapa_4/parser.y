@@ -100,7 +100,7 @@ typedef struct prod_val {
 %type<node> program
 
 %type<id_list> global_list
-// %type<arg_list> params
+%type<arg_list> params
 %type<type> type;
 
 %token TOKEN_ERRO
@@ -205,9 +205,9 @@ global_decl:
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        if (ht_lookup(sb, global_scope) != NULL)
+        if (ht_lookup(sb->label, global_scope) != NULL)
         {
-         syntactic_error(ERR_DECLARED, -1, sb);
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, global_scope));
         }
         ht_insert(sb, global_scope);
         current = current->next;
@@ -272,9 +272,9 @@ global_decl:
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb, global_scope) != NULL)
+        if (ht_lookup(sb->label, global_scope) != NULL)
         {
-         syntactic_error(ERR_DECLARED, -1, sb);
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, global_scope));
         }
         ht_insert(sb, global_scope);
         current = current->next;
@@ -376,9 +376,9 @@ header:
 
       // Add function name to scope.
       symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
-      if (ht_lookup(sb, scope) != NULL)
+      if (ht_lookup(sb->label, scope) != NULL)
       {
-        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
       }
       ht_insert(sb, scope);
 
@@ -413,15 +413,11 @@ header:
           size = -1;
       }
 
-      // Get args.
-      
-
-
       // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
-      if (ht_lookup(sb, scope) != NULL)
+      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, $4, $2);
+      if (ht_lookup(sb->label, scope) != NULL)
       {
-        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
       }
       ht_insert(sb, scope);
 
@@ -458,9 +454,9 @@ header:
 
       // Add function name to scope.
       symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, NULL, $3);
-      if (ht_lookup(sb, scope) != NULL)
+      if (ht_lookup(sb->label, scope) != NULL)
       {
-        syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, scope));
+        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
       }
       ht_insert(sb, scope);
 
@@ -469,37 +465,75 @@ header:
 
       $$ = lexval_node($3); 
     }
-|   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')' { $$ = lexval_node($3); }
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')' 
+    { 
+      ht_entry** scope;
+      scope = pop(&scope_stack);
+      if (scope == NULL)
+      {
+        scope = hash_table();
+      }
+      // Determine size.
+      int size;
+      switch ($2)
+      {
+        case CHAR:
+        case BOOL:
+          size = 1;
+          break;
+        case INT:
+          size = 4;
+          break;
+        case FLOAT:
+          size = 8;
+          break;
+        default:
+          size = -1;
+      }
+
+      // Add function name to scope.
+      symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, $5, $3);
+      if (ht_lookup(sb->label, scope) != NULL)
+      {
+        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
+      }
+      ht_insert(sb, scope);
+
+      // Re-stack scope.
+      push(&scope_stack, scope);
+
+      $$ = lexval_node($3); 
+    }
 ;
 
 params:
     type TK_IDENTIFICADOR ',' params
     {
-      // add_arg($4, $2, $1);
-      // $$ = $4;
+      add_arg($4, $2, $1);
+      $$ = $4;
     }
 |   type TK_IDENTIFICADOR
     {
-      // arg_list* param_list = malloc(sizeof(struct arg_list_item));
-      // param_list->id = $2->value.s;
-      // param_list->line = $2->line;
-      // param_list->type = $1;
-      // param_list->next = NULL;
-      // $$ = param_list;
+      arg_list* param_list = malloc(sizeof(struct arg_list_item));
+      param_list->id = $2->value.s;
+      param_list->line = $2->line;
+      param_list->type = $1;
+      param_list->next = NULL;
+      $$ = param_list;
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
     {
-      // add_arg($5, $3, $2);
-      // $$ = $5;
+      add_arg($5, $3, $2);
+      $$ = $5;
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR 
     {
-      // arg_list* param_list = malloc(sizeof(struct arg_list_item));
-      // param_list->id = $3->value.s;
-      // param_list->line = $3->line;
-      // param_list->type = $2;
-      // param_list->next = NULL;
-      // $$ = param_list;
+      arg_list* param_list = malloc(sizeof(struct arg_list_item));
+      param_list->id = $3->value.s;
+      param_list->line = $3->line;
+      param_list->type = $2;
+      param_list->next = NULL;
+      $$ = param_list;
     }
 ;
 
@@ -609,9 +643,9 @@ local_decl:
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        if (ht_lookup(sb, local_scope) != NULL)
+        if (ht_lookup(sb->label, local_scope) != NULL)
         {
-         syntactic_error(ERR_DECLARED, -1, ht_lookup(sb, local_scope));
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, local_scope));
         }
         ht_insert(sb, local_scope);
         current = current->next;
@@ -675,9 +709,9 @@ local_decl:
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb, local_scope) != NULL)
+        if (ht_lookup(sb->label, local_scope) != NULL)
         {
-         syntactic_error(ERR_DECLARED, -1, sb);
+         syntactic_error(ERR_DECLARED, NULL, -1, sb);
         }
         ht_insert(sb, local_scope);
         current = current->next;
@@ -741,9 +775,9 @@ local_decl:
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $3, size, NULL, NULL);
-        if (ht_lookup(sb, local_scope) != NULL)
+        if (ht_lookup(sb->label, local_scope) != NULL)
         {
-         syntactic_error(ERR_DECLARED, -1, sb);
+         syntactic_error(ERR_DECLARED, NULL, -1, sb);
         }
         ht_insert(sb, local_scope);
         current = current->next;
@@ -807,9 +841,9 @@ local_decl:
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb, local_scope) != NULL)
+        if (ht_lookup(sb->label, local_scope) != NULL)
         {
-         syntactic_error(ERR_DECLARED, -1, sb);
+         syntactic_error(ERR_DECLARED, NULL, -1, sb);
         }
         ht_insert(sb, local_scope);
         current = current->next;
@@ -889,13 +923,20 @@ literal:
 attrib:
     TK_IDENTIFICADOR '=' exp 
     { 
-        $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
+      // See if symbol is declared.
+      if (st_lookup($1->value.s, scope_stack) == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+
+      $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
-        node* vector = named_node("[]");
-        add_children(vector, 2, lexval_node($1), $3);
-        $$ = named_node("="); add_children($$, 2, vector, $6); 
+      node* vector = named_node("[]");
+      add_children(vector, 2, lexval_node($1), $3);
+      $$ = named_node("="); add_children($$, 2, vector, $6); 
     }
 ;
 
@@ -1152,7 +1193,7 @@ exp:
         add_children($$, 3, $1, $3, $5);
         if ($1->data_type != BOOL && $1->data_type != INT
           	&& $1->data_type != FLOAT)
-          syntactic_error(ERR_WRONG_TYPE, get_line_number(), NULL);
+          syntactic_error(ERR_WRONG_TYPE, NULL, get_line_number(), NULL);
     }
 ;
 

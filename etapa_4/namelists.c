@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "idlist.h"
+#include "namelists.h"
+
+// ID lists.
 
 void add_id(id_list* list, lex_val* id, int vec_size)
 {
@@ -30,3 +32,5 @@ void print_ids(id_list* list)
     current = current->next;
   }
 }
+
+
