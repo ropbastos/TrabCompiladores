@@ -13,7 +13,7 @@ fsm:
 
 diag:
 	make
-	./etapa3 < w09 > out.txt
+	./etapa3 < tests2 > out.txt
 	python3 txt_to_diag.py out.txt diag.txt
 	dot diag.txt -Tpng > diag.png
 

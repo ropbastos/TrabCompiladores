@@ -305,6 +305,7 @@ func_call:
 exp_list:
     exp { $$ = $1; };
 |   exp ',' exp_list { $$ = $1; add_children($$, 1, $3); }
+|   %empty { $$ = NULL; }
 ;
 
 shift:
