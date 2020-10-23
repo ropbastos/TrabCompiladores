@@ -1014,6 +1014,7 @@ func_call:
 exp_list:
     exp { $$ = $1; };
 |   exp ',' exp_list { $$ = $1; add_children($$, 1, $3); }
+|   %empty { $$ = NULL; }
 ;
 
 shift:
@@ -1114,7 +1115,10 @@ exp:
       }
       else if (lookup_result->symbol_type != VAR)
       {
-        syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
+        if (lookup_result->symbol_type == VEC)
+          syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
+        if (lookup_result->symbol_type == FUNC)
+          syntactic_error(ERR_FUNCTION, $1->value.s, get_line_number(), NULL);
       }
 
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
@@ -1136,7 +1140,16 @@ exp:
     }
 |   num { $$ = $1; }
 |   bool { $$ = $1; }
-|   func_call { $$ = $1; }
+|   func_call 
+    { 
+      $$ = $1; 
+
+      // Check if function exists.
+      if(st_lookup($1->label, scope_stack) == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->label, get_line_number(), NULL);
+      }
+    }
 |   '(' exp ')' { $$ = $2; }
 |   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $$->data_type = $2->data_type;}
 |   exp '+' exp 

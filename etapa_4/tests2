@@ -8,7 +8,7 @@ int main(){
   {int z, t;};
   {int z;};
   int l;
-  p = f;
+  p = aux(a);
   gelo(l);
 }
 
