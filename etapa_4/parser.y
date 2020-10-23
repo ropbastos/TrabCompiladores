@@ -972,10 +972,7 @@ attrib:
       }
       
       // Check types.
-      if (dst_lookup->data_type == CHAR && src_lookup->data_type != CHAR
-          || dst_lookup->data_type == STR && src_lookup->data_type != STR
-          || src_lookup->data_type == CHAR && dst_lookup->data_type != CHAR
-          || src_lookup->data_type == STR && dst_lookup->data_type != STR)
+      if (dst_lookup->data_type != $3->data_type)
       {
         syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
       }
