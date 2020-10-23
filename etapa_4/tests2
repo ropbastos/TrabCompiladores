@@ -3,11 +3,12 @@ int aux(int a){}
 
 int main(){
   int p;
+  float f;
   char c;
   {int z, t;};
   {int z;};
   int l;
-  p = b[1] + 2;
+  p = f;
   gelo(l);
 }
 
