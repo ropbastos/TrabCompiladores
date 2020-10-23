@@ -25,12 +25,20 @@ void push(struct StackNode** root, ht_entry** ht)
   
 ht_entry** pop(struct StackNode** root) 
 { 
+  printf("Entro pop.\n");
   if (is_empty(*root)) 
   {
     return NULL; 
   }
+  printf("Checou se empty dentro de pop.\n");
   struct StackNode* temp = *root; 
+  printf("root vai receber (*root)->next dentro de pop().\n");
+  if (root == NULL) printf("root eh NULL dentro de pop e vai ter seu next lido.\n");
+  if (*root == NULL) printf("*root eh NULL dentro de pop e vai ter seu next lido.\n");
+  if ((*root)->next == NULL) printf("(*root)->next eh NULL dentro de pop e vai ser posto em *root.\n");
+  if (*root == (*root)->next) printf("*root e (*root)->next dentro de pop() sao iguais.\n");
   *root = (*root)->next; 
+  printf("root recebeu (*root)->next dentro de pop().\n");
   ht_entry** popped = temp->ht; 
   free(temp); 
 
@@ -64,6 +72,7 @@ void move_stack(struct StackNode* dst, struct StackNode* src)
 
 symbol_entry* st_lookup(char* label, struct StackNode* scope_stack)
 {
+  printf("st_lookup chamada.\n");
   stack* searched_scopes = NULL;
   ht_entry** scope = NULL;
 

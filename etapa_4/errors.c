@@ -49,6 +49,9 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
       case ERR_WRONG_TYPE_ARGS:
         fprintf(stderr, "ERROR: function '%s' has wrong type args on line %d.\n", symbol_name, line);
         break;
+      case ERR_WRONG_PAR_INPUT:
+        fprintf(stderr, "ERROR: 'input' command has wrong type paramater on line %d (expects INT or FLOAT).\n", line);
+        break;
     }
   }
   else

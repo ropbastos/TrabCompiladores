@@ -9,8 +9,7 @@ int main(){
   {int z;};
   int l;
   int u;
-  p = aux(a, l, u);
+  p = aux(u, l);
+  input a;
 }
 
-
-int k;
