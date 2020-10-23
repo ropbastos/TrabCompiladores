@@ -43,6 +43,9 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
       case ERR_MISSING_ARGS:
         fprintf(stderr, "ERROR: function '%s' is missing args on line %d.\n", symbol_name, line);
         break;
+      case ERR_EXCESS_ARGS:
+        fprintf(stderr, "ERROR: function '%s' has excess args on line %d.\n", symbol_name, line);
+        break;
     }
   }
   else

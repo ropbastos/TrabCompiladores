@@ -1021,6 +1021,10 @@ func_call:
       {
         syntactic_error(ERR_MISSING_ARGS, $1->value.s, get_line_number(), NULL);
       }
+      else if ($3 != NULL && lookup_res->args == NULL)
+      {
+        syntactic_error(ERR_EXCESS_ARGS, $1->value.s, get_line_number(), NULL);
+      }
       
       $$ = lexval_node($1); add_children($$, 1, $3->ast_node); 
     }

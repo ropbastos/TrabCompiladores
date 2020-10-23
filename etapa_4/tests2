@@ -1,5 +1,5 @@
 int a, b[2];
-int aux(int i){}
+int aux(){}
 
 int main(){
   int p;
@@ -8,7 +8,7 @@ int main(){
   {int z, t;};
   {int z;};
   int l;
-  p = aux(p);
+  p = aux(p, f);
   gelo(l);
 }
 
