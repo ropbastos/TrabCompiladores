@@ -203,3 +203,18 @@ void print_args(arg_list* list)
     current = current->next;
   } while (current != NULL);
 }
+
+int arg_list_len(arg_list* list)
+{
+  if (list == NULL) return 0;
+
+  arg_list* current = list;
+  int len = 1;
+  while (current->next != NULL)
+  {
+    current = current->next;
+    len++;
+  }
+
+  return len;
+}

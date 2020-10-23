@@ -1017,14 +1017,27 @@ func_call:
       }
 
       // Check arguments.
-      if ($3 == NULL && lookup_res->args != NULL)
+      if (arg_list_len($3->arg_list) < arg_list_len(lookup_res->args))
       {
         syntactic_error(ERR_MISSING_ARGS, $1->value.s, get_line_number(), NULL);
       }
-      else if ($3 != NULL && lookup_res->args == NULL)
+      else if (arg_list_len($3->arg_list) > arg_list_len(lookup_res->args))
       {
         syntactic_error(ERR_EXCESS_ARGS, $1->value.s, get_line_number(), NULL);
       }
+
+      arg_list* table_entry_arg = lookup_res->args;
+      arg_list* call_arg = $3->arg_list;
+      do
+      {
+        if (table_entry_arg->type != call_arg->type)
+        {
+          syntactic_error(ERR_WRONG_TYPE_ARGS, $1->value.s, get_line_number(), NULL);
+        }
+        table_entry_arg = table_entry_arg->next;
+        call_arg = call_arg->next;
+      } while (table_entry_arg != NULL && call_arg != NULL);
+
       
       $$ = lexval_node($1); add_children($$, 1, $3->ast_node); 
     }
@@ -1090,7 +1103,7 @@ exp_list:
       $$->ast_node = $1; add_children($$->ast_node, 1, $3->ast_node);
       $$->arg_list = $3->arg_list; 
     }
-|   %empty { $$ = NULL; }
+|   %empty { $$->ast_node = NULL; $$->arg_list = NULL; }
 ;
 
 shift:
