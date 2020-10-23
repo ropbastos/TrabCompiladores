@@ -928,9 +928,9 @@ literal:
 attrib:
     TK_IDENTIFICADOR '=' exp 
     { 
-      printf("Antes do primeiro st_lookup em attrib.\n");
+      //printf("Antes do primeiro st_lookup em attrib.\n");
       symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
-      printf("Depois do primeiro st_lookup em attrib.\n");
+      //printf("Depois do primeiro st_lookup em attrib.\n");
       symbol_entry* src_lookup = st_lookup($3->label, scope_stack);
       // See if dst is declared.
       if (dst_lookup == NULL)
@@ -995,19 +995,19 @@ attrib:
 io:
     TK_PR_INPUT TK_IDENTIFICADOR
     {
-      printf("Vai fazer lookup de io.\n");
-      symbol_entry* lookup_res = st_lookup($2->value.s, scope_stack);
-      printf("Fez lookup de io.\n");
-      if (lookup_res == NULL)
-      {
-       syntactic_error(ERR_UNDECLARED, $2->value.s, get_line_number(), NULL);
-      }
-      if (lookup_res->data_type != INT && lookup_res->data_type != FLOAT)
-      {
-        syntactic_error(ERR_WRONG_PAR_INPUT, NULL, get_line_number(), NULL);
-      }
+      // printf("Vai fazer lookup de io.\n");
+      // symbol_entry* lookup_res = st_lookup($2->value.s, scope_stack);
+      // printf("Fez lookup de io.\n");
+      // if (lookup_res == NULL)
+      // {
+      //  syntactic_error(ERR_UNDECLARED, $2->value.s, get_line_number(), NULL);
+      // }
+      // if (lookup_res->data_type != INT && lookup_res->data_type != FLOAT)
+      // {
+      //   syntactic_error(ERR_WRONG_PAR_INPUT, NULL, get_line_number(), NULL);
+      // }
       $$ = named_node("input"); add_children($$, 1, lexval_node($2));
-      printf("Saiu de io.\n");
+      //printf("Saiu de io.\n");
     }
 |   TK_PR_OUTPUT TK_IDENTIFICADOR
     {
@@ -1023,7 +1023,7 @@ func_call:
     TK_IDENTIFICADOR '(' exp_list ')' 
     { 
       // Check if function is declared.
-      printf("Antes do st_lookup em func_call.\n");
+      //printf("Antes do st_lookup em func_call.\n");
       symbol_entry* lookup_res = st_lookup($1->value.s, scope_stack);
 
       if (lookup_res == NULL)
@@ -1054,18 +1054,22 @@ func_call:
       } while (table_entry_arg != NULL && call_arg != NULL);
 
       
-      $$ = lexval_node($1); add_children($$, 1, $3->ast_node); 
+      $$ = lexval_node($1); add_children($$, 1, $3->ast_node);
+      $$->data_type = lookup_res->data_type;
     }
 ;
 
 exp_list:
     exp 
     { 
+      printf("No inicio de exp_list: exp, cif1->label: %s\n", $1->label);
       arg_list* exp_list = malloc(sizeof(struct arg_list_item));
 
       if ($1->val != NULL)
       {
+        printf("exp_list: exp $1->val != NULL.\n");
         exp_list->id = $1->val->value.s;
+        printf("exp_list->id: %s\n", exp_list->id);
         exp_list->line = $1->val->line;
         exp_list->type = $1->data_type;
         exp_list->next = NULL;
@@ -1079,13 +1083,17 @@ exp_list:
       }
       else
       {
+        printf("else sozinho da exp_list: exp\n");
         exp_list->id = $1->label;
         exp_list->line = get_line_number();
         exp_list->type = $1->data_type;
         exp_list->next = NULL;
       }
-
-      $$->ast_node = $1; $$->arg_list = exp_list; 
+      printf("Antes das atribs a kbca em exp_list: exp, cif1->label: %s\n", $1->label);
+      $$->ast_node = $1; $$->arg_list = exp_list;
+      printf("No final de exp_list: exp, cif1->label: %s\n", $1->label);
+      printf("Em exp_list: exp, kbca->ast_node->label: %s\n", $$->ast_node->label);
+      printf("No final, exp_list->id: %s\n", exp_list->id);
     }
 |   exp ',' exp_list 
     { 
@@ -1212,7 +1220,7 @@ while:
 exp:
     TK_IDENTIFICADOR 
     { 
-      printf("Antes de chamar st_lookup em exp: TK_IDENTIFICADOR, linha %d.\n", get_line_number());
+      //printf("Antes de chamar st_lookup em exp: TK_IDENTIFICADOR, linha %d.\n", get_line_number());
       symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
       if(lookup_result == NULL)
       {
@@ -1227,6 +1235,7 @@ exp:
       }
 
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
+      printf("Em exp: TK_ID, $$->label: %s\n", $$->label);
     }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
@@ -1248,16 +1257,6 @@ exp:
 |   func_call 
     { 
       $$ = $1; 
-
-      // Check if function exists.
-      symbol_entry* lookup_result = st_lookup($1->label, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->label, get_line_number(), NULL);
-      }
-
-      // If it exists, get type.
-      $$->data_type = lookup_result->data_type;
     }
 |   '(' exp ')' { $$ = $2; }
 |   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $$->data_type = $2->data_type;}
@@ -1397,7 +1396,7 @@ num:
       char float_to_str[7];
       gcvt($1->value.f, 4, float_to_str);
       // Check if literal already on table.
-      printf("Antes de chamar st_lookup em num.\n");
+      //printf("Antes de chamar st_lookup em num.\n");
       symbol_entry* sb = st_lookup(float_to_str, scope_stack);
       if (sb == NULL)
       {
