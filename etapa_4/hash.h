@@ -7,7 +7,6 @@
 #define VEC 83
 
 // Arg lists
-
 typedef struct arg_list_item {
   char* id;
   int line;
@@ -16,6 +15,8 @@ typedef struct arg_list_item {
 } arg_list;
 
 void add_arg(arg_list* list, lex_val* id, int type);
+void add_arg_call(arg_list* list, arg_list* to_add);
+void print_args(arg_list* list);
 
 // Table symbol.
 typedef struct symbol_entry {

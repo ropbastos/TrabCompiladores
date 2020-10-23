@@ -14,6 +14,7 @@ stack* scope_stack = NULL;
 typedef struct prod_val {
   struct node* ast_node;
   struct id_list_item* id_list;
+  struct arg_list_item* arg_list;
 } prod;
 %}
 
@@ -93,7 +94,7 @@ typedef struct prod_val {
 %type<node> for
 %type<node> while 
 %type<node> control 
-%type<node> exp_list
+%type<prod> exp_list
 %type<node> num
 %type<node> unary
 %type<node> bool
@@ -1007,13 +1008,84 @@ io:
 func_call:
     TK_IDENTIFICADOR '(' exp_list ')' 
     { 
-        $$ = lexval_node($1); add_children($$, 1, $3); 
+      // Check if function is declared.
+      symbol_entry* lookup_res = st_lookup($1->value.s, scope_stack);
+
+      if (lookup_res == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      // Check arguments.
+      if ($3 == NULL && lookup_res->args != NULL)
+      {
+        syntactic_error(ERR_MISSING_ARGS, $1->value.s, get_line_number(), NULL);
+      }
+      
+      $$ = lexval_node($1); add_children($$, 1, $3->ast_node); 
     }
 ;
 
 exp_list:
-    exp { $$ = $1; };
-|   exp ',' exp_list { $$ = $1; add_children($$, 1, $3); }
+    exp 
+    { 
+      arg_list* exp_list = malloc(sizeof(struct arg_list_item));
+
+      if ($1->val != NULL)
+      {
+        exp_list->id = $1->val->value.s;
+        exp_list->line = $1->val->line;
+        exp_list->type = $1->data_type;
+        exp_list->next = NULL;
+      }
+      else if (strcmp($1->label, "[]") == 0)
+      {
+        exp_list->id = $1->children[0]->val->value.s;
+        exp_list->line = get_line_number();
+        exp_list->type = $1->data_type;
+        exp_list->next = NULL;
+      }
+      else
+      {
+        exp_list->id = $1->label;
+        exp_list->line = get_line_number();
+        exp_list->type = $1->data_type;
+        exp_list->next = NULL;
+      }
+
+      $$->ast_node = $1; $$->arg_list = exp_list; 
+    }
+|   exp ',' exp_list 
+    { 
+      arg_list* exp_list_item = malloc(sizeof(struct arg_list_item));
+
+      if ($1->val != NULL)
+      {
+        exp_list_item->id = $1->val->value.s;
+        exp_list_item->line = $1->val->line;
+        exp_list_item->type = $1->data_type;
+        exp_list_item->next = NULL;
+      }
+      else if (strcmp($1->label, "[]") == 0)
+      {
+        exp_list_item->id = $1->children[0]->val->value.s;
+        exp_list_item->line = get_line_number();
+        exp_list_item->type = $1->data_type;
+        exp_list_item->next = NULL;
+      }
+      else
+      {
+        exp_list_item->id = $1->label;
+        exp_list_item->line = get_line_number();
+        exp_list_item->type = $1->data_type;
+        exp_list_item->next = NULL;
+      }
+
+      add_arg_call($3->arg_list, exp_list_item);
+
+      $$->ast_node = $1; add_children($$->ast_node, 1, $3->ast_node);
+      $$->arg_list = $3->arg_list; 
+    }
 |   %empty { $$ = NULL; }
 ;
 
@@ -1145,7 +1217,8 @@ exp:
       $$ = $1; 
 
       // Check if function exists.
-      if(st_lookup($1->label, scope_stack) == NULL)
+      symbol_entry* lookup_result = st_lookup($1->label, scope_stack);
+      if(lookup_result == NULL)
       {
         syntactic_error(ERR_UNDECLARED, $1->label, get_line_number(), NULL);
       }

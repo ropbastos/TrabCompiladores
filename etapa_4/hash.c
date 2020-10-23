@@ -174,3 +174,32 @@ void add_arg(arg_list* list, lex_val* id, int type)
   current->next->type = type;
   current->next->next = NULL;
 }
+
+void add_arg_call(arg_list* list, arg_list* to_add)
+{
+  if (list == NULL) return;
+
+  arg_list* current = list;
+
+  while (current->next != NULL)
+  {
+    current = current->next;
+  }
+
+  current->next = to_add;
+}
+
+void print_args(arg_list* list)
+{
+  if (list == NULL)
+  {
+    printf("NULL ARG LIST.\n");
+    return;
+  }
+
+  arg_list* current = list;
+  do {
+    printf("arg item: %s\n", current->id);
+    current = current->next;
+  } while (current != NULL);
+}
