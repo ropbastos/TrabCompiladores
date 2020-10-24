@@ -438,7 +438,7 @@ header:
       // Re-stack scope.
       push(&scope_stack, scope);
 
-      $$ = lexval_node($2); 
+      $$ = lexval_node($2); $$->data_type = sb->data_type; 
     }
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' 
     { 
@@ -1435,6 +1435,15 @@ exp:
         syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
       }
 
+      if ($3->data_type == CHAR)
+      {
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      }
+      if ($3->data_type == STR)
+      {
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      }
+
       $$ = named_node("[]"); $$->data_type = lookup_result->data_type;
       add_children($$, 2, lexval_node($1), $3);
     }
@@ -1459,6 +1468,14 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
 |   exp '-' exp 
     { 
@@ -1473,6 +1490,14 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
 |   exp '*' exp 
     { 
@@ -1487,6 +1512,14 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
 |   exp '/' exp 
     { 
@@ -1501,6 +1534,14 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
 |   exp '%' exp 
     { 
@@ -1515,6 +1556,14 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
 |   exp '^' exp 
     { 
@@ -1529,6 +1578,14 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
 |   exp '|' exp 
     { 
@@ -1543,6 +1600,14 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
 |   exp '&' exp 
     { 
@@ -1557,8 +1622,19 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type != CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != CHAR && $3->data_type == CHAR)
+        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
+      if ($1->data_type == STR && $3->data_type != STR)
+        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
+      if ($1->data_type != STR && $3->data_type == STR)
+        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
     }
-|   exp '<' exp { $$ = named_node("<"); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp '<' exp 
+    { 
+      $$ = named_node("<"); add_children($$, 2, $1, $3); $$->data_type = BOOL; 
+    }
 |   exp '>' exp { $$ = named_node(">"); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
 |   exp TK_OC_AND exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
 |   exp TK_OC_EQ exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }

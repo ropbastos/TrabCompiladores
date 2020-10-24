@@ -61,6 +61,12 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
       case ERR_WRONG_PAR_RETURN:
         fprintf(stderr, "ERROR: function '%s' has incompatible return type on line %d.\n", symbol_name, line);
         break;
+      case ERR_CHAR_TO_X:
+        fprintf(stderr, "ERROR: char '%s' used as non-char type on line %d.\n", symbol_name, line);
+        break;
+      case ERR_STRING_TO_X:
+        fprintf(stderr, "ERROR: string '%s' used as non-string type on line %d.\n", symbol_name, line);
+        break;
     }
   }
   else
