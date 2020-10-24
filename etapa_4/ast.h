@@ -12,6 +12,7 @@
 // Node struct
 typedef struct node {
     char* label;
+    int is_return, return_line;
     int data_type;
     lex_val* val;
     int child_num;
@@ -40,6 +41,8 @@ void print_csv_tree(node* tree);
 void print_tree_labels(node* tree);
 
 void free_aux(node* node);
+
+void check_return_type(node* tree);
 
 // DEBUG
 void print_children(node* parent);

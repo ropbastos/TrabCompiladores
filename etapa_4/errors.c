@@ -52,6 +52,15 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
       case ERR_WRONG_PAR_INPUT:
         fprintf(stderr, "ERROR: 'input' command has wrong type paramater on line %d (expects INT or FLOAT).\n", line);
         break;
+      case ERR_WRONG_PAR_OUTPUT:
+        fprintf(stderr, "ERROR: 'output' command has wrong type paramater on line %d (expects INT or FLOAT).\n", line);
+        break;
+      case ERR_WRONG_PAR_SHIFT:
+        fprintf(stderr, "ERROR: 'shift' command's argument is too big on line %d (number should not be greater than 16).\n", line);
+        break;
+      case ERR_WRONG_PAR_RETURN:
+        fprintf(stderr, "ERROR: function '%s' has incompatible return type on line %d.\n", symbol_name, line);
+        break;
     }
   }
   else

@@ -3,6 +3,10 @@
 #include <string.h>
 #include "ast.h"
 
+int return_line = -1;
+int expected_return_type = 0;
+int return_type_is_correct = 1;
+
 
 node* lexval_node(lex_val* val) {
     
@@ -14,6 +18,8 @@ node* lexval_node(lex_val* val) {
 
     // Write type.
     nodeptr->data_type = val->lit_type;
+    nodeptr->is_return = 0;
+    nodeptr->return_line = -1;
 
     // Write value.
     nodeptr->val = val;
@@ -35,6 +41,8 @@ node* named_node(char* name) {
 
     // Write type.
     nodeptr->data_type = UDEF_TYPE;
+    nodeptr->is_return = 0;
+    nodeptr->return_line = -1;
 
     // Write value.
     nodeptr->val = NULL;
@@ -116,7 +124,6 @@ void libera (void* arvore) {
 }
 
 
-
 // Auxiliary
 char* get_label(lex_val* val) {
 
@@ -176,6 +183,30 @@ void print_tree_labels(node* tree) {
             };    
         };
     };
+}
+
+void check_return_type(node* tree)
+{
+  if (tree == NULL) return;
+  //printf("Current node data type: %d\n", tree->data_type);
+  if (tree->is_return == 1)
+  {
+    //printf("Current node data type dentro do if: %d\n", tree->data_type);
+    if (expected_return_type != tree->data_type)
+    {
+     return_type_is_correct = 0;
+     return_line = tree->return_line;
+     return;
+    }
+  }
+
+  if (tree->child_num)
+  {
+    for (int i = 0; i < tree->child_num; i++)
+    {
+      check_return_type(tree->children[i]);
+    }
+  }
 }
 
 // DEBUG

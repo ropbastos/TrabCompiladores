@@ -10,6 +10,9 @@ int get_col();
 
 extern void* arvore;
 stack* scope_stack = NULL;
+extern int return_line;
+extern int expected_return_type;
+extern int return_type_is_correct;
 
 typedef struct prod_val {
   struct node* ast_node;
@@ -338,7 +341,7 @@ global_list:
 ;
 
 type:
-    TK_PR_INT { $$ = INT; }
+    TK_PR_INT { $$ = INT; } 
 |   TK_PR_FLOAT { $$ = FLOAT; }
 |   TK_PR_BOOL { $$ = BOOL; }
 |   TK_PR_CHAR { $$ = CHAR; }
@@ -348,6 +351,12 @@ type:
 func:
     header body 
     {
+      expected_return_type = $1->data_type;
+      check_return_type($2);
+      if (!return_type_is_correct)
+      {
+        syntactic_error(ERR_WRONG_PAR_RETURN, $1->label, return_line, NULL);
+      } 
       $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
     }
 ;
@@ -390,7 +399,7 @@ header:
       // Re-stack scope.
       push(&scope_stack, scope);
 
-      $$ = lexval_node($2); 
+      $$ = lexval_node($2); $$->data_type = sb->data_type;
     }
 |   type TK_IDENTIFICADOR '(' params ')' 
     { 
@@ -917,12 +926,60 @@ local_list:
 ;
 
 literal:
-    TK_LIT_CHAR    { $$ = lexval_node($1); }
-|   TK_LIT_FALSE   { $$ = lexval_node($1); }
-|   TK_LIT_FLOAT   { $$ = lexval_node($1); }
-|   TK_LIT_INT     { $$ = lexval_node($1); }
-|   TK_LIT_STRING  { $$ = lexval_node($1); }
-|   TK_LIT_TRUE    { $$ = lexval_node($1); }
+    TK_LIT_CHAR    
+    { 
+      $$ = lexval_node($1); 
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, CHAR,
+                                              1, NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      ht_insert(new_lit, scope);
+      push(&scope_stack, scope);
+    }
+|   TK_LIT_FALSE    
+    { 
+      $$ = lexval_node($1); 
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
+                                              1, NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      ht_insert(new_lit, scope);
+      push(&scope_stack, scope);
+    }
+|   TK_LIT_FLOAT    
+    { 
+      $$ = lexval_node($1); 
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, FLOAT,
+                                              1, NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      ht_insert(new_lit, scope);
+      push(&scope_stack, scope);
+    }
+|   TK_LIT_INT    
+    { 
+      $$ = lexval_node($1); 
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, INT,
+                                              1, NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      ht_insert(new_lit, scope);
+      push(&scope_stack, scope);
+    }
+|   TK_LIT_STRING    
+    { 
+      $$ = lexval_node($1); 
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, STR,
+                                              1, NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      ht_insert(new_lit, scope);
+      push(&scope_stack, scope);
+    }
+|   TK_LIT_TRUE    
+    { 
+      $$ = lexval_node($1); 
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
+                                              1, NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      ht_insert(new_lit, scope);
+      push(&scope_stack, scope);
+    }
 ;
 
 attrib:
@@ -957,6 +1014,7 @@ attrib:
       }
 
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
+      $$->children[0]->data_type = dst_lookup->data_type;
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
@@ -995,26 +1053,44 @@ attrib:
 io:
     TK_PR_INPUT TK_IDENTIFICADOR
     {
-      // printf("Vai fazer lookup de io.\n");
-      // symbol_entry* lookup_res = st_lookup($2->value.s, scope_stack);
-      // printf("Fez lookup de io.\n");
-      // if (lookup_res == NULL)
-      // {
-      //  syntactic_error(ERR_UNDECLARED, $2->value.s, get_line_number(), NULL);
-      // }
-      // if (lookup_res->data_type != INT && lookup_res->data_type != FLOAT)
-      // {
-      //   syntactic_error(ERR_WRONG_PAR_INPUT, NULL, get_line_number(), NULL);
-      // }
+      symbol_entry* lookup_res = st_lookup($2->value.s, scope_stack);
+      if (lookup_res == NULL)
+      {
+       syntactic_error(ERR_UNDECLARED, $2->value.s, get_line_number(), NULL);
+      }
+      if (lookup_res->data_type != INT && lookup_res->data_type != FLOAT)
+      {
+        syntactic_error(ERR_WRONG_PAR_INPUT, NULL, get_line_number(), NULL);
+      }
       $$ = named_node("input"); add_children($$, 1, lexval_node($2));
-      //printf("Saiu de io.\n");
+      $$->children[0]->data_type = lookup_res->data_type;
     }
 |   TK_PR_OUTPUT TK_IDENTIFICADOR
     {
+      symbol_entry* lookup_res = st_lookup($2->value.s, scope_stack);
+      if (lookup_res == NULL)
+      {
+       syntactic_error(ERR_UNDECLARED, $2->value.s, get_line_number(), NULL);
+      }
+      if (lookup_res->data_type != INT && lookup_res->data_type != FLOAT)
+      {
+        syntactic_error(ERR_WRONG_PAR_OUTPUT, NULL, get_line_number(), NULL);
+      }
+
       $$ = named_node("output"); add_children($$, 1, lexval_node($2));
     }
 |   TK_PR_OUTPUT literal
     {
+      symbol_entry* lookup_res = st_lookup($2->label, scope_stack);
+      if (lookup_res == NULL)
+      {
+       syntactic_error(ERR_UNDECLARED, $2->label, get_line_number(), NULL);
+      }
+      if (lookup_res->data_type != INT && lookup_res->data_type != FLOAT)
+      {
+        syntactic_error(ERR_WRONG_PAR_OUTPUT, NULL, get_line_number(), NULL);
+      }
+
       $$ = named_node("output"); add_children($$, 1, $2);
     }
 ;
@@ -1062,14 +1138,14 @@ func_call:
 exp_list:
     exp 
     { 
-      printf("No inicio de exp_list: exp, cif1->label: %s\n", $1->label);
+      //printf(" 1 Endereco de $1: %p - Endereco de $$: %p\n", &$1, &$$);
       arg_list* exp_list = malloc(sizeof(struct arg_list_item));
 
       if ($1->val != NULL)
       {
-        printf("exp_list: exp $1->val != NULL.\n");
+        //printf("exp_list: exp $1->val != NULL.\n");
         exp_list->id = $1->val->value.s;
-        printf("exp_list->id: %s\n", exp_list->id);
+        //printf("exp_list->id: %s\n", exp_list->id);
         exp_list->line = $1->val->line;
         exp_list->type = $1->data_type;
         exp_list->next = NULL;
@@ -1083,17 +1159,30 @@ exp_list:
       }
       else
       {
-        printf("else sozinho da exp_list: exp\n");
+        //printf("else sozinho da exp_list: exp\n");
         exp_list->id = $1->label;
         exp_list->line = get_line_number();
         exp_list->type = $1->data_type;
         exp_list->next = NULL;
       }
-      printf("Antes das atribs a kbca em exp_list: exp, cif1->label: %s\n", $1->label);
-      $$->ast_node = $1; $$->arg_list = exp_list;
-      printf("No final de exp_list: exp, cif1->label: %s\n", $1->label);
-      printf("Em exp_list: exp, kbca->ast_node->label: %s\n", $$->ast_node->label);
-      printf("No final, exp_list->id: %s\n", exp_list->id);
+
+      struct prod_val* head = (struct prod_val*) malloc(sizeof(struct prod_val));
+      head->ast_node = (struct node*) malloc(sizeof(struct node));
+      head->arg_list = (struct arg_list_item*) malloc(sizeof(struct arg_list_item));
+      head->id_list = NULL;
+
+      memcpy(head->ast_node, $1, sizeof(struct node));
+      head->arg_list = exp_list;
+      $$ = head;
+
+      
+      // printf("Antes das atribs a kbca em exp_list: exp, cif1->label: %s\n", $1->label); 
+      //printf(" 2 Endereco de $1: %p - Endereco de $$: %p\n", &$1, &$$);
+      //$$->ast_node = $1; // Isso aqui de alguma maneira poe lixo em $1->label.
+      //$$->arg_list = exp_list;
+      // printf("No final de exp_list: exp, cif1->label: %s\n", $1->label);
+      // printf("Em exp_list: exp, kbca->ast_node->label: %s\n", $$->ast_node->label);
+      // printf("No final, exp_list->id: %s\n", exp_list->id);
     }
 |   exp ',' exp_list 
     { 
@@ -1123,8 +1212,16 @@ exp_list:
 
       add_arg_call($3->arg_list, exp_list_item);
 
-      $$->ast_node = $1; add_children($$->ast_node, 1, $3->ast_node);
-      $$->arg_list = $3->arg_list; 
+      struct prod_val* head = (struct prod_val*) malloc(sizeof(struct prod_val));
+      head->ast_node = (struct node*) malloc(sizeof(struct node));
+      head->arg_list = (struct arg_list_item*) malloc(sizeof(struct arg_list_item));
+      head->id_list = NULL;
+
+      memcpy(head->ast_node, $1, sizeof(struct node));
+      head->arg_list = $3->arg_list;
+      $$ = head;
+
+      add_children($$->ast_node, 1, $3->ast_node);
     }
 |   %empty { $$->ast_node = NULL; $$->arg_list = NULL; }
 ;
@@ -1132,52 +1229,140 @@ exp_list:
 shift:
     TK_IDENTIFICADOR TK_OC_SL TK_LIT_INT
     {
-        $$ = lexval_node($2); 
-        add_children($$, 2, lexval_node($1), lexval_node($3));
+      if ($3->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      $$ = lexval_node($2); 
+      add_children($$, 2, lexval_node($1), lexval_node($3));
+      $$->children[0]->data_type = lookup_result->data_type;
     }
 |   TK_IDENTIFICADOR TK_OC_SR TK_LIT_INT
     {
-        $$ = lexval_node($2); 
-        add_children($$, 2, lexval_node($1), lexval_node($3));
+      if ($3->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      $$ = lexval_node($2); 
+      add_children($$, 2, lexval_node($1), lexval_node($3));
     }
 |   TK_IDENTIFICADOR TK_OC_SL '+' TK_LIT_INT
     {
-        $$ = lexval_node($2); 
-        add_children($$, 2, lexval_node($1), lexval_node($4));
+      if ($4->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      $$ = lexval_node($2); 
+      add_children($$, 2, lexval_node($1), lexval_node($4));
     }
 |   TK_IDENTIFICADOR TK_OC_SR '+' TK_LIT_INT
     {
-        $$ = lexval_node($2); 
-        add_children($$, 2, lexval_node($1), lexval_node($4));
+      if ($4->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      $$ = lexval_node($2); 
+      add_children($$, 2, lexval_node($1), lexval_node($4));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
     {
-        node* vector = named_node("[]");
-        add_children(vector, 2, lexval_node($1), $3);
-        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
+      if ($6->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      node* vector = named_node("[]");
+      add_children(vector, 2, lexval_node($1), $3);
+      $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR TK_LIT_INT
     {
-        node* vector = named_node("[]");
-        add_children(vector, 2, lexval_node($1), $3);
-        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
+      if ($6->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      node* vector = named_node("[]");
+      add_children(vector, 2, lexval_node($1), $3);
+      $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL '+' TK_LIT_INT
     {
-        node* vector = named_node("[]");
-        add_children(vector, 2, lexval_node($1), $3);
-        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
+      if ($7->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      node* vector = named_node("[]");
+      add_children(vector, 2, lexval_node($1), $3);
+      $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR '+' TK_LIT_INT
     {
-        node* vector = named_node("[]");
-        add_children(vector, 2, lexval_node($1), $3);
-        $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
+      if ($7->value.i > 16)
+      {
+        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
+      }
+      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
+      if(lookup_result == NULL)
+      {
+        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      node* vector = named_node("[]");
+      add_children(vector, 2, lexval_node($1), $3);
+      $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
     }
 ;
 
 jmp_stmt:
-    TK_PR_RETURN exp { $$ = named_node("return"); add_children($$, 1, $2); }
+    TK_PR_RETURN exp 
+    {      
+      $$ = named_node("return"); add_children($$, 1, $2); 
+      $$->data_type = $2->data_type;
+      //printf("Em jmp_stmt, $$->data_type: %d\n", $$->data_type);
+      $$->is_return = 1;
+      $$->return_line = get_line_number();
+    }
 |   TK_PR_BREAK { $$ = named_node("break"); }
 |   TK_PR_CONTINUE { $$ = named_node("continue"); }
 ;
@@ -1220,6 +1405,7 @@ while:
 exp:
     TK_IDENTIFICADOR 
     { 
+      //printf(" 0 Endereco de $1: %p - Endereco de $$: %p\n", $1, $$);
       //printf("Antes de chamar st_lookup em exp: TK_IDENTIFICADOR, linha %d.\n", get_line_number());
       symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
       if(lookup_result == NULL)
@@ -1235,7 +1421,7 @@ exp:
       }
 
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
-      printf("Em exp: TK_ID, $$->label: %s\n", $$->label);
+      //printf("Em exp: TK_ID, $$->label: %s\n", $$->label);
     }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
