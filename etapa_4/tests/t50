@@ -1,0 +1,9 @@
+// Saida esperada: ERR_UNDECLARED - exit code: 10
+
+int d(int a, int b){}
+int a;
+int b;
+
+int main(){
+  b = func(a);
+}

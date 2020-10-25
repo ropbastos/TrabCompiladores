@@ -1,7 +1,8 @@
 // Saida esperada: ERR_DECLARED - exit code: 11
 
-char a;
+
 
 int main(){
+  char a;
   int a;
 }

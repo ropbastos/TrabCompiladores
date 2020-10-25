@@ -1,0 +1,6 @@
+// Saida esperada: ERR_STRING_SIZE - exit code: 33
+
+int main(){
+  string s <= "small";
+  s = "bigggggggg";
+}

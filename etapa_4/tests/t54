@@ -1,0 +1,9 @@
+// Saida esperada: ERR_WRONG_TYPE_ARGS - exit code: 42
+
+int func(float a){}
+int a;
+int b;
+
+int main(){
+  b = func(a);
+}

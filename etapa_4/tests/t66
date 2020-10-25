@@ -1,7 +1,11 @@
 // Saida esperada: Nenhum erro. - exit code: 0
 
-bool a;
+int func(){
+  float f;
+  int i;
+  return i;
+}
 
 int main(){
-  int a;
+  func();
 }

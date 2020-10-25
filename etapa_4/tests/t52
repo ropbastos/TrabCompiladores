@@ -1,0 +1,9 @@
+// Saida esperada: ERR_EXCESS_ARGS - exit code: 41
+
+int func(int a){}
+int a;
+int b;
+
+int main(){
+  b = func(a, b);
+}

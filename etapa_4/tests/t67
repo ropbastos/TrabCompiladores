@@ -1,0 +1,7 @@
+// Saida esperada: ERR_WRONG_PAR_SHIFT - exit code: 53
+
+int main(){
+  int a;
+
+  a << 17;
+}

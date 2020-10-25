@@ -7,11 +7,11 @@
 #define ERR_FUNCTION         22 ////
 #define ERR_WRONG_TYPE       30 ////
 #define ERR_STRING_TO_X      31 ////
-#define ERR_CHAR_TO_X        32 //
-#define ERR_STRING_SIZE      33
-#define ERR_MISSING_ARGS     40 //
-#define ERR_EXCESS_ARGS      41 //
-#define ERR_WRONG_TYPE_ARGS  42 //
+#define ERR_CHAR_TO_X        32 ////
+#define ERR_STRING_SIZE      33 ////
+#define ERR_MISSING_ARGS     40 ////
+#define ERR_EXCESS_ARGS      41 ////
+#define ERR_WRONG_TYPE_ARGS  42 ////
 #define ERR_WRONG_PAR_INPUT  50 //
 #define ERR_WRONG_PAR_OUTPUT 51 //
 #define ERR_WRONG_PAR_RETURN 52 //

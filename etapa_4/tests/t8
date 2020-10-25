@@ -1,4 +1,4 @@
-// Saida esperada: ERR_DECLARED - exit code: 11 
+// Saida esperada: Nenhum erro. - exit code: 0 
 
 int a;
 

@@ -1,0 +1,9 @@
+// Saida esperada: ERR_WRONG_PAR_RETURN - exit code: 52
+
+int func(){
+  return 2.0;
+}
+
+int main(){
+  func();
+}

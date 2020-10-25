@@ -1,7 +1,7 @@
 // Saida esperada: Nenhum erro. - exit code: 0
 
-bool a;
+string s0;
 
 int main(){
-  int a;
+  s0 = "bigggggggg";
 }

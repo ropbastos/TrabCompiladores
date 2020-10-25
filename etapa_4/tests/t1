@@ -1,5 +1,5 @@
 // Saida esperada: ERR_UNDECLARED - exit code: 10 
 
 int main(){
-  a[1] = 2;
+  b[1] = 2;
 }
