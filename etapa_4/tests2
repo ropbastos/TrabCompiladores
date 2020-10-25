@@ -3,7 +3,9 @@ int aux(){}
 
 int main(){
 
-  char m <= 'm';
+  string m <= "stren";
+
+  m = "batata";
 
 }
 

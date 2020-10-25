@@ -1733,6 +1733,35 @@ num:
       
       $$ = lexval_node($1); $$->data_type = INT;
     }
+| TK_LIT_CHAR
+  {
+    $$ = lexval_node($1); $$->data_type = CHAR;
+    symbol_entry* sb = st_lookup($$->label, scope_stack);
+    printf("Criou sb\n");
+    if (sb == NULL)
+    {
+      sb = new_symbol_entry($$->label, get_line_number(), LIT, CHAR, 1, NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      if (scope == NULL) printf("Scope is null on num.\n");
+      ht_insert(sb, scope);
+      push(&scope_stack, scope);
+    }
+  }
+| TK_LIT_STRING
+  {
+    $$ = lexval_node($1); $$->data_type = STR; $$->size = strlen($$->label);
+
+    symbol_entry* sb = st_lookup($$->label, scope_stack);
+    if (sb == NULL)
+    {
+      sb = new_symbol_entry($$->label, get_line_number(), LIT, STR, strlen($$->label), NULL, $1);
+      ht_entry** scope = pop(&scope_stack);
+      if (scope == NULL) printf("Scope is null on num.\n");
+      ht_insert(sb, scope);
+      push(&scope_stack, scope);
+    }
+
+  }
 ;
 
 unary:
