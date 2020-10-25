@@ -1,9 +1,11 @@
 int a, b[2];
-int aux(int a, int k){}
+int aux(){}
 
 int main(){
 
   int l, t <= a;
+
+  l = aux();
 
 }
 

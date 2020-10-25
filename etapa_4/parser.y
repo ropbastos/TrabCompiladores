@@ -1135,17 +1135,20 @@ func_call:
         syntactic_error(ERR_EXCESS_ARGS, $1->value.s, get_line_number(), NULL);
       }
 
-      arg_list* table_entry_arg = lookup_res->args;
-      arg_list* call_arg = $3->arg_list;
-      do
+      if (arg_list_len($3->arg_list) != 0)
       {
-        if (table_entry_arg->type != call_arg->type)
+        arg_list* table_entry_arg = lookup_res->args;
+        arg_list* call_arg = $3->arg_list;
+        do
         {
-          syntactic_error(ERR_WRONG_TYPE_ARGS, $1->value.s, get_line_number(), NULL);
-        }
-        table_entry_arg = table_entry_arg->next;
-        call_arg = call_arg->next;
-      } while (table_entry_arg != NULL && call_arg != NULL);
+          if (table_entry_arg->type != call_arg->type)
+          {
+            syntactic_error(ERR_WRONG_TYPE_ARGS, $1->value.s, get_line_number(), NULL);
+          }
+          table_entry_arg = table_entry_arg->next;
+          call_arg = call_arg->next;
+        } while (table_entry_arg != NULL && call_arg != NULL);
+      }
 
       
       $$ = lexval_node($1); add_children($$, 1, $3->ast_node);
@@ -1241,7 +1244,16 @@ exp_list:
 
       add_children($$->ast_node, 1, $3->ast_node);
     }
-|   %empty { $$->ast_node = NULL; $$->arg_list = NULL; }
+|   %empty 
+    { 
+      struct prod_val* head = (struct prod_val*) malloc(sizeof(struct prod_val));
+      head->ast_node = (struct node*) malloc(sizeof(struct node));
+      head->arg_list = (struct arg_list_item*) malloc(sizeof(struct arg_list_item));
+      head->id_list = NULL;
+      head->arg_list = NULL;
+      head->ast_node = NULL;
+      $$ = head; 
+    }
 ;
 
 shift:
