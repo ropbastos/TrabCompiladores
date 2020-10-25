@@ -98,7 +98,7 @@ typedef struct prod_val {
 %type<node> while 
 %type<node> control 
 %type<prod> exp_list
-%type<node> num
+%type<node> lit_exp
 %type<node> unary
 %type<node> bool
 %type<node> program
@@ -1485,7 +1485,7 @@ exp:
       $$ = named_node("[]"); $$->data_type = lookup_result->data_type;
       add_children($$, 2, lexval_node($1), $3);
     }
-|   num { $$ = $1; }
+|   lit_exp { $$ = $1; }
 |   bool { $$ = $1; }
 |   func_call 
     { 
@@ -1695,7 +1695,7 @@ exp:
     }
 ;
 
-num:
+lit_exp:
     TK_LIT_FLOAT 
     { 
       char float_to_str[7];
