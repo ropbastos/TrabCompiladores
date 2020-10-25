@@ -1,3 +1,6 @@
+#ifndef LEXVAL_H
+#define LEXVAL_H
+
 // LEX TYPES
 #define SPCHAR_TK 1
 #define COP_TK 2
@@ -33,3 +36,4 @@ typedef struct lex_val {
     TOKEN_VAL value;
 } lex_val;
 
+#endif

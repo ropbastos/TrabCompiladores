@@ -1,0 +1,7 @@
+// Saida esperada: ERR_FUNCTION - exit code: 22
+
+int func(){}
+
+int main(){
+  func = 2;
+}

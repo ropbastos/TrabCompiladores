@@ -1,3 +1,6 @@
+#ifndef HASH_H
+#define HASH_H
+
 #include "ast.h"
 #define TABLE_SIZE 26
 
@@ -50,3 +53,5 @@ void ht_free_aux(ht_entry* entry);
 void ht_free(ht_entry** ht);
 void ht_print(ht_entry** ht);
 void print_ht_entry(ht_entry** ht, int key);
+
+#endif

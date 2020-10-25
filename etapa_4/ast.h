@@ -1,3 +1,6 @@
+#ifndef AST_H
+#define AST_H
+
 #include <stdarg.h>
 #include "lexval.h"
 
@@ -52,6 +55,8 @@ void print_children(node* parent);
 int traverse(node* tree);
 
 node* return_first_child(node* parent);
+
+#endif
 
 
 

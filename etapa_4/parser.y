@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "errors.h"
+#include "semantics.h"
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
@@ -158,202 +158,47 @@ global_decl:
     type global_list ';' 
     {
       // Find global scope.
-      ht_entry** global_scope; 
-      global_scope = pop(&scope_stack);
+      ht_entry** global_scope = pop(&scope_stack);
       if (global_scope == NULL)
       {
         // Create new global scope symbol table if one doesn't already exist.
         global_scope = hash_table();
       }
 
-      // Add globals to symbol table.
-      id_list* current = $2;
-      int size;
-      symbol_entry* sb = NULL;
-      while(current != NULL)
-      {
-        // Check if declared already.
-        if (ht_lookup(current->id, global_scope) != NULL && ht_lookup(current->id, global_scope)->symbol_type != LIT)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
-        }
-        // Check if initialized with different type object.
-        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $1)
-          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
-
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            case STR:
-              size = current->str_size;
-              break;
-            default:
-              size = -1;
-          }
-          sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        }
-        else // Is a vector.
-        {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            case STR:
-              if (current->str_size != NOT_INITIALIZED)
-                size = current->str_size * current->vec_size;
-              else size = NOT_INITIALIZED;
-              break;
-            default:
-              size = -1;
-          }
-          sb = new_symbol_entry(current->id, current->line, VEC, $1, size, NULL, NULL);
-        }
-
-        ht_insert(sb, global_scope);
-        current = current->next;
-      }
+      add_variables_to_scope($1, $2, global_scope);
 
       // Stack global sb table.
       push(&scope_stack, global_scope);
-
-      // ht_print(pop(&scope_stack));
     }
 |   TK_PR_STATIC type global_list ';' 
     {
       // Find global scope.
-      ht_entry** global_scope; 
-      global_scope = pop(&scope_stack);
+      ht_entry** global_scope = pop(&scope_stack);
       if (global_scope == NULL)
       {
         // Create new global scope symbol table if one doesn't already exist.
         global_scope = hash_table();
       }
 
-      // Add globals to symbol table.
-      id_list* current = $3;
-      int size;
-      symbol_entry* sb = NULL;
-      while(current != NULL)
-      {
-        // Check if declared already.
-        if (ht_lookup(current->id, global_scope) != NULL && ht_lookup(current->id, global_scope)->symbol_type != LIT)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
-        }
-        // Check if initialized with different type object.
-        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $2)
-          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
-
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            case STR:
-              size = current->str_size;
-              break;
-            default:
-              size = -1;
-          }
-          sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        }
-        else // Is a vector.
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            case STR:
-              if (current->str_size != NOT_INITIALIZED)
-                size = current->str_size * current->vec_size;
-              else size = NOT_INITIALIZED;
-              break;
-            default:
-              size = -1;
-          }
-          sb = new_symbol_entry(current->id, current->line, VEC, $2, size, NULL, NULL);
-        }
-
-        ht_insert(sb, global_scope);
-        current = current->next;
-      }
+      add_variables_to_scope($2, $3, global_scope);
 
       // Stack global sb table.
       push(&scope_stack, global_scope);
-
-      // ht_print(pop(&scope_stack));
     }
 ;
 
 global_list:
     TK_IDENTIFICADOR 
     { 
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->str_size = NOT_A_STRING;
-      global_ids->ini_type = NOT_INITIALIZED;
-      global_ids->next = NULL;
-      $$ = global_ids;
+      $$ = new_id_list($1, NOT_A_VECTOR);
     }
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' 
     { 
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = $3->value.i;
-      global_ids->str_size = NOT_A_STRING;
-      global_ids->ini_type = NOT_INITIALIZED;
-      global_ids->next = NULL;
-      $$ = global_ids;
+      $$ = new_id_list($1, $3->value.i);
     }
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' 
     { 
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = $4->value.i;
-      global_ids->str_size = NOT_A_STRING;
-      global_ids->ini_type = NOT_INITIALIZED;
-      global_ids->next = NULL;
-      $$ = global_ids;
+      $$ = new_id_list($1, $4->value.i);
     }
 |   TK_IDENTIFICADOR ',' global_list 
     { 
@@ -396,159 +241,55 @@ func:
 header:
     type TK_IDENTIFICADOR '(' ')' 
     { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
+      ht_entry** scope = pop(&scope_stack);
       if (scope == NULL)
-      {
         scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($1)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
 
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
+      add_functions_to_scope($1, $2, NULL, scope);
 
       // Re-stack scope.
       push(&scope_stack, scope);
 
-      $$ = lexval_node($2); $$->data_type = sb->data_type;
+      $$ = lexval_node($2); $$->data_type = $1;
     }
 |   type TK_IDENTIFICADOR '(' params ')' 
     { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
+      ht_entry** scope = pop(&scope_stack);
       if (scope == NULL)
-      {
         scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($1)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
 
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, $4, $2);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
+      add_functions_to_scope($1, $2, $4, scope);
 
       // Re-stack scope.
       push(&scope_stack, scope);
 
-      $$ = lexval_node($2); $$->data_type = sb->data_type; 
+      $$ = lexval_node($2); $$->data_type = $1; 
     }
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' 
     { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
+      ht_entry** scope = pop(&scope_stack);
       if (scope == NULL)
-      {
         scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($2)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
 
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, NULL, $3);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
+      add_functions_to_scope($2, $3, NULL, scope);
 
       // Re-stack scope.
       push(&scope_stack, scope);
 
-      $$ = lexval_node($3); 
+      $$ = lexval_node($3);  $$->data_type = $2; 
     }
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')' 
     { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
+      ht_entry** scope = pop(&scope_stack);
       if (scope == NULL)
-      {
         scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($2)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
 
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, $5, $3);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
+      add_functions_to_scope($2, $3, $5, scope);
 
       // Re-stack scope.
       push(&scope_stack, scope);
 
-      $$ = lexval_node($3); 
+      $$ = lexval_node($3);  $$->data_type = $2; 
     }
 ;
 
@@ -560,12 +301,7 @@ params:
     }
 |   type TK_IDENTIFICADOR
     {
-      arg_list* param_list = malloc(sizeof(struct arg_list_item));
-      param_list->id = $2->value.s;
-      param_list->line = $2->line;
-      param_list->type = $1;
-      param_list->next = NULL;
-      $$ = param_list;
+      $$ = new_arg_list($1, $2);
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
     {
@@ -574,12 +310,7 @@ params:
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR 
     {
-      arg_list* param_list = malloc(sizeof(struct arg_list_item));
-      param_list->id = $3->value.s;
-      param_list->line = $3->line;
-      param_list->type = $2;
-      param_list->next = NULL;
-      $$ = param_list;
+      $$ = new_arg_list($2, $3);
     }
 ;
 
@@ -637,8 +368,7 @@ local_decl:
     type local_list 
     { 
       // Get scope
-      ht_entry** local_scope;
-      local_scope = pop(&scope_stack);
+      ht_entry** local_scope = pop(&scope_stack);
 
       if (local_scope == NULL)
       {
@@ -647,44 +377,7 @@ local_decl:
       }
 
       // Add locals to symbol table.
-      id_list* current = $2->id_list;
-      int size;
-      while(current != NULL)
-      {
-        // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
-        {
-          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
-        }
-        // Check if initialized with different type object.
-        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $1)
-        {
-          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
-        }
-
-        switch ($1)
-        {
-          case CHAR:
-          case BOOL:
-            size = 1;
-            break;
-          case INT:
-            size = 4;
-            break;
-          case FLOAT:
-            size = 8;
-            break;
-          case STR:
-            size = current->str_size;
-            break;
-          default:
-            size = -1;
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      add_variables_to_scope($1, $2->id_list, local_scope);
       push(&scope_stack, local_scope);
 
       $$ = $2->ast_node;
@@ -692,8 +385,7 @@ local_decl:
 |   TK_PR_CONST type local_list 
     { 
       // Get scope
-      ht_entry** local_scope;
-      local_scope = pop(&scope_stack);
+      ht_entry** local_scope = pop(&scope_stack);
 
       if (local_scope == NULL)
       {
@@ -702,42 +394,7 @@ local_decl:
       }
 
       // Add locals to symbol table.
-      id_list* current = $3->id_list;
-      int size;
-      while(current != NULL)
-      {
-        // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
-        }
-        // Check if initialized with different type object.
-        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $2)
-          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
-
-        switch ($2)
-        {
-          case CHAR:
-          case BOOL:
-            size = 1;
-            break;
-          case INT:
-            size = 4;
-            break;
-          case FLOAT:
-            size = 8;
-            break;
-          case STR:
-            size = current->str_size;
-            break;
-          default:
-            size = -1;
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      add_variables_to_scope($2, $3->id_list, local_scope);
       push(&scope_stack, local_scope);
 
       $$ = $3->ast_node; 
@@ -745,8 +402,7 @@ local_decl:
 |   TK_PR_STATIC TK_PR_CONST type local_list 
     { 
       // Get scope
-      ht_entry** local_scope;
-      local_scope = pop(&scope_stack);
+      ht_entry** local_scope = pop(&scope_stack);
 
       if (local_scope == NULL)
       {
@@ -755,42 +411,7 @@ local_decl:
       }
 
       // Add locals to symbol table.
-      id_list* current = $4->id_list;
-      int size;
-      while(current != NULL)
-      {
-        // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
-        }
-        // Check if initialized with different type object.
-        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $3)
-          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
-
-        switch ($3)
-        {
-          case CHAR:
-          case BOOL:
-            size = 1;
-            break;
-          case INT:
-            size = 4;
-            break;
-          case FLOAT:
-            size = 8;
-            break;
-          case STR:
-            size = current->str_size;
-            break;
-          default:
-            size = -1;
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $3, size, NULL, NULL);
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      add_variables_to_scope($3, $4->id_list, local_scope);
       push(&scope_stack, local_scope);
 
       $$ = $4->ast_node; 
@@ -798,8 +419,7 @@ local_decl:
 |   TK_PR_STATIC type local_list 
     { 
       // Get scope
-      ht_entry** local_scope;
-      local_scope = pop(&scope_stack);
+      ht_entry** local_scope = pop(&scope_stack);
 
       if (local_scope == NULL)
       {
@@ -808,42 +428,7 @@ local_decl:
       }
 
       // Add locals to symbol table.
-      id_list* current = $3->id_list;
-      int size;
-      while(current != NULL)
-      {
-        // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
-        }
-        // Check if initialized with different type object.
-        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $2)
-          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
-
-        switch ($2)
-        {
-          case CHAR:
-          case BOOL:
-            size = 1;
-            break;
-          case INT:
-            size = 4;
-            break;
-          case FLOAT:
-            size = 8;
-            break;
-          case STR:
-            size = current->str_size;
-            break;
-          default:
-            size = -1;
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      add_variables_to_scope($2, $3->id_list, local_scope);
       push(&scope_stack, local_scope);
 
       $$ = $3->ast_node; 
@@ -853,14 +438,7 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR
     {
-      id_list* local_ids = malloc(sizeof(struct id_list_item));
-      local_ids->id = $1->value.s;
-      local_ids->line = $1->line;
-      local_ids->vec_size = NOT_A_VECTOR;
-      local_ids->str_size = NOT_A_STRING;
-      local_ids->ini_type = NOT_INITIALIZED;
-      local_ids->next = NULL;
-      $$->id_list = local_ids;
+      $$->id_list = new_id_list($1, NOT_A_VECTOR);
 
       $$->ast_node = NULL;
     }
@@ -1025,7 +603,10 @@ attrib:
       // See if dst is a variable.
       if (dst_lookup->symbol_type != VAR)
       {
-        syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
+        if (dst_lookup->symbol_type == VEC)
+          syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
+        if (dst_lookup->symbol_type == FUNC)
+          syntactic_error(ERR_FUNCTION, $1->value.s, get_line_number(), NULL);
       }
 
       // If dst is a string, check size compatibility.
@@ -1068,7 +649,10 @@ attrib:
       // See if dst is a vector.
       else if (dst_lookup->symbol_type != VEC)
       {
-        syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
+        if (dst_lookup->symbol_type == VAR)
+          syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
+        if (dst_lookup->symbol_type == FUNC)
+          syntactic_error(ERR_FUNCTION, $1->value.s, get_line_number(), NULL);
       }
 
       // If dst is a string, check size compatibility.
@@ -1188,14 +772,11 @@ func_call:
 exp_list:
     exp 
     { 
-      //printf(" 1 Endereco de $1: %p - Endereco de $$: %p\n", &$1, &$$);
       arg_list* exp_list = malloc(sizeof(struct arg_list_item));
 
       if ($1->val != NULL)
       {
-        //printf("exp_list: exp $1->val != NULL.\n");
         exp_list->id = $1->val->value.s;
-        //printf("exp_list->id: %s\n", exp_list->id);
         exp_list->line = $1->val->line;
         exp_list->type = $1->data_type;
         exp_list->next = NULL;
@@ -1209,7 +790,6 @@ exp_list:
       }
       else
       {
-        //printf("else sozinho da exp_list: exp\n");
         exp_list->id = $1->label;
         exp_list->line = get_line_number();
         exp_list->type = $1->data_type;
@@ -1224,15 +804,6 @@ exp_list:
       memcpy(head->ast_node, $1, sizeof(struct node));
       head->arg_list = exp_list;
       $$ = head;
-
-      
-      // printf("Antes das atribs a kbca em exp_list: exp, cif1->label: %s\n", $1->label); 
-      //printf(" 2 Endereco de $1: %p - Endereco de $$: %p\n", &$1, &$$);
-      //$$->ast_node = $1; // Isso aqui de alguma maneira poe lixo em $1->label.
-      //$$->arg_list = exp_list;
-      // printf("No final de exp_list: exp, cif1->label: %s\n", $1->label);
-      // printf("Em exp_list: exp, kbca->ast_node->label: %s\n", $$->ast_node->label);
-      // printf("No final, exp_list->id: %s\n", exp_list->id);
     }
 |   exp ',' exp_list 
     { 
@@ -1418,7 +989,6 @@ jmp_stmt:
     {      
       $$ = named_node("return"); add_children($$, 1, $2); 
       $$->data_type = $2->data_type;
-      //printf("Em jmp_stmt, $$->data_type: %d\n", $$->data_type);
       $$->is_return = 1;
       $$->return_line = get_line_number();
     }

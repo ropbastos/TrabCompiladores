@@ -1,3 +1,6 @@
+#ifndef ERRORS_H
+#define ERRORS_H
+
 #include "namelists.h"
 
 #define ERR_UNDECLARED       10 ////
@@ -18,3 +21,5 @@
 #define ERR_WRONG_PAR_SHIFT  53 ////
 
 void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* sb);
+
+#endif
