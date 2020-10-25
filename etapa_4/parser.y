@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "errors.h"
+
+#include "verification_semantic.h"
+
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
@@ -95,8 +98,8 @@ typedef struct prod_val {
 %type<node> jmp_stmt
 %type<node> if
 %type<node> for
-%type<node> while 
-%type<node> control 
+%type<node> while
+%type<node> control
 %type<prod> exp_list
 %type<node> num
 %type<node> unary
@@ -143,205 +146,67 @@ root: program { arvore = $1; };
 
 program:
     %empty { $$ = NULL; }
-|   global_decl program 
-    { 
-      if ($2 != NULL) $$ = $2; else $$ = NULL; 
+|   global_decl program
+    {
+      if ($2 != NULL) $$ = $2; else $$ = NULL;
     }
-|   func program 
-    { 
+|   func program
+    {
       $$ = $1;
       add_children($$, 1, $2);
     }
 ;
 
 global_decl:
-    type global_list ';' 
+    type global_list ';'
     {
-      // Find global scope.
-      ht_entry** global_scope; 
-      global_scope = pop(&scope_stack);
-      if (global_scope == NULL)
-      {
-        // Create new global scope symbol table if one doesn't already exist.
-        global_scope = hash_table();
-      }
-
-      // Add globals to symbol table.
-      id_list* current = $2;
-      int size;
-      symbol_entry* sb = NULL;
-      while(current != NULL)
-      {
-        // Check if declared already.
-        if (ht_lookup(current->id, global_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
-        }
-
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
-          sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        }
-        else
-        {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
-          sb = new_symbol_entry(current->id, current->line, VEC, $1, size, NULL, NULL);
-        }
-
-        ht_insert(sb, global_scope);
-        current = current->next;
-      }
-
-      // Stack global sb table.
+      ht_entry** global_scope =  get_scope(&scope_stack);
+      global_scope = add_to_global_scope( $2, $1, VAR, global_scope);
       push(&scope_stack, global_scope);
-
-      // ht_print(pop(&scope_stack));
     }
-|   TK_PR_STATIC type global_list ';' 
+|   TK_PR_STATIC type global_list ';'
     {
-      // Find global scope.
-      ht_entry** global_scope; 
-      global_scope = pop(&scope_stack);
-      if (global_scope == NULL)
-      {
-        // Create new global scope symbol table if one doesn't already exist.
-        global_scope = hash_table();
-      }
-
-      // Add globals to symbol table.
-      id_list* current = $3;
-      int size;
-      while(current != NULL)
-      {
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
-        }
-        else
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb->label, global_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, global_scope));
-        }
-        ht_insert(sb, global_scope);
-        current = current->next;
-      }
-
-      // Stack global sb table.
+      ht_entry** global_scope =  get_scope(&scope_stack);
+      global_scope = add_to_global_scope( $3, $2, VAR, global_scope);
       push(&scope_stack, global_scope);
-
-      // ht_print(pop(&scope_stack));
     }
 ;
 
 global_list:
-    TK_IDENTIFICADOR 
-    { 
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->next = NULL;
-      $$ = global_ids;
+    TK_IDENTIFICADOR
+    {
+      id_list* global_id = get_global_id($1, NOT_A_VECTOR);
+      $$ = global_id;
     }
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' 
-    { 
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = $3->value.i;
-      global_ids->next = NULL;
-      $$ = global_ids;
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']'
+    {
+      id_list* global_id = get_global_id($1, NOT_A_VECTOR);
+      $$ = global_id;
     }
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' 
-    { 
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = $4->value.i;
-      global_ids->next = NULL;
-      $$ = global_ids;
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']'
+    {
+      id_list* global_id = get_global_id($1, $4->value.i);
+      $$ = global_id;
     }
-|   TK_IDENTIFICADOR ',' global_list 
-    { 
-      add_id($3, $1, NOT_A_VECTOR); 
-      $$ = $3; 
+|   TK_IDENTIFICADOR ',' global_list
+    {
+      add_id($3, $1, NOT_A_VECTOR);
+      $$ = $3;
     }
-|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list 
-    { 
-      add_id($6, $1, $3->value.i); 
-      $$ = $6; 
+|   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list
+    {
+      add_id($6, $1, $3->value.i);
+      $$ = $6;
     }
-|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list 
-    { 
-      add_id($7, $1, $4->value.i); 
-      $$ = $7; 
+|   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list
+    {
+      add_id($7, $1, $4->value.i);
+      $$ = $7;
     }
 ;
 
 type:
-    TK_PR_INT { $$ = INT; } 
+    TK_PR_INT { $$ = INT; }
 |   TK_PR_FLOAT { $$ = FLOAT; }
 |   TK_PR_BOOL { $$ = BOOL; }
 |   TK_PR_CHAR { $$ = CHAR; }
@@ -349,174 +214,43 @@ type:
 ;
 
 func:
-    header body 
+    header body
     {
       expected_return_type = $1->data_type;
       check_return_type($2);
       if (!return_type_is_correct)
       {
         syntactic_error(ERR_WRONG_PAR_RETURN, $1->label, return_line, NULL);
-      } 
-      $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
+      }
+      $$ = $1; if ($2 != NULL) add_children($$, 1, $2);
     }
 ;
 
 header:
-    type TK_IDENTIFICADOR '(' ')' 
-    { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
-      if (scope == NULL)
-      {
-        scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($1)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
+    type TK_IDENTIFICADOR '(' ')'
+    {
+      ht_entry** scope =  get_scope(&scope_stack);
+      symbol_entry* sb = add_to_func_scope($2, $1, &scope_stack, scope, NULL, NULL);
+      $$ = lexval_node($2); $$->data_type = sb->data_type;
 
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, NULL, $2);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
-
-      // Re-stack scope.
-      push(&scope_stack, scope);
-
+    }
+|   type TK_IDENTIFICADOR '(' params ')'
+    {
+      ht_entry** scope =  get_scope(&scope_stack);
+      symbol_entry* sb = add_to_func_scope($2, $1, &scope_stack, scope, $4, $2);
       $$ = lexval_node($2); $$->data_type = sb->data_type;
     }
-|   type TK_IDENTIFICADOR '(' params ')' 
-    { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
-      if (scope == NULL)
-      {
-        scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($1)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
-
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($2->value.s, $2->line, FUNC, $1, size, $4, $2);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
-
-      // Re-stack scope.
-      push(&scope_stack, scope);
-
-      $$ = lexval_node($2); $$->data_type = sb->data_type; 
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')'
+    {
+      ht_entry** scope =  get_scope(&scope_stack);
+      symbol_entry* sb = add_to_func_scope($3, $2, &scope_stack, scope, NULL, $3);
+      $$ = lexval_node($3);
     }
-|   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' 
-    { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
-      if (scope == NULL)
-      {
-        scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($2)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
-
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, NULL, $3);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
-
-      // Re-stack scope.
-      push(&scope_stack, scope);
-
-      $$ = lexval_node($3); 
-    }
-|   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')' 
-    { 
-      ht_entry** scope;
-      scope = pop(&scope_stack);
-      if (scope == NULL)
-      {
-        scope = hash_table();
-      }
-      // Determine size.
-      int size;
-      switch ($2)
-      {
-        case CHAR:
-        case BOOL:
-          size = 1;
-          break;
-        case INT:
-          size = 4;
-          break;
-        case FLOAT:
-          size = 8;
-          break;
-        default:
-          size = -1;
-      }
-
-      // Add function name to scope.
-      symbol_entry* sb = new_symbol_entry($3->value.s, $3->line, FUNC, $2, size, $5, $3);
-      if (ht_lookup(sb->label, scope) != NULL)
-      {
-        syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
-      }
-      ht_insert(sb, scope);
-
-      // Re-stack scope.
-      push(&scope_stack, scope);
-
-      $$ = lexval_node($3); 
+|   TK_PR_STATIC type TK_IDENTIFICADOR '(' params ')'
+    {
+      ht_entry** scope =  get_scope(&scope_stack);
+      symbol_entry* sb = add_to_func_scope($3, $2, &scope_stack, scope, $5, $3);
+      $$ = lexval_node($3);
     }
 ;
 
@@ -540,7 +274,7 @@ params:
       add_arg($5, $3, $2);
       $$ = $5;
     }
-|   TK_PR_CONST type TK_IDENTIFICADOR 
+|   TK_PR_CONST type TK_IDENTIFICADOR
     {
       arg_list* param_list = malloc(sizeof(struct arg_list_item));
       param_list->id = $3->value.s;
@@ -559,9 +293,9 @@ block_start: '{' { push(&scope_stack, hash_table()); }
 block_end: '}' { pop(&scope_stack); }
 
 block:
-  block_start cmds block_end 
-  { 
-    $$ = $2; 
+  block_start cmds block_end
+  {
+    $$ = $2;
   }
 ;
 
@@ -571,7 +305,7 @@ cmds:
     {
       if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
-|   local_decl ';' cmds 
+|   local_decl ';' cmds
     {
       if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
     }
@@ -602,8 +336,8 @@ cmds:
 ;
 
 local_decl:
-    type local_list 
-    { 
+    type local_list
+    {
       // Get scope
       ht_entry** local_scope;
       local_scope = pop(&scope_stack);
@@ -666,9 +400,9 @@ local_decl:
       }
       push(&scope_stack, local_scope);
 
-      $$ = $2->ast_node; 
+      $$ = $2->ast_node;
     }
-|   TK_PR_CONST type local_list 
+|   TK_PR_CONST type local_list
     {
       // Get scope
       ht_entry** local_scope;
@@ -732,10 +466,10 @@ local_decl:
       }
       push(&scope_stack, local_scope);
 
-      $$ = $3->ast_node; 
+      $$ = $3->ast_node;
     }
-|   TK_PR_STATIC TK_PR_CONST type local_list 
-    { 
+|   TK_PR_STATIC TK_PR_CONST type local_list
+    {
       // Get scope
       ht_entry** local_scope;
       local_scope = pop(&scope_stack);
@@ -798,9 +532,9 @@ local_decl:
       }
       push(&scope_stack, local_scope);
 
-      $$ = $4->ast_node; 
+      $$ = $4->ast_node;
     }
-|   TK_PR_STATIC type local_list 
+|   TK_PR_STATIC type local_list
     {
       // Get scope
       ht_entry** local_scope;
@@ -864,7 +598,7 @@ local_decl:
       }
       push(&scope_stack, local_scope);
 
-      $$ = $3->ast_node; 
+      $$ = $3->ast_node;
     }
 ;
 
@@ -882,8 +616,8 @@ local_list:
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
-      add_id($3->id_list, $1, NOT_A_VECTOR); 
-      $$->id_list = $3->id_list; 
+      add_id($3->id_list, $1, NOT_A_VECTOR);
+      $$->id_list = $3->id_list;
 
       if ($3->ast_node != NULL ) { $$->ast_node = $3->ast_node; } else { $$->ast_node = NULL; };
     }
@@ -911,69 +645,69 @@ local_list:
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
     {
-      add_id($5->id_list, $1, NOT_A_VECTOR); 
-      $$->id_list = $5->id_list; 
+      add_id($5->id_list, $1, NOT_A_VECTOR);
+      $$->id_list = $5->id_list;
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), lexval_node($3), $5->ast_node);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
     {
-      add_id($5->id_list, $1, NOT_A_VECTOR); 
-      $$->id_list = $5->id_list; 
+      add_id($5->id_list, $1, NOT_A_VECTOR);
+      $$->id_list = $5->id_list;
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), $3, $5->ast_node);
     }
 ;
 
 literal:
-    TK_LIT_CHAR    
-    { 
-      $$ = lexval_node($1); 
+    TK_LIT_CHAR
+    {
+      $$ = lexval_node($1);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, CHAR,
                                               1, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
-|   TK_LIT_FALSE    
-    { 
-      $$ = lexval_node($1); 
+|   TK_LIT_FALSE
+    {
+      $$ = lexval_node($1);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
                                               1, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
-|   TK_LIT_FLOAT    
-    { 
-      $$ = lexval_node($1); 
+|   TK_LIT_FLOAT
+    {
+      $$ = lexval_node($1);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, FLOAT,
                                               1, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
-|   TK_LIT_INT    
-    { 
-      $$ = lexval_node($1); 
+|   TK_LIT_INT
+    {
+      $$ = lexval_node($1);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, INT,
                                               1, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
-|   TK_LIT_STRING    
-    { 
-      $$ = lexval_node($1); 
+|   TK_LIT_STRING
+    {
+      $$ = lexval_node($1);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, STR,
                                               1, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
-|   TK_LIT_TRUE    
-    { 
-      $$ = lexval_node($1); 
+|   TK_LIT_TRUE
+    {
+      $$ = lexval_node($1);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
                                               1, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
@@ -983,8 +717,8 @@ literal:
 ;
 
 attrib:
-    TK_IDENTIFICADOR '=' exp 
-    { 
+    TK_IDENTIFICADOR '=' exp
+    {
       //printf("Antes do primeiro st_lookup em attrib.\n");
       symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
       //printf("Depois do primeiro st_lookup em attrib.\n");
@@ -992,32 +726,34 @@ attrib:
       // See if dst is declared.
       if (dst_lookup == NULL)
       {
+        printf("Aqui22 \n");
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
       // See if exp is declared.
       if (src_lookup == NULL && $3->val != NULL)
       {
+        printf("Aqui \n");
         syntactic_error(ERR_UNDECLARED, $3->label, get_line_number(), NULL);
       }
-      
+
       // Check types.
       if (dst_lookup->data_type != $3->data_type)
       {
         syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
       }
- 
+
       // See if dst is a variable.
       else if (dst_lookup->symbol_type != VAR)
       {
         syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
       }
 
-      $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
+      $$ = named_node("="); add_children($$, 2, lexval_node($1), $3);
       $$->children[0]->data_type = dst_lookup->data_type;
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
-    { 
+    {
       symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
       symbol_entry* src_lookup = st_lookup($6->label, scope_stack);
       // See if dst is declared.
@@ -1031,13 +767,13 @@ attrib:
       {
         syntactic_error(ERR_UNDECLARED, $6->label, get_line_number(), NULL);
       }
-      
+
       // Check types.
       if (dst_lookup->data_type != $3->data_type)
       {
         syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
       }
- 
+
       // See if dst is a vector.
       else if (dst_lookup->symbol_type != VEC)
       {
@@ -1046,7 +782,7 @@ attrib:
 
       node* vector = named_node("[]");
       add_children(vector, 2, lexval_node($1), $3);
-      $$ = named_node("="); add_children($$, 2, vector, $6); 
+      $$ = named_node("="); add_children($$, 2, vector, $6);
     }
 ;
 
@@ -1096,8 +832,8 @@ io:
 ;
 
 func_call:
-    TK_IDENTIFICADOR '(' exp_list ')' 
-    { 
+    TK_IDENTIFICADOR '(' exp_list ')'
+    {
       // Check if function is declared.
       //printf("Antes do st_lookup em func_call.\n");
       symbol_entry* lookup_res = st_lookup($1->value.s, scope_stack);
@@ -1129,15 +865,15 @@ func_call:
         call_arg = call_arg->next;
       } while (table_entry_arg != NULL && call_arg != NULL);
 
-      
+
       $$ = lexval_node($1); add_children($$, 1, $3->ast_node);
       $$->data_type = lookup_res->data_type;
     }
 ;
 
 exp_list:
-    exp 
-    { 
+    exp
+    {
       //printf(" 1 Endereco de $1: %p - Endereco de $$: %p\n", &$1, &$$);
       arg_list* exp_list = malloc(sizeof(struct arg_list_item));
 
@@ -1175,8 +911,8 @@ exp_list:
       head->arg_list = exp_list;
       $$ = head;
 
-      
-      // printf("Antes das atribs a kbca em exp_list: exp, cif1->label: %s\n", $1->label); 
+
+      // printf("Antes das atribs a kbca em exp_list: exp, cif1->label: %s\n", $1->label);
       //printf(" 2 Endereco de $1: %p - Endereco de $$: %p\n", &$1, &$$);
       //$$->ast_node = $1; // Isso aqui de alguma maneira poe lixo em $1->label.
       //$$->arg_list = exp_list;
@@ -1184,8 +920,8 @@ exp_list:
       // printf("Em exp_list: exp, kbca->ast_node->label: %s\n", $$->ast_node->label);
       // printf("No final, exp_list->id: %s\n", exp_list->id);
     }
-|   exp ',' exp_list 
-    { 
+|   exp ',' exp_list
+    {
       arg_list* exp_list_item = malloc(sizeof(struct arg_list_item));
 
       if ($1->val != NULL)
@@ -1239,7 +975,7 @@ shift:
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
-      $$ = lexval_node($2); 
+      $$ = lexval_node($2);
       add_children($$, 2, lexval_node($1), lexval_node($3));
       $$->children[0]->data_type = lookup_result->data_type;
     }
@@ -1255,7 +991,7 @@ shift:
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
-      $$ = lexval_node($2); 
+      $$ = lexval_node($2);
       add_children($$, 2, lexval_node($1), lexval_node($3));
     }
 |   TK_IDENTIFICADOR TK_OC_SL '+' TK_LIT_INT
@@ -1270,7 +1006,7 @@ shift:
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
-      $$ = lexval_node($2); 
+      $$ = lexval_node($2);
       add_children($$, 2, lexval_node($1), lexval_node($4));
     }
 |   TK_IDENTIFICADOR TK_OC_SR '+' TK_LIT_INT
@@ -1285,7 +1021,7 @@ shift:
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
-      $$ = lexval_node($2); 
+      $$ = lexval_node($2);
       add_children($$, 2, lexval_node($1), lexval_node($4));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
@@ -1355,9 +1091,9 @@ shift:
 ;
 
 jmp_stmt:
-    TK_PR_RETURN exp 
-    {      
-      $$ = named_node("return"); add_children($$, 1, $2); 
+    TK_PR_RETURN exp
+    {
+      $$ = named_node("return"); add_children($$, 1, $2);
       $$->data_type = $2->data_type;
       //printf("Em jmp_stmt, $$->data_type: %d\n", $$->data_type);
       $$->is_return = 1;
@@ -1374,13 +1110,13 @@ control:
 ;
 
 if:
-    TK_PR_IF '(' exp ')' block 
-    {  
+    TK_PR_IF '(' exp ')' block
+    {
         $$ = named_node("if");
         add_children($$, 3, $3, $5, NULL);
     }
 |   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
-    {  
+    {
         $$ = named_node("if");
         add_children($$, 3, $3, $5, $7);
     }
@@ -1388,7 +1124,7 @@ if:
 
 for:
     TK_PR_FOR '(' attrib ':' exp ':' attrib ')' block
-    {  
+    {
         $$ = named_node("for");
         add_children($$, 4, $3, $5, $7, $9);
     }
@@ -1396,15 +1132,15 @@ for:
 
 while:
     TK_PR_WHILE '(' exp ')' TK_PR_DO block
-    {  
+    {
         $$ = named_node("while");
         add_children($$, 2, $3, $6);
     }
 ;
 
 exp:
-    TK_IDENTIFICADOR 
-    { 
+    TK_IDENTIFICADOR
+    {
       //printf(" 0 Endereco de $1: %p - Endereco de $$: %p\n", $1, $$);
       //printf("Antes de chamar st_lookup em exp: TK_IDENTIFICADOR, linha %d.\n", get_line_number());
       symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
@@ -1449,191 +1185,55 @@ exp:
     }
 |   num { $$ = $1; }
 |   bool { $$ = $1; }
-|   func_call 
-    { 
-      $$ = $1; 
+|   func_call
+    {
+      $$ = $1;
     }
 |   '(' exp ')' { $$ = $2; }
 |   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $$->data_type = $2->data_type;}
-|   exp '+' exp 
-    { 
+|   exp '+' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '-' exp 
-    { 
+|   exp '-' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '*' exp 
-    { 
+|   exp '*' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '/' exp 
-    { 
+|   exp '/' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '%' exp 
-    { 
+|   exp '%' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '^' exp 
-    { 
+|   exp '^' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '|' exp 
-    { 
+|   exp '|' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '&' exp 
-    { 
+|   exp '&' exp
+    {
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      $$->data_type = get_data_type($1, $3, get_line_number());
     }
-|   exp '<' exp 
-    { 
-      $$ = named_node("<"); add_children($$, 2, $1, $3); $$->data_type = BOOL; 
+|   exp '<' exp
+    {
+      $$ = named_node("<"); add_children($$, 2, $1, $3); $$->data_type = BOOL;
     }
 |   exp '>' exp { $$ = named_node(">"); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
 |   exp TK_OC_AND exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
@@ -1642,8 +1242,8 @@ exp:
 |   exp TK_OC_LE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
 |   exp TK_OC_NE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
 |   exp TK_OC_OR exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
-|   exp '?' exp ':' exp %prec TERNARY 
-    { 
+|   exp '?' exp ':' exp %prec TERNARY
+    {
         $$ = named_node("?:");
         add_children($$, 3, $1, $3, $5);
         if ($1->data_type != BOOL && $1->data_type != INT
@@ -1653,8 +1253,8 @@ exp:
 ;
 
 num:
-    TK_LIT_FLOAT 
-    { 
+    TK_LIT_FLOAT
+    {
       char float_to_str[7];
       gcvt($1->value.f, 4, float_to_str);
       // Check if literal already on table.
@@ -1669,11 +1269,11 @@ num:
         ht_insert(sb, scope);
         push(&scope_stack, scope);
       }
-      $$ = lexval_node($1); $$->data_type = FLOAT; 
+      $$ = lexval_node($1); $$->data_type = FLOAT;
     }
-|   TK_LIT_INT 
-    { 
-      int len = snprintf(NULL, 0, "%d", $1->value.i) + 1; 
+|   TK_LIT_INT
+    {
+      int len = snprintf(NULL, 0, "%d", $1->value.i) + 1;
       char* int_to_str = malloc(len);
       snprintf(int_to_str, len, "%d", $1->value.i);
       // Check if literal already on table.
@@ -1687,7 +1287,7 @@ num:
         ht_insert(sb, scope);
         push(&scope_stack, scope);
       }
-      
+
       $$ = lexval_node($1); $$->data_type = INT;
     }
 ;

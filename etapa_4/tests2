@@ -10,11 +10,11 @@ int main(){
   {int z;};
   int l;
   int u;
+  l = l + u;
   p = aux(u, l);
   input p;
   output 2;
   a << 10;
-  a = b[2];
   return 2;
 }
 
