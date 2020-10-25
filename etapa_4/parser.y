@@ -1492,7 +1492,10 @@ exp:
       }
       else if (lookup_result->symbol_type != VEC)
       {
-        syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
+        if (lookup_result->symbol_type == VAR)
+          syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
+        if (lookup_result->symbol_type == FUNC)
+          syntactic_error(ERR_FUNCTION, $1->value.s, get_line_number(), NULL);
       }
 
       if ($3->data_type == CHAR)

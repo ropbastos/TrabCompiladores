@@ -1,7 +1,8 @@
 // Saida esperada: ERR_VARIABLE - exit code: 20
 
-int a, b;
+int a;
+int b;
 
 int main(){
-  b = a[8];
+  b = 2 + a[1];
 }
