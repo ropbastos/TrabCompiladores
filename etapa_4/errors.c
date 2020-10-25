@@ -19,6 +19,7 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
             fprintf(stderr, "ERROR: function '%s' defined multiple times; first definition on line %d.\n", sb->label, sb->line);
             break;
         }
+        break;
       case ERR_WRONG_TYPE:
         fprintf(stderr, "ERROR: wrong type for expression being attributed to '%s' on line %d.\n", symbol_name, line);
         break;

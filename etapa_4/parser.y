@@ -173,7 +173,7 @@ global_decl:
       while(current != NULL)
       {
         // Check if declared already.
-        if (ht_lookup(current->id, global_scope) != NULL)
+        if (ht_lookup(current->id, global_scope) != NULL && ht_lookup(current->id, global_scope)->symbol_type != LIT)
         {
          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
         }
@@ -255,7 +255,7 @@ global_decl:
       while(current != NULL)
       {
         // Check if declared already.
-        if (ht_lookup(current->id, global_scope) != NULL)
+        if (ht_lookup(current->id, global_scope) != NULL && ht_lookup(current->id, global_scope)->symbol_type != LIT)
         {
          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
         }
@@ -652,13 +652,15 @@ local_decl:
       while(current != NULL)
       {
         // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL)
+        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
         {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
+          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
         // Check if initialized with different type object.
         if (current->ini_type != NOT_INITIALIZED && current->ini_type != $1)
+        {
           syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
+        }
 
         switch ($1)
         {
@@ -705,7 +707,7 @@ local_decl:
       while(current != NULL)
       {
         // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL)
+        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
         {
          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
@@ -758,7 +760,7 @@ local_decl:
       while(current != NULL)
       {
         // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL)
+        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
         {
          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
@@ -811,7 +813,7 @@ local_decl:
       while(current != NULL)
       {
         // Check if declared already.
-        if (ht_lookup(current->id, local_scope) != NULL)
+        if (ht_lookup(current->id, local_scope) != NULL && ht_lookup(current->id, local_scope)->symbol_type != LIT)
         {
          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
@@ -1061,6 +1063,11 @@ attrib:
       {
         syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
       }
+
+      // If dst is a string, check size compatibility.
+      if (dst_lookup->data_type == STR && dst_lookup->size != NOT_A_STRING 
+          && $3->size > dst_lookup->size)
+        syntactic_error(ERR_STRING_SIZE, $1->value.s, get_line_number(), NULL);
 
       node* vector = named_node("[]");
       add_children(vector, 2, lexval_node($1), $3);
