@@ -4,10 +4,13 @@ int aux(){}
 int main(){
 
   string m;
+  string p <= "bigggggggggg";
   
-  m = "batata";
+  m = p;
 
   m = "sml";
+
+  m = "notsml";
 
 
 }

@@ -1083,7 +1083,6 @@ attrib:
         dst_lookup->size = $6->size;
       }
 
-
       node* vector = named_node("[]");
       add_children(vector, 2, lexval_node($1), $3);
       $$ = named_node("="); add_children($$, 2, vector, $6); 
