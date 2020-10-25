@@ -10,7 +10,7 @@ ht_entry** get_scope(struct StackNode** scope_stack) {
   return global_scope;
 }
 
-ht_entry** add_to_global_scope(id_list* current, int type, int symbol_type, ht_entry** scope){
+ht_entry** add_to_scope(id_list* current, int type, int symbol_type, ht_entry** scope){
   int size;
   symbol_entry* sb = NULL;
 
@@ -58,19 +58,6 @@ ht_entry** add_to_global_scope(id_list* current, int type, int symbol_type, ht_e
   return scope;
 }
 
-id_list* get_global_id(lex_val* id, int vec_size){
-
-  id_list* global_ids = malloc(sizeof(struct id_list_item));
-
-  global_ids->id = id->value.s;
-  global_ids->line = id->line;
-  global_ids->vec_size = vec_size;
-  global_ids->next = NULL;
-
-  return global_ids;
-}
-
-
 symbol_entry* add_to_func_scope(lex_val* current, int type, struct StackNode** scope_stack, ht_entry** scope,  arg_list* args, lex_val* val) {
   int size;
   switch (type){
@@ -96,6 +83,26 @@ symbol_entry* add_to_func_scope(lex_val* current, int type, struct StackNode** s
   push(scope_stack, scope);
 
   return sb;
+}
+
+id_list* get_global_id(lex_val* id, int vec_size){
+
+  id_list* global_ids = malloc(sizeof(struct id_list_item));
+
+  global_ids->id = id->value.s;
+  global_ids->line = id->line;
+  global_ids->vec_size = vec_size;
+  global_ids->next = NULL;
+
+  return global_ids;
+}
+
+arg_list* get_args_list(lex_val* id, int type) {
+  arg_list* param_list = malloc(sizeof(struct arg_list_item));
+  param_list->id = id->value.s;
+  param_list->line = id->line;
+  param_list->type = type;
+  param_list->next = NULL;
 }
 
 int get_data_type(node* one, node* second, int line) {

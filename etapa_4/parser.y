@@ -161,13 +161,13 @@ global_decl:
     type global_list ';'
     {
       ht_entry** global_scope =  get_scope(&scope_stack);
-      global_scope = add_to_global_scope( $2, $1, VAR, global_scope);
+      global_scope = add_to_scope( $2, $1, VAR, global_scope);
       push(&scope_stack, global_scope);
     }
 |   TK_PR_STATIC type global_list ';'
     {
       ht_entry** global_scope =  get_scope(&scope_stack);
-      global_scope = add_to_global_scope( $3, $2, VAR, global_scope);
+      global_scope = add_to_scope( $3, $2, VAR, global_scope);
       push(&scope_stack, global_scope);
     }
 ;
@@ -262,12 +262,7 @@ params:
     }
 |   type TK_IDENTIFICADOR
     {
-      arg_list* param_list = malloc(sizeof(struct arg_list_item));
-      param_list->id = $2->value.s;
-      param_list->line = $2->line;
-      param_list->type = $1;
-      param_list->next = NULL;
-      $$ = param_list;
+      $$ = get_args_list($2, $1);
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
     {
@@ -276,12 +271,7 @@ params:
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR
     {
-      arg_list* param_list = malloc(sizeof(struct arg_list_item));
-      param_list->id = $3->value.s;
-      param_list->line = $3->line;
-      param_list->type = $2;
-      param_list->next = NULL;
-      $$ = param_list;
+      $$ = get_args_list($3, $2);
     }
 ;
 
@@ -347,59 +337,8 @@ local_decl:
         printf("ERROR local scope is NULL\n");
         printf("id on top of id_list: %s\n", $2->id_list->id);
       }
-
-      // Add locals to symbol table.
-      id_list* current = $2->id_list;
-      int size;
-      while(current != NULL)
-      {
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
-        }
-        else
-        {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, local_scope));
-        }
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      local_scope = add_to_scope($2->id_list, $1 , VAR, local_scope);
       push(&scope_stack, local_scope);
-
       $$ = $2->ast_node;
     }
 |   TK_PR_CONST type local_list
@@ -413,59 +352,8 @@ local_decl:
         printf("ERROR local scope is NULL\n");
         printf("id on top of id_list: %s\n", $3->id_list->id);
       }
-
-      // Add locals to symbol table.
-      id_list* current = $3->id_list;
-      int size;
-      while(current != NULL)
-      {
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
-        }
-        else
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, sb);
-        }
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      local_scope = add_to_scope($3->id_list, $2 , VAR, local_scope);
       push(&scope_stack, local_scope);
-
       $$ = $3->ast_node;
     }
 |   TK_PR_STATIC TK_PR_CONST type local_list
@@ -479,59 +367,8 @@ local_decl:
         printf("ERROR local scope is NULL\n");
         printf("id on top of id_list: %s\n", $4->id_list->id);
       }
-
-      // Add locals to symbol table.
-      id_list* current = $4->id_list;
-      int size;
-      while(current != NULL)
-      {
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($3)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
-        }
-        else
-        {
-          switch ($3)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $3, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, sb);
-        }
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      local_scope = add_to_scope($4->id_list, $3 , VAR, local_scope);
       push(&scope_stack, local_scope);
-
       $$ = $4->ast_node;
     }
 |   TK_PR_STATIC type local_list
@@ -545,59 +382,8 @@ local_decl:
         printf("ERROR local scope is NULL\n");
         printf("id on top of id_list: %s\n", $3->id_list->id);
       }
-
-      // Add locals to symbol table.
-      id_list* current = $3->id_list;
-      int size;
-      while(current != NULL)
-      {
-        if (current->vec_size == NOT_A_VECTOR)
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
-        }
-        else
-        {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
-        }
-
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, sb);
-        }
-        ht_insert(sb, local_scope);
-        current = current->next;
-      }
+      local_scope = add_to_scope($3->id_list, $2 , VAR, local_scope);
       push(&scope_stack, local_scope);
-
       $$ = $3->ast_node;
     }
 ;
@@ -605,56 +391,35 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR
     {
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->next = NULL;
-      $$->id_list = global_ids;
-
+      $$->id_list = get_global_id($1, NOT_A_VECTOR);
       $$->ast_node = NULL;
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
       add_id($3->id_list, $1, NOT_A_VECTOR);
       $$->id_list = $3->id_list;
-
       if ($3->ast_node != NULL ) { $$->ast_node = $3->ast_node; } else { $$->ast_node = NULL; };
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
     {
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->next = NULL;
-      $$->id_list = global_ids;
-
+      $$->id_list = get_global_id($1, NOT_A_VECTOR);
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), lexval_node($3));
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal
     {
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->next = NULL;
-      $$->id_list = global_ids;
-
+      $$->id_list = get_global_id($1, NOT_A_VECTOR);
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), $3);
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
     {
       add_id($5->id_list, $1, NOT_A_VECTOR);
       $$->id_list = $5->id_list;
-
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), lexval_node($3), $5->ast_node);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
     {
       add_id($5->id_list, $1, NOT_A_VECTOR);
       $$->id_list = $5->id_list;
-
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), $3, $5->ast_node);
     }
 ;
@@ -726,14 +491,12 @@ attrib:
       // See if dst is declared.
       if (dst_lookup == NULL)
       {
-        printf("Aqui22 \n");
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
       // See if exp is declared.
       if (src_lookup == NULL && $3->val != NULL)
       {
-        printf("Aqui \n");
         syntactic_error(ERR_UNDECLARED, $3->label, get_line_number(), NULL);
       }
 
