@@ -588,7 +588,7 @@ attrib:
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
       }
 
-      // See if exp is declared.
+      // See if src is declared.
       if (src_lookup == NULL && $3->val != NULL)
       {
         syntactic_error(ERR_UNDECLARED, $3->label, get_line_number(), NULL);
@@ -635,7 +635,7 @@ attrib:
       }
 
       // See if src is declared.
-      if (src_lookup == NULL)
+      if (src_lookup == NULL && $3->val != NULL)
       {
         syntactic_error(ERR_UNDECLARED, $6->label, get_line_number(), NULL);
       }
@@ -669,6 +669,7 @@ attrib:
 
       node* vector = named_node("[]");
       add_children(vector, 2, lexval_node($1), $3);
+      vector->children[0]->data_type = dst_lookup->data_type;
       $$ = named_node("="); add_children($$, 2, vector, $6); 
     }
 ;
