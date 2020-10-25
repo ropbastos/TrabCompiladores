@@ -67,6 +67,12 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
       case ERR_STRING_TO_X:
         fprintf(stderr, "ERROR: string '%s' used as non-string type on line %d.\n", symbol_name, line);
         break;
+      case ERR_WRONG_TYPE:
+        fprintf(stderr, "ERROR: wrong type for expression being attributed to '%s' on line %d.\n", symbol_name, line);
+        break;
+      case ERR_STRING_SIZE:
+        fprintf(stderr, "ERROR: string '%s' is too small on line %d.\n", symbol_name, line);
+        break;
     }
   }
   else

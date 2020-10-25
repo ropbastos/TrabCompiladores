@@ -2,19 +2,8 @@ int a, b[2];
 int aux(int a, int k){}
 
 int main(){
-  int p;
-  string str;
-  float f;
-  char c;
-  {int z, t;};
-  {int z;};
-  int l;
-  int u;
-  p = aux(u, l);
-  input p;
-  output 2;
-  a << 10;
-  a = b[2];
-  return 2;
+
+  int l, t <= a;
+
 }
 

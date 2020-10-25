@@ -8,12 +8,14 @@
 #define BOOL BOOL_LT
 
 #define UDEF_TYPE 78
+#define UDEF_SIZE -79
 
 // Node struct
 typedef struct node {
     char* label;
     int is_return, return_line;
     int data_type;
+    int size;
     lex_val* val;
     int child_num;
     struct node** children; 

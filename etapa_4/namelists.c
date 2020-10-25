@@ -4,7 +4,7 @@
 
 // ID lists.
 
-void add_id(id_list* list, lex_val* id, int vec_size)
+void add_id(id_list* list, lex_val* id, int vec_size, int str_size, int ini_type)
 {
   if (list == NULL) return;
 
@@ -19,6 +19,8 @@ void add_id(id_list* list, lex_val* id, int vec_size)
   current->next->id = id->value.s;
   current->next->line = id->line;
   current->next->vec_size = vec_size;
+  current->next->str_size = str_size;
+  current->next->ini_type = ini_type;
   current->next->next = NULL;
 }
 

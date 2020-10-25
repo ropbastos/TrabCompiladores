@@ -177,6 +177,9 @@ global_decl:
         {
          syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
         }
+        // Check if initialized with different type object.
+        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $1)
+          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
 
         if (current->vec_size == NOT_A_VECTOR)
         {
@@ -192,12 +195,15 @@ global_decl:
             case FLOAT:
               size = 8;
               break;
+            case STR:
+              size = current->str_size;
+              break;
             default:
               size = -1;
           }
           sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
         }
-        else
+        else // Is a vector.
         {
           switch ($1)
           {
@@ -210,6 +216,11 @@ global_decl:
               break;
             case FLOAT:
               size = 8 * current->vec_size;
+              break;
+            case STR:
+              if (current->str_size != NOT_INITIALIZED)
+                size = current->str_size * current->vec_size;
+              else size = NOT_INITIALIZED;
               break;
             default:
               size = -1;
@@ -240,8 +251,18 @@ global_decl:
       // Add globals to symbol table.
       id_list* current = $3;
       int size;
+      symbol_entry* sb = NULL;
       while(current != NULL)
       {
+        // Check if declared already.
+        if (ht_lookup(current->id, global_scope) != NULL)
+        {
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, global_scope));
+        }
+        // Check if initialized with different type object.
+        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $2)
+          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
+
         if (current->vec_size == NOT_A_VECTOR)
         {
           switch ($2)
@@ -256,11 +277,15 @@ global_decl:
             case FLOAT:
               size = 8;
               break;
+            case STR:
+              size = current->str_size;
+              break;
             default:
               size = -1;
           }
+          sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
         }
-        else
+        else // Is a vector.
         {
           switch ($2)
           {
@@ -274,16 +299,17 @@ global_decl:
             case FLOAT:
               size = 8 * current->vec_size;
               break;
+            case STR:
+              if (current->str_size != NOT_INITIALIZED)
+                size = current->str_size * current->vec_size;
+              else size = NOT_INITIALIZED;
+              break;
             default:
               size = -1;
           }
+          sb = new_symbol_entry(current->id, current->line, VEC, $2, size, NULL, NULL);
         }
 
-        symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb->label, global_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, global_scope));
-        }
         ht_insert(sb, global_scope);
         current = current->next;
       }
@@ -302,6 +328,8 @@ global_list:
       global_ids->id = $1->value.s;
       global_ids->line = $1->line;
       global_ids->vec_size = NOT_A_VECTOR;
+      global_ids->str_size = NOT_A_STRING;
+      global_ids->ini_type = NOT_INITIALIZED;
       global_ids->next = NULL;
       $$ = global_ids;
     }
@@ -311,6 +339,8 @@ global_list:
       global_ids->id = $1->value.s;
       global_ids->line = $1->line;
       global_ids->vec_size = $3->value.i;
+      global_ids->str_size = NOT_A_STRING;
+      global_ids->ini_type = NOT_INITIALIZED;
       global_ids->next = NULL;
       $$ = global_ids;
     }
@@ -320,22 +350,24 @@ global_list:
       global_ids->id = $1->value.s;
       global_ids->line = $1->line;
       global_ids->vec_size = $4->value.i;
+      global_ids->str_size = NOT_A_STRING;
+      global_ids->ini_type = NOT_INITIALIZED;
       global_ids->next = NULL;
       $$ = global_ids;
     }
 |   TK_IDENTIFICADOR ',' global_list 
     { 
-      add_id($3, $1, NOT_A_VECTOR); 
+      add_id($3, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
       $$ = $3; 
     }
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list 
     { 
-      add_id($6, $1, $3->value.i); 
+      add_id($6, $1, $3->value.i, NOT_A_STRING, NOT_INITIALIZED); 
       $$ = $6; 
     }
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list 
     { 
-      add_id($7, $1, $4->value.i); 
+      add_id($7, $1, $4->value.i, NOT_A_STRING, NOT_INITIALIZED); 
       $$ = $7; 
     }
 ;
@@ -619,57 +651,44 @@ local_decl:
       int size;
       while(current != NULL)
       {
-        if (current->vec_size == NOT_A_VECTOR)
+        // Check if declared already.
+        if (ht_lookup(current->id, local_scope) != NULL)
         {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
-        else
+        // Check if initialized with different type object.
+        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $1)
+          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
+
+        switch ($1)
         {
-          switch ($1)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
+          case CHAR:
+          case BOOL:
+            size = 1;
+            break;
+          case INT:
+            size = 4;
+            break;
+          case FLOAT:
+            size = 8;
+            break;
+          case STR:
+            size = current->str_size;
+            break;
+          default:
+            size = -1;
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $1, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, local_scope));
-        }
         ht_insert(sb, local_scope);
         current = current->next;
       }
       push(&scope_stack, local_scope);
 
-      $$ = $2->ast_node; 
+      $$ = $2->ast_node;
     }
 |   TK_PR_CONST type local_list 
-    {
+    { 
       // Get scope
       ht_entry** local_scope;
       local_scope = pop(&scope_stack);
@@ -685,48 +704,35 @@ local_decl:
       int size;
       while(current != NULL)
       {
-        if (current->vec_size == NOT_A_VECTOR)
+        // Check if declared already.
+        if (ht_lookup(current->id, local_scope) != NULL)
         {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
-        else
+        // Check if initialized with different type object.
+        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $2)
+          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
+
+        switch ($2)
         {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
+          case CHAR:
+          case BOOL:
+            size = 1;
+            break;
+          case INT:
+            size = 4;
+            break;
+          case FLOAT:
+            size = 8;
+            break;
+          case STR:
+            size = current->str_size;
+            break;
+          default:
+            size = -1;
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, sb);
-        }
         ht_insert(sb, local_scope);
         current = current->next;
       }
@@ -751,48 +757,35 @@ local_decl:
       int size;
       while(current != NULL)
       {
-        if (current->vec_size == NOT_A_VECTOR)
+        // Check if declared already.
+        if (ht_lookup(current->id, local_scope) != NULL)
         {
-          switch ($3)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
-        else
+        // Check if initialized with different type object.
+        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $3)
+          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
+
+        switch ($3)
         {
-          switch ($3)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
+          case CHAR:
+          case BOOL:
+            size = 1;
+            break;
+          case INT:
+            size = 4;
+            break;
+          case FLOAT:
+            size = 8;
+            break;
+          case STR:
+            size = current->str_size;
+            break;
+          default:
+            size = -1;
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $3, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, sb);
-        }
         ht_insert(sb, local_scope);
         current = current->next;
       }
@@ -801,7 +794,7 @@ local_decl:
       $$ = $4->ast_node; 
     }
 |   TK_PR_STATIC type local_list 
-    {
+    { 
       // Get scope
       ht_entry** local_scope;
       local_scope = pop(&scope_stack);
@@ -817,48 +810,35 @@ local_decl:
       int size;
       while(current != NULL)
       {
-        if (current->vec_size == NOT_A_VECTOR)
+        // Check if declared already.
+        if (ht_lookup(current->id, local_scope) != NULL)
         {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1;
-              break;
-            case INT:
-              size = 4;
-              break;
-            case FLOAT:
-              size = 8;
-              break;
-            default:
-              size = -1;
-          }
+         syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(current->id, local_scope));
         }
-        else
+        // Check if initialized with different type object.
+        if (current->ini_type != NOT_INITIALIZED && current->ini_type != $2)
+          syntactic_error(ERR_WRONG_TYPE, current->id, current->line, NULL);
+
+        switch ($2)
         {
-          switch ($2)
-          {
-            case CHAR:
-            case BOOL:
-              size = 1 * current->vec_size;
-              break;
-            case INT:
-              size = 4 * current->vec_size;
-              break;
-            case FLOAT:
-              size = 8 * current->vec_size;
-              break;
-            default:
-              size = -1;
-          }
+          case CHAR:
+          case BOOL:
+            size = 1;
+            break;
+          case INT:
+            size = 4;
+            break;
+          case FLOAT:
+            size = 8;
+            break;
+          case STR:
+            size = current->str_size;
+            break;
+          default:
+            size = -1;
         }
 
         symbol_entry* sb = new_symbol_entry(current->id, current->line, VAR, $2, size, NULL, NULL);
-        if (ht_lookup(sb->label, local_scope) != NULL)
-        {
-         syntactic_error(ERR_DECLARED, NULL, -1, sb);
-        }
         ht_insert(sb, local_scope);
         current = current->next;
       }
@@ -871,57 +851,92 @@ local_decl:
 local_list:
     TK_IDENTIFICADOR
     {
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->next = NULL;
-      $$->id_list = global_ids;
+      id_list* local_ids = malloc(sizeof(struct id_list_item));
+      local_ids->id = $1->value.s;
+      local_ids->line = $1->line;
+      local_ids->vec_size = NOT_A_VECTOR;
+      local_ids->str_size = NOT_A_STRING;
+      local_ids->ini_type = NOT_INITIALIZED;
+      local_ids->next = NULL;
+      $$->id_list = local_ids;
 
       $$->ast_node = NULL;
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
-      add_id($3->id_list, $1, NOT_A_VECTOR); 
+      add_id($3->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
       $$->id_list = $3->id_list; 
 
       if ($3->ast_node != NULL ) { $$->ast_node = $3->ast_node; } else { $$->ast_node = NULL; };
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR
     {
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->next = NULL;
-      $$->id_list = global_ids;
+      symbol_entry* lookup_res = st_lookup($3->value.s, scope_stack);
+      if (lookup_res == NULL)
+        syntactic_error(ERR_UNDECLARED, $3->value.s, get_line_number(), NULL);
+      if (lookup_res->symbol_type == VEC)
+        syntactic_error(ERR_VECTOR, $3->value.s, get_line_number(), NULL);
+
+      id_list* local_ids = malloc(sizeof(struct id_list_item));
+      local_ids->id = $1->value.s;
+      local_ids->line = $1->line;
+      local_ids->vec_size = NOT_A_VECTOR;
+      local_ids->ini_type = lookup_res->data_type;
+      if (lookup_res->data_type == STR) local_ids->str_size = lookup_res->size;
+      else local_ids->str_size = NOT_A_STRING;
+      local_ids->next = NULL;
+      $$->id_list = local_ids;
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), lexval_node($3));
+      $$->ast_node->children[0]->data_type = lookup_res->data_type;
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal
     {
-      id_list* global_ids = malloc(sizeof(struct id_list_item));
-      global_ids->id = $1->value.s;
-      global_ids->line = $1->line;
-      global_ids->vec_size = NOT_A_VECTOR;
-      global_ids->next = NULL;
-      $$->id_list = global_ids;
+      id_list* local_ids = malloc(sizeof(struct id_list_item));
+      local_ids->id = $1->value.s;
+      local_ids->line = $1->line;
+      local_ids->vec_size = NOT_A_VECTOR;
+      local_ids->ini_type = $3->data_type;
+      if ($3->data_type == STR)
+      {
+        local_ids->str_size = strlen($3->label);
+      }
+      else local_ids->str_size = NOT_A_STRING;
+      local_ids->next = NULL;
+      $$->id_list = local_ids;
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), $3);
+      $$->ast_node->children[0]->data_type = $3->data_type;
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
     {
-      add_id($5->id_list, $1, NOT_A_VECTOR); 
+      symbol_entry* lookup_res = st_lookup($3->value.s, scope_stack);
+      if (lookup_res == NULL)
+        syntactic_error(ERR_UNDECLARED, $3->value.s, get_line_number(), NULL);
+
+      if (lookup_res->data_type != STR)
+        add_id($5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, lookup_res->data_type); 
+      else
+        add_id($5->id_list, $1, NOT_A_VECTOR, lookup_res->size, lookup_res->data_type);
+
       $$->id_list = $5->id_list; 
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), lexval_node($3), $5->ast_node);
+      $$->ast_node->children[0]->data_type = lookup_res->data_type;
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
     {
-      add_id($5->id_list, $1, NOT_A_VECTOR); 
+      if ($3->data_type == STR)
+      {
+        add_id($5->id_list, $1, NOT_A_VECTOR, strlen($3->label), $3->data_type); 
+      }
+      else
+        add_id($5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, $3->data_type);
+
       $$->id_list = $5->id_list; 
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), $3, $5->ast_node);
+      $$->ast_node->children[0]->data_type = $3->data_type;
     }
 ;
 
@@ -948,7 +963,7 @@ literal:
     { 
       $$ = lexval_node($1); 
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, FLOAT,
-                                              1, NULL, $1);
+                                              8, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
@@ -957,7 +972,7 @@ literal:
     { 
       $$ = lexval_node($1); 
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, INT,
-                                              1, NULL, $1);
+                                              4, NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
@@ -966,7 +981,7 @@ literal:
     { 
       $$ = lexval_node($1); 
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, STR,
-                                              1, NULL, $1);
+                                              strlen($$->label), NULL, $1);
       ht_entry** scope = pop(&scope_stack);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
@@ -985,9 +1000,7 @@ literal:
 attrib:
     TK_IDENTIFICADOR '=' exp 
     { 
-      //printf("Antes do primeiro st_lookup em attrib.\n");
       symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
-      //printf("Depois do primeiro st_lookup em attrib.\n");
       symbol_entry* src_lookup = st_lookup($3->label, scope_stack);
       // See if dst is declared.
       if (dst_lookup == NULL)
@@ -1008,10 +1021,15 @@ attrib:
       }
  
       // See if dst is a variable.
-      else if (dst_lookup->symbol_type != VAR)
+      if (dst_lookup->symbol_type != VAR)
       {
         syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
       }
+
+      // If dst is a string, check size compatibility.
+      if (dst_lookup->data_type == STR && dst_lookup->size != NOT_A_STRING 
+          && $3->size > dst_lookup->size)
+        syntactic_error(ERR_STRING_SIZE, $1->value.s, get_line_number(), NULL);
 
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
       $$->children[0]->data_type = dst_lookup->data_type;
@@ -1421,6 +1439,7 @@ exp:
       }
 
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
+      $$->size = lookup_result->size;
       //printf("Em exp: TK_ID, $$->label: %s\n", $$->label);
     }
 |   TK_IDENTIFICADOR '[' exp ']'
@@ -1468,6 +1487,11 @@ exp:
         || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
       if ($1->data_type == BOOL && $3->data_type == FLOAT
         || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
+      if ($1->data_type == CHAR && $3->data_type == CHAR) $$->data_type = CHAR;
+      if ($1->data_type == STR && $3->data_type == STR)
+      {
+        $$->data_type = STR; $$->size = $1->size + $3->size;
+      }
       if ($1->data_type == CHAR && $3->data_type != CHAR)
         syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
       if ($1->data_type != CHAR && $3->data_type == CHAR)

@@ -16,10 +16,11 @@ node* lexval_node(lex_val* val) {
     // Write label.
     nodeptr->label = get_label(val);
 
-    // Write type.
+    // Write type and size related info.
     nodeptr->data_type = val->lit_type;
     nodeptr->is_return = 0;
     nodeptr->return_line = -1;
+    nodeptr->size = UDEF_SIZE;
 
     // Write value.
     nodeptr->val = val;
@@ -39,10 +40,11 @@ node* named_node(char* name) {
     // Write label.
     nodeptr->label = strdup(name);
 
-    // Write type.
+    // Write type and size related info.
     nodeptr->data_type = UDEF_TYPE;
     nodeptr->is_return = 0;
     nodeptr->return_line = -1;
+    nodeptr->size = UDEF_SIZE;
 
     // Write value.
     nodeptr->val = NULL;
@@ -175,7 +177,7 @@ void print_csv_tree(node* tree) {
 
 void print_tree_labels(node* tree) {
 
-    printf("%p [label=\"%s\" type=\"%d\"];\n", tree, tree->label, tree->data_type);
+    printf("%p [label=\"%s\"];\n", tree, tree->label);
     if (tree->child_num) {
         for (int i = 0; i < tree->child_num; i++) {
             if ( tree->children[i] != NULL ) {
