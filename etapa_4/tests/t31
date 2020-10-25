@@ -1,0 +1,7 @@
+// Saida esperada: ERR_WRONG_TYPE - exit code: 30
+
+int main(){
+  int a;
+  float b;
+  b = a;
+}

@@ -1464,8 +1464,6 @@ while:
 exp:
     TK_IDENTIFICADOR 
     { 
-      //printf(" 0 Endereco de $1: %p - Endereco de $$: %p\n", $1, $$);
-      //printf("Antes de chamar st_lookup em exp: TK_IDENTIFICADOR, linha %d.\n", get_line_number());
       symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
       if(lookup_result == NULL)
       {
@@ -1481,7 +1479,6 @@ exp:
 
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
       $$->size = lookup_result->size;
-      //printf("Em exp: TK_ID, $$->label: %s\n", $$->label);
     }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
@@ -1762,7 +1759,6 @@ lit_exp:
   {
     $$ = lexval_node($1); $$->data_type = CHAR;
     symbol_entry* sb = st_lookup($$->label, scope_stack);
-    printf("Criou sb\n");
     if (sb == NULL)
     {
       sb = new_symbol_entry($$->label, get_line_number(), LIT, CHAR, 1, NULL, $1);
