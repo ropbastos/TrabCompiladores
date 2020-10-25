@@ -33,13 +33,13 @@ void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* 
         fprintf(stderr, "ERROR: undeclared symbol '%s' used on line %d.\n", symbol_name, line);
         break;
       case ERR_VARIABLE:
-        fprintf(stderr, "ERROR: variable '%s' used as vector on line %d.\n", symbol_name, line);
+        fprintf(stderr, "ERROR: variable '%s' used as vector/function on line %d.\n", symbol_name, line);
         break;
       case ERR_VECTOR:
-        fprintf(stderr, "ERROR: vector '%s' used as variable on line %d.\n", symbol_name, line);
+        fprintf(stderr, "ERROR: vector '%s' used as variable/function on line %d.\n", symbol_name, line);
         break;
       case ERR_FUNCTION:
-        fprintf(stderr, "ERROR: function '%s' used as variable on line %d.\n", symbol_name, line);
+        fprintf(stderr, "ERROR: function '%s' used as variable/vector on line %d.\n", symbol_name, line);
         break;
       case ERR_MISSING_ARGS:
         fprintf(stderr, "ERROR: function '%s' is missing args on line %d.\n", symbol_name, line);

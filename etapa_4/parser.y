@@ -1138,12 +1138,20 @@ func_call:
     TK_IDENTIFICADOR '(' exp_list ')' 
     { 
       // Check if function is declared.
-      //printf("Antes do st_lookup em func_call.\n");
       symbol_entry* lookup_res = st_lookup($1->value.s, scope_stack);
 
       if (lookup_res == NULL)
       {
         syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
+      }
+
+      // Check if symbol is a function.
+      if (lookup_res->symbol_type != FUNC)
+      {
+        if (lookup_res->symbol_type == VAR)
+          syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
+        if (lookup_res->symbol_type == VEC)
+          syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
       }
 
       // Check arguments.

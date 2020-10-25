@@ -1,0 +1,7 @@
+// Saida esperada: ERR_DECLARED - exit code: 11
+
+bool a;
+
+int main(){
+  int a;
+}
