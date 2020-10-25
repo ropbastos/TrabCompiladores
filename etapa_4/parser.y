@@ -1033,6 +1033,13 @@ attrib:
           && $3->size > dst_lookup->size)
         syntactic_error(ERR_STRING_SIZE, $1->value.s, get_line_number(), NULL);
 
+      // If dst is a string, but was not initialized or attributed to before and thus has no size
+      // set it's size according to hte first attribution.
+      if (dst_lookup->data_type == STR && dst_lookup->size == NOT_A_STRING)
+      {
+        dst_lookup->size = $3->size;
+      }
+
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
       $$->children[0]->data_type = dst_lookup->data_type;
     }
@@ -1053,7 +1060,7 @@ attrib:
       }
       
       // Check types.
-      if (dst_lookup->data_type != $3->data_type)
+      if (dst_lookup->data_type != $6->data_type)
       {
         syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
       }
@@ -1066,8 +1073,16 @@ attrib:
 
       // If dst is a string, check size compatibility.
       if (dst_lookup->data_type == STR && dst_lookup->size != NOT_A_STRING 
-          && $3->size > dst_lookup->size)
+          && $6->size > dst_lookup->size)
         syntactic_error(ERR_STRING_SIZE, $1->value.s, get_line_number(), NULL);
+
+      // If dst is a string, but was not initialized or attributed to before and thus has no size
+      // set it's size according to hte first attribution.
+      if (dst_lookup->data_type == STR && dst_lookup->size == NOT_A_STRING)
+      {
+        dst_lookup->size = $6->size;
+      }
+
 
       node* vector = named_node("[]");
       add_children(vector, 2, lexval_node($1), $3);

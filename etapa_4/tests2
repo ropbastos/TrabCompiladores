@@ -3,9 +3,12 @@ int aux(){}
 
 int main(){
 
-  string m <= "stren";
-
+  string m;
+  
   m = "batata";
+
+  m = "sml";
+
 
 }
 
