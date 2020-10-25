@@ -12,9 +12,9 @@
 #define ERR_MISSING_ARGS     40 ////
 #define ERR_EXCESS_ARGS      41 ////
 #define ERR_WRONG_TYPE_ARGS  42 ////
-#define ERR_WRONG_PAR_INPUT  50 //
-#define ERR_WRONG_PAR_OUTPUT 51 //
-#define ERR_WRONG_PAR_RETURN 52 //
-#define ERR_WRONG_PAR_SHIFT  53 //
+#define ERR_WRONG_PAR_INPUT  50 ////
+#define ERR_WRONG_PAR_OUTPUT 51 ////
+#define ERR_WRONG_PAR_RETURN 52 ////
+#define ERR_WRONG_PAR_SHIFT  53 ////
 
 void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* sb);

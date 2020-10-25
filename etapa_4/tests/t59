@@ -1,6 +1,6 @@
 // Saida esperada: ERR_WRONG_PAR_OUTPUT - exit code: 51
 
 int main(){
-  string a
+  string a;
   output a;
 }
