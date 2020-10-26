@@ -1053,15 +1053,52 @@ exp:
     }
 |   exp '<' exp 
     { 
-      $$ = named_node("<"); add_children($$, 2, $1, $3); $$->data_type = BOOL; 
+      $$ = named_node("<"); add_children($$, 2, $1, $3); 
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL;
     }
-|   exp '>' exp { $$ = named_node(">"); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
-|   exp TK_OC_AND exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
-|   exp TK_OC_EQ exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
-|   exp TK_OC_GE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
-|   exp TK_OC_LE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
-|   exp TK_OC_NE exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
-|   exp TK_OC_OR exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
+|   exp '>' exp 
+    { 
+      $$ = named_node(">"); add_children($$, 2, $1, $3);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL; 
+    }
+|   exp TK_OC_AND exp 
+    { 
+      $$ = lexval_node($2); add_children($$, 2, $1, $3);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL;
+    }
+|   exp TK_OC_EQ exp 
+    { 
+      $$ = lexval_node($2); add_children($$, 2, $1, $3);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL;
+    }
+|   exp TK_OC_GE exp 
+    { 
+      $$ = lexval_node($2); add_children($$, 2, $1, $3);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL;
+    }
+|   exp TK_OC_LE exp 
+    { 
+      $$ = lexval_node($2); add_children($$, 2, $1, $3);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL;
+    }
+|   exp TK_OC_NE exp 
+    { 
+      $$ = lexval_node($2); add_children($$, 2, $1, $3);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL;
+    }
+|   exp TK_OC_OR exp 
+    { 
+      $$ = lexval_node($2); add_children($$, 2, $1, $3);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      $$->data_type = BOOL;
+    }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
       $$ = named_node("?:");
