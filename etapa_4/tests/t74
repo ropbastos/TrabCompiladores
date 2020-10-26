@@ -1,0 +1,5 @@
+// Saida experada: Nenhum erro - exit code: 0
+
+int main(){
+  return (2 + -1 ^ &7);
+}
