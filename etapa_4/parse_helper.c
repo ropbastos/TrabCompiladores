@@ -1,4 +1,4 @@
-#include "semantics.h"
+#include "parse_helper.h"
 
 
 void add_variables_to_scope(int type, id_list* ids, ht_entry** scope)

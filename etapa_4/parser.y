@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "semantics.h"
+#include "parse_helper.h"
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
