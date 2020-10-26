@@ -785,127 +785,66 @@ exp_list:
 shift:
     TK_IDENTIFICADOR TK_OC_SL TK_LIT_INT
     {
-      if ($3->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $3, scope_stack, get_line_number());
 
       $$ = lexval_node($2); 
       add_children($$, 2, lexval_node($1), lexval_node($3));
-      $$->children[0]->data_type = lookup_result->data_type;
+      $$->children[0]->data_type = type;
     }
 |   TK_IDENTIFICADOR TK_OC_SR TK_LIT_INT
     {
-      if ($3->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $3, scope_stack, get_line_number());
 
       $$ = lexval_node($2); 
       add_children($$, 2, lexval_node($1), lexval_node($3));
+      $$->children[0]->data_type = type;
     }
 |   TK_IDENTIFICADOR TK_OC_SL '+' TK_LIT_INT
     {
-      if ($4->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $4, scope_stack, get_line_number());
 
       $$ = lexval_node($2); 
       add_children($$, 2, lexval_node($1), lexval_node($4));
+      $$->children[0]->data_type = type;
     }
 |   TK_IDENTIFICADOR TK_OC_SR '+' TK_LIT_INT
     {
-      if ($4->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $4, scope_stack, get_line_number());
 
       $$ = lexval_node($2); 
       add_children($$, 2, lexval_node($1), lexval_node($4));
+      $$->children[0]->data_type = type;
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL TK_LIT_INT
     {
-      if ($6->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $6, scope_stack, get_line_number());
 
       node* vector = named_node("[]");
-      add_children(vector, 2, lexval_node($1), $3);
+      add_children(vector, 2, lexval_node($1), $3); vector->children[0]->data_type = type;
       $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR TK_LIT_INT
     {
-      if ($6->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $6, scope_stack, get_line_number());
 
       node* vector = named_node("[]");
-      add_children(vector, 2, lexval_node($1), $3);
+      add_children(vector, 2, lexval_node($1), $3); vector->children[0]->data_type = type;
       $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($6));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SL '+' TK_LIT_INT
     {
-      if ($7->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $7, scope_stack, get_line_number());
 
       node* vector = named_node("[]");
-      add_children(vector, 2, lexval_node($1), $3);
+      add_children(vector, 2, lexval_node($1), $3); vector->children[0]->data_type = type;
       $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
     }
 |   TK_IDENTIFICADOR '[' exp ']' TK_OC_SR '+' TK_LIT_INT
     {
-      if ($7->value.i > 16)
-      {
-        syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, get_line_number(), NULL);
-      }
-      symbol_entry* lookup_result = st_lookup($1->value.s, scope_stack);
-      if(lookup_result == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
+      int type = shift_val_check($1, $7, scope_stack, get_line_number());
 
       node* vector = named_node("[]");
-      add_children(vector, 2, lexval_node($1), $3);
+      add_children(vector, 2, lexval_node($1), $3); vector->children[0]->data_type = type;
       $$ = lexval_node($5); add_children($$, 2, vector, lexval_node($7));
     }
 ;

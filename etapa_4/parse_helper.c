@@ -179,7 +179,6 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
   }
 }
 
-
 void binary_exp_type_and_error_check(node* binary_operator, node* left_exp, node* right_exp, int line)
 {
   if (left_exp->data_type == INT && right_exp->data_type == INT) binary_operator->data_type = INT;
@@ -211,3 +210,19 @@ void binary_exp_type_and_error_check(node* binary_operator, node* left_exp, node
       syntactic_error(ERR_STRING_TO_X, right_exp->label, line, NULL);
     }     
 }
+
+int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line)
+{
+  if (shift_amount->value.i > 16)
+  {
+    syntactic_error(ERR_WRONG_PAR_SHIFT, NULL, line, NULL);
+  }
+  symbol_entry* lookup_result = st_lookup(id->value.s, scope_stack);
+  if(lookup_result == NULL)
+  {
+    syntactic_error(ERR_UNDECLARED, id->value.s, line, NULL);
+  }
+
+  return lookup_result->data_type;
+}
+

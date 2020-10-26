@@ -17,4 +17,6 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
 
 void binary_exp_type_and_error_check(node* binary_operator, node* left_exp, node* right_exp, int line);
 
+int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
+
 #endif
