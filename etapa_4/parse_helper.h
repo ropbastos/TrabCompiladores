@@ -13,5 +13,7 @@ void add_functions_to_scope(int type, lex_val* id, arg_list* params, ht_entry** 
 
 arg_list* new_arg_list(int type, lex_val* id);
 
+void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, stack* scope_stack, int line);
+
 
 #endif

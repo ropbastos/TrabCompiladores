@@ -52,8 +52,6 @@ void check_return_type(node* tree);
 // DEBUG
 void print_children(node* parent);
 
-int traverse(node* tree);
-
 node* return_first_child(node* parent);
 
 #endif

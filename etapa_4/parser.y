@@ -581,45 +581,7 @@ attrib:
     TK_IDENTIFICADOR '=' exp 
     { 
       symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
-      symbol_entry* src_lookup = st_lookup($3->label, scope_stack);
-      // See if dst is declared.
-      if (dst_lookup == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
-
-      // See if src is declared.
-      if (src_lookup == NULL && $3->val != NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $3->label, get_line_number(), NULL);
-      }
-      
-      // Check types.
-      if (dst_lookup->data_type != $3->data_type)
-      {
-        syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
-      }
- 
-      // See if dst is a variable.
-      if (dst_lookup->symbol_type != VAR)
-      {
-        if (dst_lookup->symbol_type == VEC)
-          syntactic_error(ERR_VECTOR, $1->value.s, get_line_number(), NULL);
-        if (dst_lookup->symbol_type == FUNC)
-          syntactic_error(ERR_FUNCTION, $1->value.s, get_line_number(), NULL);
-      }
-
-      // If dst is a string, check size compatibility.
-      if (dst_lookup->data_type == STR && dst_lookup->size != NOT_A_STRING 
-          && $3->size > dst_lookup->size)
-        syntactic_error(ERR_STRING_SIZE, $1->value.s, get_line_number(), NULL);
-
-      // If dst is a string, but was not initialized or attributed to before and thus has no size
-      // set it's size according to hte first attribution.
-      if (dst_lookup->data_type == STR && dst_lookup->size == NOT_A_STRING)
-      {
-        dst_lookup->size = $3->size;
-      }
+      generic_attrib_errors_check($1, $3, 0, scope_stack, get_line_number());
 
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
       $$->children[0]->data_type = dst_lookup->data_type;
@@ -627,45 +589,8 @@ attrib:
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
       symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
-      symbol_entry* src_lookup = st_lookup($6->label, scope_stack);
-      // See if dst is declared.
-      if (dst_lookup == NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $1->value.s, get_line_number(), NULL);
-      }
-
-      // See if src is declared.
-      if (src_lookup == NULL && $3->val != NULL)
-      {
-        syntactic_error(ERR_UNDECLARED, $6->label, get_line_number(), NULL);
-      }
       
-      // Check types.
-      if (dst_lookup->data_type != $6->data_type)
-      {
-        syntactic_error(ERR_WRONG_TYPE, $1->value.s, get_line_number(), dst_lookup);
-      }
- 
-      // See if dst is a vector.
-      else if (dst_lookup->symbol_type != VEC)
-      {
-        if (dst_lookup->symbol_type == VAR)
-          syntactic_error(ERR_VARIABLE, $1->value.s, get_line_number(), NULL);
-        if (dst_lookup->symbol_type == FUNC)
-          syntactic_error(ERR_FUNCTION, $1->value.s, get_line_number(), NULL);
-      }
-
-      // If dst is a string, check size compatibility.
-      if (dst_lookup->data_type == STR && dst_lookup->size != NOT_A_STRING 
-          && $6->size > dst_lookup->size)
-        syntactic_error(ERR_STRING_SIZE, $1->value.s, get_line_number(), NULL);
-
-      // If dst is a string, but was not initialized or attributed to before and thus has no size
-      // set it's size according to hte first attribution.
-      if (dst_lookup->data_type == STR && dst_lookup->size == NOT_A_STRING)
-      {
-        dst_lookup->size = $6->size;
-      }
+      generic_attrib_errors_check($1, $6, 1, scope_stack, get_line_number());
 
       node* vector = named_node("[]");
       add_children(vector, 2, lexval_node($1), $3);
