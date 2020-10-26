@@ -1,0 +1,8 @@
+// Saida experada: ERR_CHAR_TO_X - exit code: 32
+
+int main(){
+  char c1, c2, c3;
+  int i;
+
+  c3 = c1 - i;
+}

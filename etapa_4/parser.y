@@ -1014,183 +1014,42 @@ exp:
 |   exp '+' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type == CHAR) $$->data_type = CHAR;
-      if ($1->data_type == STR && $3->data_type == STR)
-      {
-        $$->data_type = STR; $$->size = $1->size + $3->size;
-      }
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '-' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '*' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '/' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '%' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '^' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '|' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '&' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
-
-      if ($1->data_type == INT && $3->data_type == INT) $$->data_type = INT;
-      if ($1->data_type == FLOAT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == BOOL) $$->data_type = BOOL;
-      if ($1->data_type == FLOAT && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == FLOAT) $$->data_type = FLOAT;
-      if ($1->data_type == BOOL && $3->data_type == INT
-        || $1->data_type == INT && $3->data_type == BOOL) $$->data_type = INT;
-      if ($1->data_type == BOOL && $3->data_type == FLOAT
-        || $1->data_type == FLOAT && $3->data_type == BOOL) $$->data_type = FLOAT;
-      if ($1->data_type == CHAR && $3->data_type != CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != CHAR && $3->data_type == CHAR)
-        syntactic_error(ERR_CHAR_TO_X, $3->label, get_line_number(), NULL);
-      if ($1->data_type == STR && $3->data_type != STR)
-        syntactic_error(ERR_STRING_TO_X, $1->label, get_line_number(), NULL);
-      if ($1->data_type != STR && $3->data_type == STR)
-        syntactic_error(ERR_STRING_TO_X, $3->label, get_line_number(), NULL);
+      binary_exp_type_and_error_check($$, $1, $3, get_line_number());
     }
 |   exp '<' exp 
     { 
@@ -1205,11 +1064,11 @@ exp:
 |   exp TK_OC_OR exp { $$ = lexval_node($2); add_children($$, 2, $1, $3); $$->data_type = BOOL; }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
-        $$ = named_node("?:");
-        add_children($$, 3, $1, $3, $5);
-        if ($1->data_type != BOOL && $1->data_type != INT
-          	&& $1->data_type != FLOAT)
-          syntactic_error(ERR_WRONG_TYPE, NULL, get_line_number(), NULL);
+      $$ = named_node("?:");
+      add_children($$, 3, $1, $3, $5);
+      if ($1->data_type != BOOL && $1->data_type != INT
+          && $1->data_type != FLOAT)
+        syntactic_error(ERR_WRONG_TYPE, NULL, get_line_number(), NULL);
     }
 ;
 

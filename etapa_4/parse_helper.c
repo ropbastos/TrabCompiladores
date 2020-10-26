@@ -1,4 +1,5 @@
 #include "parse_helper.h"
+#include <string.h>
 
 
 void add_variables_to_scope(int type, id_list* ids, ht_entry** scope)
@@ -176,4 +177,37 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
   {
     dst_lookup->size = exp->size;
   }
+}
+
+
+void binary_exp_type_and_error_check(node* binary_operator, node* left_exp, node* right_exp, int line)
+{
+  if (left_exp->data_type == INT && right_exp->data_type == INT) binary_operator->data_type = INT;
+  if (left_exp->data_type == FLOAT && right_exp->data_type == FLOAT) binary_operator->data_type = FLOAT;
+  if (left_exp->data_type == BOOL && right_exp->data_type == BOOL) binary_operator->data_type = BOOL;
+  if (left_exp->data_type == FLOAT && right_exp->data_type == INT
+    || left_exp->data_type == INT && right_exp->data_type == FLOAT) binary_operator->data_type = FLOAT;
+  if (left_exp->data_type == BOOL && right_exp->data_type == INT
+    || left_exp->data_type == INT && right_exp->data_type == BOOL) binary_operator->data_type = INT;
+  if (left_exp->data_type == BOOL && right_exp->data_type == FLOAT
+    || left_exp->data_type == FLOAT && right_exp->data_type == BOOL) binary_operator->data_type = FLOAT;
+  if (left_exp->data_type == CHAR && right_exp->data_type == CHAR) binary_operator->data_type = CHAR;
+  if (left_exp->data_type == CHAR && right_exp->data_type != CHAR)
+    syntactic_error(ERR_CHAR_TO_X, left_exp->label, line, NULL);
+  if (left_exp->data_type != CHAR && right_exp->data_type == CHAR)
+    syntactic_error(ERR_CHAR_TO_X, right_exp->label, line, NULL);
+  if (left_exp->data_type == STR && right_exp->data_type != STR)
+    syntactic_error(ERR_STRING_TO_X, left_exp->label, line, NULL);
+  if (left_exp->data_type != STR && right_exp->data_type == STR)
+    syntactic_error(ERR_STRING_TO_X, right_exp->label, line, NULL);
+  if (left_exp->data_type == STR && right_exp->data_type == STR)
+    if (strcmp(binary_operator->label, "+") == 0)
+    {
+      binary_operator->data_type = STR; 
+      binary_operator->size = left_exp->size + right_exp->size;
+    }
+    else
+    {
+      syntactic_error(ERR_STRING_TO_X, right_exp->label, line, NULL);
+    }     
 }

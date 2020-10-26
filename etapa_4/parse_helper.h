@@ -15,5 +15,6 @@ arg_list* new_arg_list(int type, lex_val* id);
 
 void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, stack* scope_stack, int line);
 
+void binary_exp_type_and_error_check(node* binary_operator, node* left_exp, node* right_exp, int line);
 
 #endif
