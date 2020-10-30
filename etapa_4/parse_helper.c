@@ -139,6 +139,14 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
   }
   
   // Check types.
+  if (dst_lookup->data_type == STR && exp->data_type != STR)
+  {
+    syntactic_error(ERR_STRING_TO_X, id->value.s, line, dst_lookup);
+  }
+  if (dst_lookup->data_type == CHAR && exp->data_type != CHAR)
+  {
+    syntactic_error(ERR_CHAR_TO_X, id->value.s, line, dst_lookup);
+  }
   if (dst_lookup->data_type != exp->data_type)
   {
     syntactic_error(ERR_WRONG_TYPE, id->value.s, line, dst_lookup);

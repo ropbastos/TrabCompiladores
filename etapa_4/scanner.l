@@ -103,7 +103,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
     return TK_LIT_CHAR; 
     }
 
-\"[^\n"]+\" { yylval.lex_val = get_str_val(); return TK_LIT_STRING; }
+\"[^\n"]*\" { yylval.lex_val = get_str_val(); return TK_LIT_STRING; }
 
     /* Identifiers */
 
