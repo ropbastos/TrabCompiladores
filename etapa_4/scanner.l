@@ -98,7 +98,7 @@ any_char [\,\t\r\f\;\:\(\)\[\]\{\}\+\-\|\*\/\<\>\=\!\&\%\#\^\.\$\@\?\/\~\`\\]
 "false" { yylval.lex_val = get_false_val(); return TK_LIT_FALSE; } 
 "true"  { yylval.lex_val = get_true_val(); return TK_LIT_TRUE; } 
 
-'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;|:) { 
+'(({alfa}{1})|({dig}{1})|({ws}{1})|({any_char}))'/({invisible}|{operator}+|\;|:|\)) { 
     yylval.lex_val = get_char_val();
     return TK_LIT_CHAR; 
     }

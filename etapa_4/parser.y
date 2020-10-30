@@ -680,7 +680,7 @@ func_call:
         arg_list* call_arg = $3->arg_list;
         do
         {
-          if (table_entry_arg->type != call_arg->type)
+          if (table_entry_arg->type == CHAR && call_arg->type != CHAR || table_entry_arg->type == STR && call_arg->type != STR)
           {
             syntactic_error(ERR_WRONG_TYPE_ARGS, $1->value.s, get_line_number(), NULL);
           }

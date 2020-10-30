@@ -194,7 +194,8 @@ void check_return_type(node* tree)
   if (tree->is_return == 1)
   {
     //printf("Current node data type dentro do if: %d\n", tree->data_type);
-    if (expected_return_type != tree->data_type)
+    if (expected_return_type == CHAR && tree->data_type != CHAR || expected_return_type == STR && tree->data_type != STR
+        || expected_return_type != CHAR && tree->data_type == CHAR || expected_return_type != STR && tree->data_type == STR)
     {
      return_type_is_correct = 0;
      return_line = tree->return_line;

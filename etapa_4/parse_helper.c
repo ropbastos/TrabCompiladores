@@ -147,7 +147,11 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
   {
     syntactic_error(ERR_CHAR_TO_X, id->value.s, line, dst_lookup);
   }
-  if (dst_lookup->data_type != exp->data_type)
+  if (dst_lookup->data_type != STR && exp->data_type == STR)
+  {
+    syntactic_error(ERR_WRONG_TYPE, id->value.s, line, dst_lookup);
+  }
+  if (dst_lookup->data_type != CHAR && exp->data_type == CHAR)
   {
     syntactic_error(ERR_WRONG_TYPE, id->value.s, line, dst_lookup);
   }
@@ -180,7 +184,7 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
     syntactic_error(ERR_STRING_SIZE, id->value.s, line, NULL);
 
   // If dst is a string, but was not initialized or attributed to before and thus has no size
-  // set it's size according to hte first attribution.
+  // set it's size according to the first attribution.
   if (dst_lookup->data_type == STR && dst_lookup->size == NOT_A_STRING)
   {
     dst_lookup->size = exp->size;
