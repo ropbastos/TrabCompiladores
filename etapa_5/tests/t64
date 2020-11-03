@@ -1,0 +1,10 @@
+// Saida esperada: Nenhum erro - exit code: 0
+
+int func(){
+  float f;
+  return f;
+}
+
+int main(){
+  func();
+}

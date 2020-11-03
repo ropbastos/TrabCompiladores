@@ -1,0 +1,8 @@
+// Saida esperada: ERR_DECLARED - exit code: 11
+
+
+
+int main(){
+  string a;
+  int a;
+}

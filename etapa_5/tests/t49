@@ -1,0 +1,9 @@
+// Saida esperada: ERR_MISSING_ARGS - exit code: 40
+
+int func(int a, int b){}
+int a;
+int b;
+
+int main(){
+  b = func(a);
+}

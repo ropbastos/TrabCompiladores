@@ -1,0 +1,7 @@
+// Saida esperada: Nenhum erro. - exit code: 0
+
+bool a;
+
+int main(){
+  int a;
+}

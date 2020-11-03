@@ -1,0 +1,8 @@
+// Saida esperada: Nenhum erro. - exit code: 0
+
+int a;
+float b;
+
+int main(){
+  b = a;
+}

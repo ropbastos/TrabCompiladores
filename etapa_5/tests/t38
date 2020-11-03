@@ -1,0 +1,8 @@
+// Saida esperada: ERR_CHAR_TO_X - exit code: 32
+
+int b;
+int p;
+
+int main(){
+  b = 'a' / p;
+}

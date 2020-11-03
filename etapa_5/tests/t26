@@ -1,0 +1,8 @@
+// Saida esperada: ERR_FUNCTION - exit code: 22
+
+int a(){}
+int b;
+
+int main(){
+  b = a[1];
+}
