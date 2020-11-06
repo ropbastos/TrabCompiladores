@@ -21,9 +21,9 @@ int main (int argc, char **argv)
   
   // Testing code generation/export.
   inst_list_item* head = NULL;
-  inst* inst1 = new_inst(load, 1, 2, 3);
-  inst* inst2 = new_inst(add, 1, 2, 3);
-  inst* inst3 = new_inst(store, 1, 2, 3);
+  inst* inst1 = new_inst(NULL, "sub", reg(), reg(), reg(), NULL);
+  inst* inst2 = new_inst(label(), "loadI", "73", NULL, reg(), NULL);
+  inst* inst3 = new_inst(label(), "store", reg(), NULL, reg(), NULL);
 
   insert_start(&head, inst1);
   insert_end(&head, inst2);

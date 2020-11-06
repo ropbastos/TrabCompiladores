@@ -1,31 +1,59 @@
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "iloc.h"
 
-int reg_num = -1;
+int reg_num = -1; 
 int label_num = -1;
 
-int label()
+char* label()
 {
-  return ++label_num;
+  char* label_name;
+  asprintf(&label_name,"L%d:", ++label_num);
+  return label_name;
 };
 
-int reg()
+char* reg()
 {
-  return ++reg_num;
+  char* reg_name;
+  asprintf(&reg_name,"r%d", ++reg_num);
+  return reg_name;
 };
 
-inst* new_inst(int opcode, int arg1, int arg2, int arg3)
+char* arg(int arg_val)
 {
-  inst* new_inst = (inst*) malloc(sizeof(inst));
+  char* arg_string;
+  asprintf(&arg_string,"%d", arg_val);
+  return arg_string;
+}
 
+char* format_arg(char* arg)
+{
+  if (arg == NULL) return "";
+  
+  char* arg_string;  
+  arg_string = malloc(sizeof(", ")+sizeof(arg));
+  arg_string = strcpy(arg_string, ", ");
+  arg_string = strcat(arg_string, arg);
+
+  return arg_string;
+}
+
+inst* new_inst(char* label, char* opcode, char* arg1, char* arg2, char* arg3, char* arg4)
+{
+  inst* new_inst = malloc(sizeof(inst));
+
+  new_inst->label = (label) ? label : "   ";
   new_inst->op = opcode;
   new_inst->arg1 = arg1;
-  new_inst->arg2 = arg2;
+  new_inst->arg2 = format_arg(arg2);
   new_inst->arg3 = arg3;
+  new_inst->arg4 = format_arg(arg4);
 
   return new_inst;
 }
+
 
 void insert_start(inst_list_item** head, inst* new_inst)
 {
@@ -158,21 +186,11 @@ void print_code(inst_list_item* item)
 {
   while (item != NULL)
   {
-    switch (item->instruction->op)
-    {
-      case load:
-        printf("LOAD %d %d %d\n", item->instruction->arg1, item->instruction->arg2,
-                item->instruction->arg3);
-        break;
-      case add:
-        printf("ADD\n");
-        break;
-      case store:
-        printf("STORE\n");
-        break;
-      default:
-        printf("DEFAULT\n");
-    }
+    inst* inst = item->instruction;
+    
+    printf("%s %s %s%s => %s%s\n", inst->label, inst->op, inst->arg1, 
+      	    inst->arg2, inst->arg3, inst->arg4);
+
     item = item->next;
   }
 }
