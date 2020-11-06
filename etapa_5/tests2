@@ -1,17 +1,7 @@
-int a, b[2];
-int aux(){}
-
 int main(){
 
-  string m;
-  string p <= "bigggggggggg";
-  
-  m = p;
-
-  m = "sml";
-
-  m = "notsml";
-
+  int a;
+  a = 2;
 
 }
 
