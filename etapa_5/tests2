@@ -1,29 +1,12 @@
-int glob1;
-int glob2;
-int glob3;
+
 
 int main(){
 
   int a;
-  int b;
-  int c;
-  {
-    int d;
-    int e;
-    int i;
-    {
-      int bloc1;
-      int bloc2;
-    };
-  }; 
-  int f;
-  int g;
-  {
-    int h;
-    int i;
-  };
-  int j;
-  int k;
+
+  a = 2;
 
 }
+
+
 

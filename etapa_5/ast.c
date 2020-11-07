@@ -29,6 +29,9 @@ node* lexval_node(lex_val* val) {
     nodeptr->child_num = 0;
     nodeptr->children = NULL;
 
+    // Write code.
+    nodeptr->code = NULL;
+
     return nodeptr;
 }
 
@@ -52,6 +55,9 @@ node* named_node(char* name) {
     // Write children.
     nodeptr->child_num = 0;
     nodeptr->children = NULL;
+
+    // Write code.
+    nodeptr->code = NULL;
 
     return nodeptr;
 }

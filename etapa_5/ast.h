@@ -3,6 +3,7 @@
 
 #include <stdarg.h>
 #include "lexval.h"
+#include "iloc.h"
 
 #define INT INT_LT
 #define FLOAT FLOAT_LT
@@ -22,6 +23,7 @@ typedef struct node {
     lex_val* val;
     int child_num;
     struct node** children; 
+    inst_list_item* code;
 } node;
 
 // Nodes from lex objects

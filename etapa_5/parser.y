@@ -963,7 +963,7 @@ exp:
       $$ = named_node("[]"); $$->data_type = lookup_result->data_type;
       add_children($$, 2, lexval_node($1), $3);
     }
-|   lit_exp { $$ = $1; }
+|   lit_exp { $$ = $1; print_code($$->code); }
 |   bool { $$ = $1; }
 |   func_call 
     { 
@@ -1106,6 +1106,8 @@ lit_exp:
       }
       
       $$ = lexval_node($1); $$->data_type = INT;
+      insert_end(&($$->code), 
+        new_inst(NULL, "loadI", arg($1->value.i), NULL, reg(), NULL));
     }
 | TK_LIT_CHAR
   {
