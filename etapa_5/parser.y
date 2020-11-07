@@ -334,7 +334,7 @@ block_start: '{'
 block_end: '}' 
 { 
   int offset_to_inherit = peek(scope_stack)->offset; 
-  ht_print(pop(&scope_stack)->table);
+  pop(&scope_stack)->table;
   if (peek(scope_stack)->is_global == 0)
   {
     peek(scope_stack)->offset = offset_to_inherit;
@@ -963,7 +963,7 @@ exp:
       $$ = named_node("[]"); $$->data_type = lookup_result->data_type;
       add_children($$, 2, lexval_node($1), $3);
     }
-|   lit_exp { $$ = $1; print_code($$->code); }
+|   lit_exp { $$ = $1; }
 |   bool { $$ = $1; }
 |   func_call 
     { 
@@ -975,21 +975,43 @@ exp:
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "add", $1->temp, $3->temp, temp, NULL),
+        temp);
+
+      print_code($$->code);
     }
 |   exp '-' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "sub", $1->temp, $3->temp, temp, NULL),
+        temp);
+      print_code($$->code);
     }
 |   exp '*' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "mult", $1->temp, $3->temp, temp, NULL),
+        temp);
+
+      print_code($$->code);
     }
 |   exp '/' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "div", $1->temp, $3->temp, temp, NULL),
+        temp);
+      print_code($$->code);
     }
 |   exp '%' exp 
     { 
@@ -1106,8 +1128,10 @@ lit_exp:
       }
       
       $$ = lexval_node($1); $$->data_type = INT;
+      char* temp = reg();
       insert_end(&($$->code), 
-        new_inst(NULL, "loadI", arg($1->value.i), NULL, reg(), NULL));
+        new_inst(NULL, "loadI", arg($1->value.i), NULL, temp, NULL));
+      $$->temp = temp;
     }
 | TK_LIT_CHAR
   {

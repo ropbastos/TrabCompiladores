@@ -1,5 +1,6 @@
-#include "parse_helper.h"
 #include <string.h>
+#include "parse_helper.h"
+#include "iloc.h"
 
 
 void add_variables_to_scope(int type, id_list* ids, symb_table* scope)
@@ -239,3 +240,10 @@ int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int 
   return lookup_result->data_type;
 }
 
+void generate_binary_exp_code(node* op, node* left_exp, node* right_exp, inst* inst, char* temp)
+{
+  op->temp = temp;
+  concat_end(&(op->code), left_exp->code);
+  concat_end(&(op->code), right_exp->code);
+  insert_end(&(op->code), inst);
+}

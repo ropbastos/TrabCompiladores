@@ -105,7 +105,7 @@ void insert_after(inst_list_item* prev_item, inst* new_inst)
 void insert_end(inst_list_item** head, inst* new_inst)
 {
   // Allocate new item.
-  inst_list_item* new_item = (inst_list_item*) malloc(sizeof(inst_list_item));
+  inst_list_item* new_item = malloc(sizeof(inst_list_item));
 
   inst_list_item* last = *head;
 
@@ -180,6 +180,23 @@ void delete_item(inst_list_item** head, inst_list_item* del)
     del->prev->next = del->next;
 
   free(del);
+}
+
+void concat_end(inst_list_item** dst_list, inst_list_item* src_list)
+{
+  if (*dst_list == NULL)
+  {
+    *dst_list = src_list;
+    return;
+  }
+
+  inst_list_item* current = *dst_list;
+  while (current->next != NULL)
+  {
+    current = current->next;
+  }
+
+  current->next = src_list;
 }
 
 void print_code(inst_list_item* item)
