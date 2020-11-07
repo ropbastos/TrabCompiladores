@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parse_helper.h"
+#include "iloc.h"
 int yylex(void);
 void yyerror (char const *s);
 int get_line_number();
@@ -13,6 +14,8 @@ stack* scope_stack = NULL;
 extern int return_line;
 extern int expected_return_type;
 extern int return_type_is_correct;
+
+inst_list_item* head = NULL;
 
 typedef struct prod_val {
   struct node* ast_node;
@@ -167,6 +170,7 @@ global_decl:
       }
 
       add_variables_to_scope($1, $2, global_scope);
+      ht_print(global_scope->table);
 
       // Stack global sb table.
       push(&scope_stack, global_scope);
@@ -244,7 +248,10 @@ header:
     { 
       symb_table* scope = pop(&scope_stack);
       if (scope == NULL)
+      {
         scope = symbol_table(0);
+        scope->is_global = 1;
+      }
 
       add_functions_to_scope($1, $2, NULL, scope);
 
@@ -319,8 +326,20 @@ body:
     block { $$ = $1; }
 ;
 
-block_start: '{' { push(&scope_stack, symbol_table(0)); }
-block_end: '}' { ht_print(pop(&scope_stack)->table); }
+block_start: '{' 
+{ 
+  push(&scope_stack,
+   (peek(scope_stack)->is_global) ? symbol_table(0) : symbol_table(peek(scope_stack)->offset)); 
+}
+block_end: '}' 
+{ 
+  int offset_to_inherit = peek(scope_stack)->offset; 
+  ht_print(pop(&scope_stack)->table);
+  if (peek(scope_stack)->is_global == 0)
+  {
+    peek(scope_stack)->offset = offset_to_inherit;
+  } 
+}
 
 block:
   block_start cmds block_end 

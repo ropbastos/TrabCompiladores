@@ -150,6 +150,7 @@ symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
 
 void ht_print(ht_entry** ht)
 {
+  printf("\n");
   int j = 0;
   for (int i = 0; i < TABLE_SIZE; i++)
   {
@@ -163,6 +164,7 @@ void ht_print(ht_entry** ht)
       j++;
     }
   }
+  printf("\n");
 }
 
 void print_ht_entry(ht_entry** ht, int key)
