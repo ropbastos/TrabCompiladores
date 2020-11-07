@@ -1,8 +1,0 @@
-// Saida esperada: Nenhum erro - exit code: 0
-
-bool a;
-float b;
-
-int main(){
-  b = a;
-}

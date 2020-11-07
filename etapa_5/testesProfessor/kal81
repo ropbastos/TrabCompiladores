@@ -1,5 +1,0 @@
-int f(){
-    float a;
-    output a; 
-    return 0;
-}

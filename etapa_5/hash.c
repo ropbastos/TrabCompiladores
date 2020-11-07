@@ -16,6 +16,7 @@ symb_table* symbol_table(int offset)
 {
   symb_table* sbtable = (symb_table*) malloc(sizeof(symb_table));
   sbtable->offset = offset;
+  sbtable->is_global = 0;
   sbtable->table = hash_table();
   return sbtable; 
 }
@@ -155,7 +156,9 @@ void ht_print(ht_entry** ht)
     ht_entry* current_entry = ht[i];
     while (current_entry != NULL)
     {
-      printf("Entry %d label: %s - size: %d\n", j, current_entry->symbol->label, current_entry->symbol->size);
+      printf("Entry %d label: %s - size: %d, offset: %d\n",
+       j, current_entry->symbol->label, current_entry->symbol->size,
+       current_entry->symbol->offset);
       current_entry = current_entry->next;
       j++;
     }
@@ -164,7 +167,8 @@ void ht_print(ht_entry** ht)
 
 void print_ht_entry(ht_entry** ht, int key)
 {
-  printf("HT entry label is: %s\n", ht[key%TABLE_SIZE]->symbol->label);
+  printf("HT entry label is: %s, offset: %d\n",
+         ht[key%TABLE_SIZE]->symbol->label, ht[key%TABLE_SIZE]->symbol->offset);
 }
 
 

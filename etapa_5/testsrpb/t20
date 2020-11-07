@@ -1,8 +1,0 @@
-// Saida esperada: ERR_VECTOR - exit code: 21
-
-int a[7];
-int b;
-
-int main(){
-  b = a;
-}

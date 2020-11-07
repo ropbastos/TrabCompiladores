@@ -1,7 +1,12 @@
+int b;
+int c;
+int d;
+
 int main(){
 
-  int a;
-  a = 2;
+  int e;
+  int f;
+  int g;  
 
 }
 

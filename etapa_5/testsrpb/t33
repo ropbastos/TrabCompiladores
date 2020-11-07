@@ -1,9 +1,0 @@
-// Saida esperada: ERR_WRONG_TYPE - exit code: 30
-
-string a;
-
-int main(){
-  
-  float b;
-  b = a;
-}

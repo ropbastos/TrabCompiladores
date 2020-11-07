@@ -1,6 +1,0 @@
-// Saida esperada: ERR_WRONG_PAR_INPUT - exit code: 50
-
-int main(){
-  string b;
-  input b;
-}

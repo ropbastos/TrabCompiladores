@@ -1,9 +1,0 @@
-// Saida esperada: Nenhum erro. - exit code: 0
-
-int func(int a, int l){}
-int a;
-int b;
-
-int main(){
-  b = func(a, b);
-}

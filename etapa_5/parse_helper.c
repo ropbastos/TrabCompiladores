@@ -39,9 +39,10 @@ void add_variables_to_scope(int type, id_list* ids, symb_table* scope)
         default:
           size = -1;
       }
-      sb = new_symbol_entry(current->id, current->line, VAR, type, size, NULL, NULL, 0);
+      sb = new_symbol_entry(current->id, current->line, VAR, type, size, NULL, NULL, scope->offset);
+      scope->offset += size;
     }
-    else // Is a vector.
+    else // Is a vector. OFFSET NOT BEING CALCULATED AS OF E5 FOR VECTORS.
     {
       switch (type)
       {

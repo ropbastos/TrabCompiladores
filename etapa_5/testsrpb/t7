@@ -1,7 +1,0 @@
-// Saida esperada: ERR_UNDECLARED - exit code: 10 
-
-int b;
-
-int main(){
-  a = 3;
-}

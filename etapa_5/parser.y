@@ -163,6 +163,7 @@ global_decl:
       {
         // Create new global scope symbol table if one doesn't already exist.
         global_scope = symbol_table(0);
+        global_scope->is_global = 1;
       }
 
       add_variables_to_scope($1, $2, global_scope);
@@ -319,7 +320,7 @@ body:
 ;
 
 block_start: '{' { push(&scope_stack, symbol_table(0)); }
-block_end: '}' { pop(&scope_stack); }
+block_end: '}' { ht_print(pop(&scope_stack)->table); }
 
 block:
   block_start cmds block_end 

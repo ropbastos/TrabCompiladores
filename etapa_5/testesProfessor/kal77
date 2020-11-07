@@ -1,6 +1,0 @@
-//ERR_WRONG_PAR_INPUT
-int f() {
-    bool a;
-    input a;
-    return 0;
-}

@@ -1,7 +1,0 @@
-// Saida esperada: Nenhum erro. - exit code: 0
-
-string s0;
-
-int main(){
-  s0 = "bigggggggg";
-}

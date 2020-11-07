@@ -1,9 +1,0 @@
-// Saida esperada: ERR_STRING_TO_X - exit code: 31
-
-string a;
-
-int main(){
-  
-  float b;
-  b = a - b;
-}

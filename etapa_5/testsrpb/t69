@@ -1,7 +1,0 @@
-// Saida esperada: Nenhum erro. - exit code: 0
-
-int main(){
-  int a;
-
-  a << 2;
-}

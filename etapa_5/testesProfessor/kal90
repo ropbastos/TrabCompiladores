@@ -1,4 +1,0 @@
-int f(){
-    bool a;
-    return a;
-}

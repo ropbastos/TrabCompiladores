@@ -1,8 +1,0 @@
-//ERR_STRING_TO_X
-int f() {
-    string a <= "universo";
-    int b;
-    int c;
-    c = b + a;
-    return 0;
-}

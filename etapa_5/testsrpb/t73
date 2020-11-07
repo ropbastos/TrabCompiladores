@@ -1,9 +1,0 @@
-// Saida esperada: ERR_DECLARED - exit code: 11
-
-int func(){
-  output 1;
-}
-
-int func(){
-  output 2;
-}

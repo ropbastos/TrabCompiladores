@@ -20,15 +20,15 @@ int main (int argc, char **argv)
   yylex_destroy();
   
   // Testing code generation/export.
-  inst_list_item* head = NULL;
-  inst* inst1 = new_inst(NULL, "sub", reg(), reg(), reg(), NULL);
-  inst* inst2 = new_inst(label(), "loadI", "73", NULL, reg(), NULL);
-  inst* inst3 = new_inst(label(), "store", reg(), NULL, reg(), NULL);
+  // inst_list_item* head = NULL;
+  // inst* inst1 = new_inst(NULL, "sub", reg(), reg(), reg(), NULL);
+  // inst* inst2 = new_inst(label(), "loadI", arg(73), NULL, reg(), NULL);
+  // inst* inst3 = new_inst(label(), "store", reg(), NULL, reg(), NULL);
 
-  insert_start(&head, inst1);
-  insert_end(&head, inst2);
-  insert_after(head, inst3);
-  print_code(head);
+  // insert_start(&head, inst1);
+  // insert_end(&head, inst2);
+  // insert_after(head, inst3);
+  // print_code(head);
 
   return ret;
 }

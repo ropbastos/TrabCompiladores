@@ -1,5 +1,0 @@
-// Saida experada: WRONG_PAR_RETURN - exit code: 52
-
-string main(){
-  return (2 + -1 ^ &7);
-}
