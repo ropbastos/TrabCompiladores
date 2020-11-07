@@ -30,12 +30,13 @@ typedef struct symbol_entry {
   int data_type;
   int size;
   int offset;
+  int is_global;
   struct arg_list_item* args;
   lex_val* val;
 } symbol_entry;
 
 symbol_entry* new_symbol_entry(char* label, int line, int symbol_type, int data_type,
-                               int size, arg_list* args, lex_val* val, int offset);
+                               int size, arg_list* args, lex_val* val, int offset, int is_global);
 
 /* Linked lists in each entry for handling collisions */
 // List item.

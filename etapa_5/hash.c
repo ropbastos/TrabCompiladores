@@ -133,7 +133,7 @@ void ht_free(ht_entry** ht)
 
 symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
                                int data_type, int size, arg_list* args,
-                               lex_val* val, int offset)
+                               lex_val* val, int offset, int is_global)
   {
     symbol_entry* sb = malloc(sizeof(struct symbol_entry));
     sb->label = strdup(label);
@@ -142,6 +142,7 @@ symbol_entry* new_symbol_entry(char* label, int line, int symbol_type,
     sb->data_type = data_type;
     sb->size = size;
     sb->offset = offset;
+    sb->is_global = is_global;
     sb->args = args;
     sb->val = val;
 

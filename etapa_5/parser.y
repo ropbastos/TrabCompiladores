@@ -170,7 +170,6 @@ global_decl:
       }
 
       add_variables_to_scope($1, $2, global_scope);
-      ht_print(global_scope->table);
 
       // Stack global sb table.
       push(&scope_stack, global_scope);
@@ -544,54 +543,54 @@ literal:
     TK_LIT_CHAR    
     { 
       $$ = lexval_node($1); 
-      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, CHAR,
-                                              1, NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, CHAR,
+                                              1, NULL, $1, 0, scope->is_global);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
 |   TK_LIT_FALSE    
     { 
       $$ = lexval_node($1); 
-      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
-                                              1, NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
+                                              1, NULL, $1, 0, scope->is_global);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
 |   TK_LIT_FLOAT    
     { 
       $$ = lexval_node($1); 
-      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, FLOAT,
-                                              8, NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, FLOAT,
+                                              8, NULL, $1, 0, scope->is_global);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
 |   TK_LIT_INT    
     { 
       $$ = lexval_node($1); 
-      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, INT,
-                                              4, NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, INT,
+                                              4, NULL, $1, 0, scope->is_global);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
 |   TK_LIT_STRING    
     { 
       $$ = lexval_node($1); 
-      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, STR,
-                                              strlen($$->label), NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, STR,
+                                              strlen($$->label), NULL, $1, 0, scope->is_global);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
 |   TK_LIT_TRUE    
     { 
       $$ = lexval_node($1); 
-      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
-                                              1, NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
+                                              1, NULL, $1, 0, scope->is_global);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
@@ -600,11 +599,17 @@ literal:
 attrib:
     TK_IDENTIFICADOR '=' exp 
     { 
-      symbol_entry* dst_lookup = st_lookup($1->value.s, scope_stack);
+      symbol_entry* dst = st_lookup($1->value.s, scope_stack);
       generic_attrib_errors_check($1, $3, 0, scope_stack, get_line_number());
 
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
-      $$->children[0]->data_type = dst_lookup->data_type;
+      $$->children[0]->data_type = dst->data_type;
+      concat_end(&($$->code), $3->code);
+      if (dst->is_global)
+        insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rbss", arg(dst->offset)));
+      else
+        insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rfp", arg(dst->offset)));
+      print_code($$->code);
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
@@ -980,7 +985,6 @@ exp:
         new_inst(NULL, "add", $1->temp, $3->temp, temp, NULL),
         temp);
 
-      print_code($$->code);
     }
 |   exp '-' exp 
     { 
@@ -990,7 +994,6 @@ exp:
       generate_binary_exp_code($$, $1, $3, 
         new_inst(NULL, "sub", $1->temp, $3->temp, temp, NULL),
         temp);
-      print_code($$->code);
     }
 |   exp '*' exp 
     { 
@@ -1000,8 +1003,6 @@ exp:
       generate_binary_exp_code($$, $1, $3, 
         new_inst(NULL, "mult", $1->temp, $3->temp, temp, NULL),
         temp);
-
-      print_code($$->code);
     }
 |   exp '/' exp 
     { 
@@ -1011,7 +1012,6 @@ exp:
       generate_binary_exp_code($$, $1, $3, 
         new_inst(NULL, "div", $1->temp, $3->temp, temp, NULL),
         temp);
-      print_code($$->code);
     }
 |   exp '%' exp 
     { 
@@ -1102,8 +1102,8 @@ lit_exp:
       if (sb == NULL)
       {
         // If not, put it.
-        sb = new_symbol_entry(float_to_str, get_line_number(), LIT, FLOAT, 8, NULL, $1, 0);
         symb_table* scope = pop(&scope_stack);
+        sb = new_symbol_entry(float_to_str, get_line_number(), LIT, FLOAT, 8, NULL, $1, 0, scope->is_global);
         if (scope == NULL) printf("Scope is null on num.\n");
         ht_insert(sb, scope);
         push(&scope_stack, scope);
@@ -1120,8 +1120,8 @@ lit_exp:
       if (sb == NULL)
       {
         // If not, put it.
-        sb = new_symbol_entry(int_to_str, get_line_number(), LIT, INT, 4, NULL, $1, 0);
         symb_table* scope = pop(&scope_stack);
+        sb = new_symbol_entry(int_to_str, get_line_number(), LIT, INT, 4, NULL, $1, 0, scope->is_global);
         if (scope == NULL) printf("Scope is null on num.\n");
         ht_insert(sb, scope);
         push(&scope_stack, scope);
@@ -1139,8 +1139,8 @@ lit_exp:
     symbol_entry* sb = st_lookup($$->label, scope_stack);
     if (sb == NULL)
     {
-      sb = new_symbol_entry($$->label, get_line_number(), LIT, CHAR, 1, NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      sb = new_symbol_entry($$->label, get_line_number(), LIT, CHAR, 1, NULL, $1, 0, scope->is_global);
       if (scope == NULL) printf("Scope is null on num.\n");
       ht_insert(sb, scope);
       push(&scope_stack, scope);
@@ -1153,13 +1153,12 @@ lit_exp:
     symbol_entry* sb = st_lookup($$->label, scope_stack);
     if (sb == NULL)
     {
-      sb = new_symbol_entry($$->label, get_line_number(), LIT, STR, strlen($$->label), NULL, $1, 0);
       symb_table* scope = pop(&scope_stack);
+      sb = new_symbol_entry($$->label, get_line_number(), LIT, STR, strlen($$->label), NULL, $1, 0, scope->is_global);
       if (scope == NULL) printf("Scope is null on num.\n");
       ht_insert(sb, scope);
       push(&scope_stack, scope);
     }
-
   }
 ;
 

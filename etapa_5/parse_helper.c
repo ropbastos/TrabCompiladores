@@ -40,7 +40,8 @@ void add_variables_to_scope(int type, id_list* ids, symb_table* scope)
         default:
           size = -1;
       }
-      sb = new_symbol_entry(current->id, current->line, VAR, type, size, NULL, NULL, scope->offset);
+      sb = new_symbol_entry(current->id, current->line, VAR, type,
+                             size, NULL, NULL, scope->offset, scope->is_global);
       scope->offset += size;
     }
     else // Is a vector. OFFSET NOT BEING CALCULATED AS OF E5 FOR VECTORS.
@@ -65,7 +66,8 @@ void add_variables_to_scope(int type, id_list* ids, symb_table* scope)
         default:
           size = -1;
       }
-      sb = new_symbol_entry(current->id, current->line, VEC, type, size, NULL, NULL, 0);
+      sb = new_symbol_entry(current->id, current->line, VEC, type,
+                             size, NULL, NULL, 0, scope->is_global);
     }
 
     ht_insert(sb, scope);
@@ -107,7 +109,8 @@ void add_functions_to_scope(int type, lex_val* id, arg_list* params, symb_table*
   }
 
   // Add function name to scope.
-  symbol_entry* sb = new_symbol_entry(id->value.s, id->line, FUNC, type, size, params, id, 0);
+  symbol_entry* sb = new_symbol_entry(id->value.s, id->line, FUNC, type,
+                                       size, params, id, 0, scope->is_global);
   if (ht_lookup(sb->label, scope) != NULL)
   {
     syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));

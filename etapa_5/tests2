@@ -1,14 +1,24 @@
-
+int glob1;
+int glob2;
 
 int main(){
 
   int a;
+  int b;
 
-  a = 2 + 3;
-  a = 2 - 3;
-  a = 2 / 3;
-  a = 2 * 3;
+  {
+    int c;
+    a = 2 + 3;
+    b = 7 - 4;
+    c = 2;
+  };
 
+  a = 5 / 6;
+  
+  {
+    glob1 = 15 * 73;
+    glob2 = 69 + 24;
+  };
 
 }
 
