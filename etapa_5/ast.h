@@ -25,6 +25,8 @@ typedef struct node {
     struct node** children; 
     inst_list_item* code;
     char* temp;
+    patch_list* true_list;
+    patch_list* false_list;
 } node;
 
 // Nodes from lex objects

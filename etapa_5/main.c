@@ -30,5 +30,23 @@ int main (int argc, char **argv)
   // insert_after(head, inst3);
   // print_code(head);
 
+  // patch_list* teste = new_patch_list();
+  //char* label1 = "streng1";
+  //char* label2 = "streng2";
+  //printf("label1: %s\n", label1);
+  //printf("label2: %s\n", label2);
+  // char* hole1;
+  // char* hole2;
+  // insert_patch(teste, &hole1);
+  // insert_patch(teste, &hole2);
+  // char* label = "lenda";
+  // patch(teste, label);
+  // print_patch_list(teste);
+  //printf("Vou modificar:\n");
+  //*(teste->label) = "lol";
+  //print_patch_list(teste);
+  //printf("Na var label1: %s", label1);
+  
+
   return ret;
 }

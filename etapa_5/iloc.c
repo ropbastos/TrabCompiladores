@@ -10,7 +10,7 @@ int label_num = -1;
 char* label()
 {
   char* label_name;
-  asprintf(&label_name,"L%d:", ++label_num);
+  asprintf(&label_name,"L%d", ++label_num);
   return label_name;
 };
 
@@ -28,29 +28,35 @@ char* arg(int arg_val)
   return arg_string;
 }
 
-char* format_arg(char* arg)
+void format_arg(char** arg, char** arg_string)
 {
-  if (arg == NULL) return "";
-  
-  char* arg_string;  
-  arg_string = malloc(sizeof(", ")+sizeof(arg));
-  arg_string = strcpy(arg_string, ", ");
-  arg_string = strcat(arg_string, arg);
+  if (arg == NULL || *arg == NULL)
+  {
+    arg_string = arg;
+    return;
+  }
+   
+  *arg_string = malloc(sizeof(", ")+sizeof(*arg));
+  *arg_string = strcpy(*arg_string, ", ");
+  *arg_string = strcat(*arg_string, *arg);
 
-  return arg_string;
+  return;
 }
 
-inst* new_inst(char* label, char* opcode, char* arg1, char* arg2, char* arg3, char* arg4)
+inst* new_inst(char* label, char* opcode, char** arg1, char** arg2, char** arg3, char** arg4)
 {
   inst* new_inst = malloc(sizeof(inst));
+  new_inst->arg2 = malloc(sizeof(char**));
+  new_inst->arg4 = malloc(sizeof(char**));
 
-  new_inst->label = (label) ? label : "   ";
+  new_inst->label = label;
   new_inst->op = opcode;
+  
   new_inst->arg1 = arg1;
-  new_inst->arg2 = format_arg(arg2);
+  format_arg(arg2, new_inst->arg2);
   new_inst->arg3 = arg3;
-  new_inst->arg4 = format_arg(arg4);
-
+  format_arg(arg4, new_inst->arg4);
+  
   return new_inst;
 }
 
@@ -199,14 +205,107 @@ void concat_end(inst_list_item** dst_list, inst_list_item* src_list)
   current->next = src_list;
 }
 
+patch_list* new_patch_list()
+{
+  patch_list* list = malloc(sizeof(patch_list));
+  list->label = NULL;
+  list->next = NULL;
+  return list;
+};
+
+void insert_patch(patch_list* list, char** label)
+{
+  if (list->label == NULL)
+  {
+    list->label = label;
+    return;
+  }
+
+  patch_list* current = list;
+  while (current->next != NULL)
+  {
+    current = current->next;
+  }
+
+  patch_list* new = malloc(sizeof(patch_list));
+  new->label = label;
+  new->next = NULL;
+
+  current->next = new;
+};
+
+void concat_patch_list(patch_list* dst, patch_list* src)
+{
+  if (dst == NULL)
+  {
+    dst = src;
+    return;
+  }
+  patch_list* current = dst;
+  while (current->next != NULL)
+  {
+    current = current->next;
+  }
+
+  current->next = src;
+}
+
+void patch(patch_list* list, char* label)
+{
+  if (list == NULL)
+  {
+    printf("Tentando dar patch numa lista nula.\n");
+    return;
+  } 
+
+  patch_list* current = list;
+  do
+  {
+    *(current->label) = label; 
+    current = current->next;
+  } while (current != NULL);
+}
+
+void print_patch_list(patch_list* list)
+{
+  if (list->label == NULL) return;
+
+  patch_list* current = list;
+  do
+  {
+    printf("Label: %s\n", *(current->label));
+    current = current->next;
+  } while (current != NULL);
+}
+
+
 void print_code(inst_list_item* item)
 {
   while (item != NULL)
   {
     inst* inst = item->instruction;
     
-    printf("%s %s %s%s => %s%s\n", inst->label, inst->op, inst->arg1, 
-      	    inst->arg2, inst->arg3, inst->arg4);
+    if (inst->label != NULL)
+      if (strcmp(inst->op, "nop") == 0)
+        printf("%s: %s\n", inst->label, inst->op);
+      else
+        printf("%s: %s %s%s => %s%s\n", 
+                inst->label, 
+                inst->op, 
+                (inst->arg1) ? *(inst->arg1) : "", 
+                (inst->arg2) ? *(inst->arg2) : "", 
+                (inst->arg3) ? *(inst->arg3) : "", 
+                (inst->arg4) ? *(inst->arg4) : "");
+    else
+       if (strcmp(inst->op, "nop") == 0)
+        printf("    %s\n", inst->op);
+      else
+        printf("    %s %s%s => %s%s\n", 
+                inst->op, 
+                (inst->arg1) ? *(inst->arg1) : "", 
+                (inst->arg2) ? *(inst->arg2) : "", 
+                (inst->arg3) ? *(inst->arg3) : "", 
+                (inst->arg4) ? *(inst->arg4) : "");
 
     item = item->next;
   }

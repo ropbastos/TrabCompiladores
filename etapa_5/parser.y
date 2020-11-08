@@ -606,9 +606,19 @@ attrib:
       $$->children[0]->data_type = dst->data_type;
       concat_end(&($$->code), $3->code);
       if (dst->is_global)
-        insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rbss", arg(dst->offset)));
+      {
+        char* reg_ = "rbss";
+        char* arg4 = arg(dst->offset);
+        char* arg2 = NULL;
+        insert_end(&($$->code), new_inst(NULL, "storeAI", &($3->temp), &arg2, &reg_, &arg4));
+      }
       else
-        insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rfp", arg(dst->offset)));
+      {
+        char* reg_ = "rfp";
+        char* arg4 = arg(dst->offset);
+        char* arg2 = NULL;
+        insert_end(&($$->code), new_inst(NULL, "storeAI", &($3->temp), &arg2, &reg_, &arg4));
+      }
       print_code($$->code);
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
@@ -944,11 +954,21 @@ exp:
       char* temp = reg();
       $$->temp = temp;
       if (lookup_result->is_global)
+      {
+        char* reg_ = "rbss";
+        char* arg2 = arg(lookup_result->offset);
+        char* arg4 = NULL;
         insert_end(&($$->code),
-         new_inst(NULL, "loadAI", "rbss", arg(lookup_result->offset), temp, NULL));
+         new_inst(NULL, "loadAI", &reg_, &arg2, &temp, &arg4));
+      }
       else
+      {
+        char* reg_ = "rfp";
+        char* arg2 = arg(lookup_result->offset);
+        char* arg4 = NULL;
         insert_end(&($$->code),
-         new_inst(NULL, "loadAI", "rfp", arg(lookup_result->offset), temp, NULL));
+         new_inst(NULL, "loadAI", &reg_, &arg2, &temp, &arg4));
+      }
     }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
@@ -978,20 +998,51 @@ exp:
       add_children($$, 2, lexval_node($1), $3);
     }
 |   lit_exp { $$ = $1; }
-|   bool { $$ = $1; }
+|   bool 
+    { 
+      $$ = $1;
+
+      if (strcmp($$->label, "True") == 0)
+      {
+        char* to_patch = NULL;
+        char *arg1 = NULL, *arg2 = NULL, *arg4 = NULL;
+        insert_end(&($$->code), new_inst(NULL, "jumpI", &arg1, &arg2, &to_patch, &arg4));
+        $$->true_list = new_patch_list();
+        insert_patch($$->true_list, &to_patch);
+      }
+      else if (strcmp($$->label, "False") == 0)
+      {
+        char* to_patch = NULL;
+        char *arg1 = NULL, *arg2 = NULL, *arg4 = NULL;
+        insert_end(&($$->code), new_inst(NULL, "jumpI", &arg1, &arg2, &to_patch, &arg4));
+        $$->false_list = new_patch_list();
+        insert_patch($$->false_list, &to_patch);
+      }
+    }
 |   func_call 
     { 
       $$ = $1; 
     }
 |   '(' exp ')' { $$ = $2; }
-|   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $$->data_type = $2->data_type;}
+|   unary exp %prec UNARY 
+    { 
+      $$ = $1; add_children($$, 1, $2); $$->data_type = $2->data_type;
+
+      if (strcmp($$->label, "!") == 0)
+      {
+        $$->true_list = $2->false_list;
+        $$->false_list = $2->true_list;
+        $$->code = $2->code;
+      };
+    }
 |   exp '+' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "add", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "add", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
 
     }
@@ -1000,8 +1051,9 @@ exp:
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "sub", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "sub", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
     }
 |   exp '*' exp 
@@ -1009,8 +1061,9 @@ exp:
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "mult", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "mult", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
     }
 |   exp '/' exp 
@@ -1018,8 +1071,9 @@ exp:
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "div", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "div", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
     }
 |   exp '%' exp 
@@ -1047,11 +1101,28 @@ exp:
       $$ = named_node("<"); add_children($$, 2, $1, $3); 
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
-
+      
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_LT", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "cmp_LT", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
+
+      char* iftrue = NULL;
+      char* iffalse = NULL;
+      char* arg2 = NULL;
+      insert_end(&($$->code), 
+        new_inst(NULL, "cbr", &temp, &arg2, &iftrue, &iffalse));
+
+      printf("exp < exp\n");
+      print_code($$->code);
+      printf("exp < exp end\n");
+      
+      
+      $$->true_list = new_patch_list();
+      $$->false_list = new_patch_list();
+      insert_patch($$->true_list, &iftrue);
+      insert_patch($$->false_list, &iffalse);
     }
 |   exp '>' exp 
     { 
@@ -1060,9 +1131,20 @@ exp:
       $$->data_type = BOOL;
 
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_GT", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "cmp_GT", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
+      char* iftrue = NULL;
+      char* iffalse = NULL;
+      char* arg2 = NULL;
+      insert_end(&($$->code), 
+        new_inst(NULL, "cbr", &temp, &arg2, &iftrue, &iffalse));
+      
+      $$->true_list = new_patch_list();
+      $$->false_list = new_patch_list();
+      insert_patch($$->true_list, &iftrue);
+      insert_patch($$->false_list, &iffalse);
     }
 |   exp TK_OC_AND exp 
     { 
@@ -1070,10 +1152,15 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "and", $1->temp, $3->temp, temp, NULL),
-        temp);
+      char* label_ = label();
+      patch($1->true_list, label_);
+      $$->true_list = $3->true_list;
+      concat_patch_list($$->false_list, $1->false_list);
+      concat_patch_list($$->false_list, $3->false_list);
+      concat_end(&($$->code), $1->code);
+      char *arg1, *arg2, *arg3, *arg4;
+      insert_end(&($$->code), new_inst(label_, "nop", &arg1, &arg2, &arg3, &arg4));
+      concat_end(&($$->code), $3->code);
     }
 |   exp TK_OC_EQ exp 
     { 
@@ -1082,9 +1169,20 @@ exp:
       $$->data_type = BOOL;
 
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_EQ", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "cmp_EQ", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
+      char* iftrue = NULL;
+      char* iffalse = NULL;
+      char* arg2 = NULL;
+      insert_end(&($$->code), 
+        new_inst(NULL, "cbr", &temp, &arg2, &iftrue, &iffalse));
+      
+      $$->true_list = new_patch_list();
+      $$->false_list = new_patch_list();
+      insert_patch($$->true_list, &iftrue);
+      insert_patch($$->false_list, &iffalse);
     }
 |   exp TK_OC_GE exp 
     { 
@@ -1093,9 +1191,20 @@ exp:
       $$->data_type = BOOL;
 
       char* temp = reg();
+      char* arg4 = NULL; 
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_GE", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "cmp_GE", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
+      char* iftrue = NULL;
+      char* iffalse = NULL;
+      char* arg2 = NULL;
+      insert_end(&($$->code), 
+        new_inst(NULL, "cbr", &temp, &arg2, &iftrue, &iffalse));
+      
+      $$->true_list = new_patch_list();
+      $$->false_list = new_patch_list();
+      insert_patch($$->true_list, &iftrue);
+      insert_patch($$->false_list, &iffalse);
     }
 |   exp TK_OC_LE exp 
     { 
@@ -1104,9 +1213,20 @@ exp:
       $$->data_type = BOOL;
 
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_LE", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "cmp_LE", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
+      char* iftrue = NULL;
+      char* iffalse = NULL;
+      char* arg2 = NULL;
+      insert_end(&($$->code), 
+        new_inst(NULL, "cbr", &temp, &arg2, &iftrue, &iffalse));
+      
+      $$->true_list = new_patch_list();
+      $$->false_list = new_patch_list();
+      insert_patch($$->true_list, &iftrue);
+      insert_patch($$->false_list, &iffalse);
     }
 |   exp TK_OC_NE exp 
     { 
@@ -1115,20 +1235,36 @@ exp:
       $$->data_type = BOOL;
 
       char* temp = reg();
+      char* arg4 = NULL;
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_NE", $1->temp, $3->temp, temp, NULL),
+        new_inst(NULL, "cmp_NE", &($1->temp), &($3->temp), &temp, &arg4),
         temp);
+      char* iftrue = NULL;
+      char* iffalse = NULL;
+      char *arg2 = NULL;
+      insert_end(&($$->code), 
+        new_inst(NULL, "cbr", &temp, &arg2, &iftrue, &iffalse));
+      
+      $$->true_list = new_patch_list();
+      $$->false_list = new_patch_list();
+      insert_patch($$->true_list, &iftrue);
+      insert_patch($$->false_list, &iffalse);
     }
 |   exp TK_OC_OR exp 
     { 
       $$ = lexval_node($2); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
-
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "or", $1->temp, $3->temp, temp, NULL),
-        temp);
+      
+      char* label_ = label();
+      patch($1->false_list, label_);
+      $$->false_list = $3->false_list;
+      concat_patch_list($$->true_list, $1->true_list);
+      concat_patch_list($$->true_list, $3->true_list);
+      concat_end(&($$->code), $1->code);
+      char *arg1 = NULL, *arg2 = NULL, *arg3 = NULL, *arg4 = NULL;
+      insert_end(&($$->code), new_inst(label_, "nop", &arg1, &arg2, &arg3, &arg4));
+      concat_end(&($$->code), $3->code);
     }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
@@ -1178,8 +1314,14 @@ lit_exp:
       
       $$ = lexval_node($1); $$->data_type = INT;
       char* temp = reg();
+      char* arg1 = arg($1->value.i);
+      char* arg2 = NULL;
+      char* arg4 = NULL;
       insert_end(&($$->code), 
-        new_inst(NULL, "loadI", arg($1->value.i), NULL, temp, NULL));
+        new_inst(NULL, "loadI", &arg1, &arg2, &temp, &arg4));
+      printf("lit_exp int\n\n");
+      print_code($$->code);
+      printf("lit_exp int end\n\n");
       $$->temp = temp;
     }
 | TK_LIT_CHAR
