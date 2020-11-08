@@ -1047,12 +1047,22 @@ exp:
       $$ = named_node("<"); add_children($$, 2, $1, $3); 
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "cmp_LT", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp '>' exp 
     { 
       $$ = named_node(">"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
-      $$->data_type = BOOL; 
+      $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "cmp_GT", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp TK_OC_AND exp 
     { 
