@@ -10,7 +10,7 @@ int label_num = -1;
 char* label()
 {
   char* label_name;
-  asprintf(&label_name,"L%d:", ++label_num);
+  asprintf(&label_name,"L%d", ++label_num);
   return label_name;
 };
 
@@ -30,7 +30,7 @@ char* arg(int arg_val)
 
 char* format_arg(char* arg)
 {
-  if (arg == NULL) return "";
+  if (arg == NULL) return arg;
   
   char* arg_string;  
   arg_string = malloc(sizeof(", ")+sizeof(arg));
@@ -44,7 +44,7 @@ inst* new_inst(char* label, char* opcode, char* arg1, char* arg2, char* arg3, ch
 {
   inst* new_inst = malloc(sizeof(inst));
 
-  new_inst->label = (label) ? label : "   ";
+  new_inst->label = label;
   new_inst->op = opcode;
   new_inst->arg1 = arg1;
   new_inst->arg2 = format_arg(arg2);
@@ -205,8 +205,36 @@ void print_code(inst_list_item* item)
   {
     inst* inst = item->instruction;
     
-    printf("%s %s %s%s => %s%s\n", inst->label, inst->op, inst->arg1, 
-      	    inst->arg2, inst->arg3, inst->arg4);
+    if (inst->label != NULL)
+    {
+      if (strcmp(inst->op, "nop") == 0)
+      {
+        printf("%s: nop\n", inst->label);
+      }
+      else
+      {
+        printf("%s: %s %s%s => %s%s\n", inst->label, inst->op,
+               (inst->arg1) ? inst->arg1 : "", 
+               (inst->arg2) ? inst->arg2 : "",
+               (inst->arg3) ? inst->arg3 : "", 
+               (inst->arg4) ? inst->arg4 : "");
+      }
+    }
+    else
+    {
+      if (strcmp(inst->op, "nop") == 0)
+      {
+        printf("    nop\n");
+      }
+      else
+      {
+        printf("    %s %s%s => %s%s\n", inst->op,
+               (inst->arg1) ? inst->arg1 : "", 
+               (inst->arg2) ? inst->arg2 : "",
+               (inst->arg3) ? inst->arg3 : "", 
+               (inst->arg4) ? inst->arg4 : "");
+      }
+    }
 
     item = item->next;
   }

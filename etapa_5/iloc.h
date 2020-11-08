@@ -38,4 +38,11 @@ char* label();
 char* reg();
 char* arg(int arg_val);
 
+typedef struct hole_list_item {
+  char** label;
+  struct hole_list_item* next;
+} hole_list;
+
+char* hole(); 
+
 #endif
