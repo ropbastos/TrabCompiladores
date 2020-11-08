@@ -940,6 +940,15 @@ exp:
 
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
       $$->size = lookup_result->size;
+
+      char* temp = reg();
+      $$->temp = temp;
+      if (lookup_result->is_global)
+        insert_end(&($$->code),
+         new_inst(NULL, "loadAI", "rbss", arg(lookup_result->offset), temp, NULL));
+      else
+        insert_end(&($$->code),
+         new_inst(NULL, "loadAI", "rfp", arg(lookup_result->offset), temp, NULL));
     }
 |   TK_IDENTIFICADOR '[' exp ']'
     {
