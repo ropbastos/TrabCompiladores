@@ -5,7 +5,7 @@
 
 void syntactic_error(int error_code, char* symbol_name, int line, symbol_entry* sb)
 {
-  exit(error_code); // Remove that line to see error messages.
+  //exit(error_code); // Remove that line to see error messages.
   if (sb != NULL)
   {
     switch (error_code)

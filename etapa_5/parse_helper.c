@@ -138,7 +138,11 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
   }
 
   // See if src is declared.
-  if (src_lookup == NULL && exp->val != NULL && strcmp(exp->label, "True") != 0 && strcmp(exp->label, "False") != 0)
+  if (src_lookup == NULL && exp->val != NULL 
+      && strcmp(exp->label, "True") != 0 && strcmp(exp->label, "False") != 0
+      && strcmp(exp->label, "&&") != 0 && strcmp(exp->label, "||") != 0
+      && strcmp(exp->label, "==") != 0 && strcmp(exp->label, "!=") != 0
+      && strcmp(exp->label, "<=") != 0 && strcmp(exp->label, ">=") != 0)
   {
     syntactic_error(ERR_UNDECLARED, exp->label, line, NULL);
   }

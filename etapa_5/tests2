@@ -1,13 +1,13 @@
-int glob1;
-int glob2;
+
 
 int main(){
 
-  int a;
+  bool a;
   int b;
   int c;
+
+  a = b <= c;
   
-  a = b + glob2 * c;
 }
 
 

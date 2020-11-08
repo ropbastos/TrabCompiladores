@@ -1059,36 +1059,66 @@ exp:
       $$ = lexval_node($2); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "and", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp TK_OC_EQ exp 
     { 
       $$ = lexval_node($2); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "cmp_EQ", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp TK_OC_GE exp 
     { 
       $$ = lexval_node($2); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "cmp_GE", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp TK_OC_LE exp 
     { 
       $$ = lexval_node($2); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "cmp_LE", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp TK_OC_NE exp 
     { 
       $$ = lexval_node($2); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "cmp_NE", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp TK_OC_OR exp 
     { 
       $$ = lexval_node($2); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
+
+      char* temp = reg();
+      generate_binary_exp_code($$, $1, $3, 
+        new_inst(NULL, "or", $1->temp, $3->temp, temp, NULL),
+        temp);
     }
 |   exp '?' exp ':' exp %prec TERNARY 
     { 
