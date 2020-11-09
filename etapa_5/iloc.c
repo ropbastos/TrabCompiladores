@@ -239,3 +239,65 @@ void print_code(inst_list_item* item)
     item = item->next;
   }
 }
+
+
+// Backpatching.
+
+char* hole()
+{
+  char* new_hole;
+  new_hole = NULL;
+  return new_hole;
+}
+
+hole_list* new_hole_list(char** hole) // Seems right.
+{
+  hole_list* new_list = malloc(sizeof(hole_list));
+  new_list->label = hole;
+  new_list->next = NULL;
+
+  return new_list;
+}
+
+void hole_list_cat(hole_list* dst, hole_list* src)
+{
+  if(src == NULL)
+  {
+    return;
+  }
+  if (dst == NULL)
+  {
+    dst = src;
+  }
+
+  hole_list* current = dst;
+  while (current->next != NULL)
+    current = current->next;
+
+  current->next = src;
+}
+
+void patch(hole_list* list, char* label)
+{
+  if (list == NULL) return;
+  if (label == NULL) return;
+
+  hole_list* current = list;
+  while (current != NULL)
+  {
+    *(current->label) = label;
+    current = current->next;
+  };
+}
+
+void print_hole_list(hole_list* list)
+{
+  if (list == NULL) return;
+
+  hole_list* current = list;
+  while(current != NULL)
+  {
+    printf("Label: %s\n", *(current->label));
+    current = current->next;
+  }
+}

@@ -43,6 +43,10 @@ typedef struct hole_list_item {
   struct hole_list_item* next;
 } hole_list;
 
-char* hole(); 
+char* hole();
+hole_list* new_hole_list(char** hole);
+void hole_list_cat(hole_list* dst, hole_list* src);
+void patch(hole_list* list, char* label);
+void print_hole_list(hole_list* list);
 
 #endif
