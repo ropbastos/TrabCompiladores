@@ -291,5 +291,7 @@ void print_hole_list(hole_list* list)
   {
     printf("Label: %s\n", *(current->label));
     current = current->next;
-  }
+  };
 }
+
+

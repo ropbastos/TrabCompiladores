@@ -19,6 +19,8 @@ void binary_exp_type_and_error_check(node* binary_operator, node* left_exp, node
 
 void generate_binary_exp_code(node* op, node* left_exp, node* right_exp, inst* inst, char* temp);
 
+void gen_relop_code(node* exp, node* left_exp, node* right_exp);
+
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 
 

@@ -1082,19 +1082,7 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      $$->temp = temp;
-      
-      inst* branch = new_inst(NULL, "cbr", $$->temp, NULL, "HOLE", "HOLE");
-      insert_end(&($$->code), branch);
-      $$->t = new_hole_list(&($$->code->instruction->arg3));
-      $$->f = new_hole_list(&($$->code->instruction->arg4));
-
-      concat_end(&$1->code, $3->code);
-      insert_end(&$3->code, new_inst(NULL, "cmp_LT", $1->temp, $3->temp, $$->temp, NULL));       
-      concat_end(&$3->code, $$->code);
-      $$->code = $1->code;
-      
+      gen_relop_code($$, $1, $3);      
     }
 |   exp '>' exp 
     { 
@@ -1102,10 +1090,7 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_GT", $1->temp, $3->temp, temp, NULL),
-        temp);
+      gen_relop_code($$, $1, $3); 
     }
 |   exp TK_OC_AND exp 
     { 
@@ -1124,10 +1109,7 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_EQ", $1->temp, $3->temp, temp, NULL),
-        temp);
+      gen_relop_code($$, $1, $3); 
     }
 |   exp TK_OC_GE exp 
     { 
@@ -1135,10 +1117,7 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_GE", $1->temp, $3->temp, temp, NULL),
-        temp);
+      gen_relop_code($$, $1, $3); 
     }
 |   exp TK_OC_LE exp 
     { 
@@ -1146,10 +1125,7 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_LE", $1->temp, $3->temp, temp, NULL),
-        temp);
+      gen_relop_code($$, $1, $3); 
     }
 |   exp TK_OC_NE exp 
     { 
@@ -1157,10 +1133,7 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_NE", $1->temp, $3->temp, temp, NULL),
-        temp);
+      gen_relop_code($$, $1, $3); 
     }
 |   exp TK_OC_OR exp 
     { 

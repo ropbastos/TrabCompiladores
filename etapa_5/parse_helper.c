@@ -254,3 +254,37 @@ void generate_binary_exp_code(node* op, node* left_exp, node* right_exp, inst* i
   concat_end(&(op->code), right_exp->code);
   insert_end(&(op->code), inst);
 }
+
+void gen_relop_code(node* exp, node* left_exp, node* right_exp)
+{
+  exp->temp = reg();
+  
+  inst* branch = new_inst(NULL, "cbr", exp->temp, NULL, "HOLE", "HOLE");
+  insert_end(&(exp->code), branch);
+  exp->t = new_hole_list(&(exp->code->instruction->arg3));
+  exp->f = new_hole_list(&(exp->code->instruction->arg4));
+
+  concat_end(&left_exp->code, right_exp->code);
+
+  if (strcmp(exp->label, "<") == 0)
+    insert_end(&right_exp->code, 
+      new_inst(NULL, "cmp_LT", left_exp->temp, right_exp->temp, exp->temp, NULL)); 
+  if (strcmp(exp->label, ">") == 0)
+    insert_end(&right_exp->code, 
+      new_inst(NULL, "cmp_GT", left_exp->temp, right_exp->temp, exp->temp, NULL)); 
+  if (strcmp(exp->label, "==") == 0)
+    insert_end(&right_exp->code, 
+      new_inst(NULL, "cmp_EQ", left_exp->temp, right_exp->temp, exp->temp, NULL)); 
+  if (strcmp(exp->label, ">=") == 0)
+    insert_end(&right_exp->code, 
+      new_inst(NULL, "cmp_GE", left_exp->temp, right_exp->temp, exp->temp, NULL)); 
+  if (strcmp(exp->label, "<=") == 0)
+    insert_end(&right_exp->code, 
+      new_inst(NULL, "cmp_LE", left_exp->temp, right_exp->temp, exp->temp, NULL)); 
+  if (strcmp(exp->label, "!=") == 0)
+    insert_end(&right_exp->code, 
+      new_inst(NULL, "cmp_NE", left_exp->temp, right_exp->temp, exp->temp, NULL));
+       
+  concat_end(&right_exp->code, exp->code);
+  exp->code = left_exp->code;
+}
