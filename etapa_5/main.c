@@ -30,14 +30,14 @@ int main (int argc, char **argv)
   // insert_after(head, inst3);
   // print_code(head);
 
-  char* hole1 = "HOLE";
-  char* hole2 = "HOLE";
-  hole_list* test_list = new_hole_list(&hole1);
-  hole_list_cat(test_list, new_hole_list(&hole2));
-  char* tst_lbl = label();
-  printf("Holes being patched with: %s\n", tst_lbl);
-  patch(test_list, tst_lbl);
-  print_hole_list(test_list);
+  // char* hole1 = "HOLE";
+  // char* hole2 = "HOLE";
+  // hole_list* test_list = new_hole_list(&hole1);
+  // hole_list_cat(test_list, new_hole_list(&hole2));
+  // char* tst_lbl = label();
+  // printf("Holes being patched with: %s\n", tst_lbl);
+  // patch(test_list, tst_lbl);
+  // print_hole_list(test_list);
 
   return ret;
 }

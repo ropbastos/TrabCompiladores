@@ -604,7 +604,41 @@ attrib:
 
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
       $$->children[0]->data_type = dst->data_type;
+
       concat_end(&($$->code), $3->code);
+
+      char* label_end = label();
+      inst *loadI, *jumpI;
+      if ($3->t != NULL)
+      {
+        char* label_true = label();
+        patch($3->t, label_true);
+
+        loadI = new_inst(label_true, "loadI", "1", NULL, $3->temp, NULL);
+        jumpI = new_inst(NULL, "jumpI", NULL, NULL, label_end, NULL);
+
+        insert_end(&$$->code, loadI);
+        insert_end(&$$->code, jumpI);
+      }
+      if ($3->f != NULL)
+      {
+        char* label_false = label();
+        patch($3->f, label_false);
+
+        loadI = new_inst(label_false, "loadI", "0", NULL, $3->temp, NULL);
+        jumpI = new_inst(NULL, "jumpI", NULL, NULL, label_end, NULL);
+
+        insert_end(&$$->code, loadI);
+        insert_end(&$$->code, jumpI);
+      }
+
+      if ($3->t != NULL || $3->f != NULL)
+      {
+        inst* nop = new_inst(label_end, "nop", NULL, NULL, NULL, NULL);
+        insert_end(&$$->code, nop);
+      }
+
+      //concat_end(&($$->code), $3->code);
       if (dst->is_global)
         insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rbss", arg(dst->offset)));
       else
@@ -1049,9 +1083,18 @@ exp:
       $$->data_type = BOOL;
 
       char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "cmp_LT", $1->temp, $3->temp, temp, NULL),
-        temp);
+      $$->temp = temp;
+      
+      inst* branch = new_inst(NULL, "cbr", $$->temp, NULL, "HOLE", "HOLE");
+      insert_end(&($$->code), branch);
+      $$->t = new_hole_list(&($$->code->instruction->arg3));
+      $$->f = new_hole_list(&($$->code->instruction->arg4));
+
+      concat_end(&$1->code, $3->code);
+      insert_end(&$3->code, new_inst(NULL, "cmp_LT", $1->temp, $3->temp, $$->temp, NULL));       
+      concat_end(&$3->code, $$->code);
+      $$->code = $1->code;
+      
     }
 |   exp '>' exp 
     { 

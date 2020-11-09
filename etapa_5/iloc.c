@@ -44,12 +44,12 @@ inst* new_inst(char* label, char* opcode, char* arg1, char* arg2, char* arg3, ch
 {
   inst* new_inst = malloc(sizeof(inst));
 
-  new_inst->label = label;
-  new_inst->op = opcode;
-  new_inst->arg1 = arg1;
-  new_inst->arg2 = format_arg(arg2);
-  new_inst->arg3 = arg3;
-  new_inst->arg4 = format_arg(arg4);
+  new_inst->label = (label) ? strdup(label) : NULL;
+  new_inst->op = strdup(opcode);
+  new_inst->arg1 = (arg1) ? strdup(arg1) : NULL;
+  new_inst->arg2 = (arg2) ? strdup(arg2) : NULL;
+  new_inst->arg3 = (arg3) ? strdup(arg3) : NULL;
+  new_inst->arg4 = (arg4) ? strdup(arg4) : NULL;
 
   return new_inst;
 }
@@ -204,37 +204,29 @@ void print_code(inst_list_item* item)
   while (item != NULL)
   {
     inst* inst = item->instruction;
-    
-    if (inst->label != NULL)
+
+    // label: opcode arg1[, arg2] => arg3[, arg4] 
+    char* label = "    ";
+    char* op = inst->op;
+    char* arg1 = (inst->arg1) ? inst->arg1 : "";
+    char* arg2 = (inst->arg2) ? format_arg(inst->arg2) : "";
+    char* arg3 = (inst->arg3) ? inst->arg3 : "";
+    char* arg4 = (inst->arg4) ? format_arg(inst->arg4) : "";
+
+    char* formatted_label;
+    if (inst->label)
     {
-      if (strcmp(inst->op, "nop") == 0)
-      {
-        printf("%s: nop\n", inst->label);
-      }
-      else
-      {
-        printf("%s: %s %s%s => %s%s\n", inst->label, inst->op,
-               (inst->arg1) ? inst->arg1 : "", 
-               (inst->arg2) ? inst->arg2 : "",
-               (inst->arg3) ? inst->arg3 : "", 
-               (inst->arg4) ? inst->arg4 : "");
-      }
+      label = inst->label;
+      formatted_label = malloc(sizeof(label)+sizeof(": "));
+      formatted_label = strcpy(formatted_label, label);
+      formatted_label = strcat(formatted_label, ": ");
+      label = formatted_label;
     }
+
+    if (strcmp(op, "nop") == 0)
+      printf("%s nop\n", label);
     else
-    {
-      if (strcmp(inst->op, "nop") == 0)
-      {
-        printf("    nop\n");
-      }
-      else
-      {
-        printf("    %s %s%s => %s%s\n", inst->op,
-               (inst->arg1) ? inst->arg1 : "", 
-               (inst->arg2) ? inst->arg2 : "",
-               (inst->arg3) ? inst->arg3 : "", 
-               (inst->arg4) ? inst->arg4 : "");
-      }
-    }
+      printf("%s %s %s%s => %s%s\n", label, op, arg1, arg2, arg3, arg4);
 
     item = item->next;
   }
