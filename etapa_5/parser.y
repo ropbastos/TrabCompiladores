@@ -1098,10 +1098,7 @@ exp:
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       $$->data_type = BOOL;
 
-      char* temp = reg();
-      generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "and", $1->temp, $3->temp, temp, NULL),
-        temp);
+      gen_logicop_code($$, $1, $3);
     }
 |   exp TK_OC_EQ exp 
     { 

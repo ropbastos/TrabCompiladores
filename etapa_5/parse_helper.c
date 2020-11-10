@@ -308,3 +308,20 @@ void gen_relop_code(node* exp, node* left_exp, node* right_exp)
   concat_end(&right_exp->code, exp->code);
   exp->code = left_exp->code;
 }
+
+void gen_logicop_code(node* op, node* left_exp, node* right_exp)
+{
+  op->temp = reg();
+  
+  if (strcmp(op->label, "&&") == 0)
+  {
+    char* true_label = label();
+    patch(left_exp->t, true_label);
+    hole_list_cat(&op->t, &right_exp->t);
+    hole_list_cat(&op->f, &left_exp->f);
+    hole_list_cat(&op->f, &right_exp->f);
+    concat_end(&op->code, left_exp->code);
+    insert_end(&op->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
+    concat_end(&op->code, right_exp->code);
+  }
+}
