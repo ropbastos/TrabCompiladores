@@ -1018,7 +1018,14 @@ exp:
       $$ = $1; 
     }
 |   '(' exp ')' { $$ = $2; }
-|   unary exp %prec UNARY { $$ = $1; add_children($$, 1, $2); $$->data_type = $2->data_type;}
+|   unary exp %prec UNARY 
+    { 
+      $$ = $1; 
+      add_children($$, 1, $2); 
+      $$->data_type = $2->data_type;
+
+      gen_logicop_code($$, $2, NULL);
+    }
 |   exp '+' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);

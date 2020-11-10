@@ -335,4 +335,10 @@ void gen_logicop_code(node* op, node* left_exp, node* right_exp)
     insert_end(&op->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
     concat_end(&op->code, right_exp->code);
   }
+  else if(strcmp(op->label, "!") == 0)
+  {
+    hole_list_cat(&op->t, &left_exp->f);
+    hole_list_cat(&op->f, &left_exp->t);
+    concat_end(&op->code, left_exp->code);
+  }
 }
