@@ -1012,7 +1012,11 @@ exp:
       add_children($$, 2, lexval_node($1), $3);
     }
 |   lit_exp { $$ = $1; }
-|   bool { $$ = $1; }
+|   bool 
+    { 
+      $$ = $1; 
+      gen_bool_lit_exp_code($$);
+    }
 |   func_call 
     { 
       $$ = $1; 

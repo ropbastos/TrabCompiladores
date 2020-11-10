@@ -342,3 +342,19 @@ void gen_logicop_code(node* op, node* left_exp, node* right_exp)
     concat_end(&op->code, left_exp->code);
   }
 }
+
+void gen_bool_lit_exp_code(node* exp)
+{
+  if (strcmp(exp->label, "True") == 0)
+  {
+    insert_end(&exp->code, new_inst(NULL, "jumpI", NULL, NULL, "HOLE", NULL));
+    hole_list* new_hole = new_hole_list(&(exp->code->instruction->arg3));
+    hole_list_cat(&exp->t, &new_hole);
+  }
+  else if (strcmp(exp->label, "False") == 0)
+  {
+    insert_end(&exp->code, new_inst(NULL, "jumpI", NULL, NULL, "HOLE", NULL));
+    hole_list* new_hole = new_hole_list(&(exp->code->instruction->arg3));
+    hole_list_cat(&exp->f, &new_hole);
+  }
+}
