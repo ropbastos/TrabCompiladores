@@ -261,9 +261,29 @@ void gen_relop_code(node* exp, node* left_exp, node* right_exp)
   
   inst* branch = new_inst(NULL, "cbr", exp->temp, NULL, "HOLE", "HOLE");
   insert_end(&(exp->code), branch);
-  exp->t = new_hole_list(&(exp->code->instruction->arg3));
-  exp->f = new_hole_list(&(exp->code->instruction->arg4));
-
+  if (left_exp->t == NULL && right_exp->t == NULL)
+  {
+    exp->t = new_hole_list(&(exp->code->instruction->arg3));
+  }
+  else
+  {
+    hole_list_cat(&exp->t, &left_exp->t);
+    hole_list_cat(&exp->t, &right_exp->t);
+    hole_list* new_hole = new_hole_list(&(exp->code->instruction->arg3));
+    hole_list_cat(&exp->t, &new_hole);
+  }
+  
+  if (left_exp->f == NULL && right_exp->f == NULL)
+  {
+    exp->f = new_hole_list(&(exp->code->instruction->arg4));
+  }
+  else
+  {
+    hole_list_cat(&exp->f, &left_exp->f);
+    hole_list_cat(&exp->f, &right_exp->f);
+    hole_list* new_hole = new_hole_list(&(exp->code->instruction->arg4));
+    hole_list_cat(&exp->f, &new_hole);
+  }
   concat_end(&left_exp->code, right_exp->code);
 
   if (strcmp(exp->label, "<") == 0)

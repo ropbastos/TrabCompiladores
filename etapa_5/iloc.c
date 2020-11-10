@@ -251,22 +251,23 @@ hole_list* new_hole_list(char** hole) // Seems right.
   return new_list;
 }
 
-void hole_list_cat(hole_list* dst, hole_list* src)
+void hole_list_cat(hole_list** dst, hole_list** src)
 {
-  if(src == NULL)
+  if(*src == NULL)
   {
     return;
   }
-  if (dst == NULL)
+  if (*dst == NULL)
   {
-    dst = src;
+    *dst = *src;
+    return;
   }
 
-  hole_list* current = dst;
+  hole_list* current = *dst;
   while (current->next != NULL)
     current = current->next;
 
-  current->next = src;
+  current->next = *src;
 }
 
 void patch(hole_list* list, char* label)
