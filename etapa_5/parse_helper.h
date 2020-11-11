@@ -27,6 +27,8 @@ void gen_bool_lit_exp_code(node* exp);
 
 void gen_if_code(node* ifcmd, node* cond, node* true_block, node* false_block);
 
+void gen_while_code(node* while_cmd, node* cond, node* block);
+
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 
 

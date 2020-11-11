@@ -4,16 +4,12 @@ int main(){
   int b;
   int c;
 
-  if (b < c) 
+  while (b < c) do
   {
     a = 2;
-  }
-  else
-  {
-    a = 3;
   };
   
-  c = 3;
+
 }
 
 

@@ -974,6 +974,8 @@ while:
     {  
         $$ = named_node("while");
         add_children($$, 2, $3, $6);
+
+        gen_while_code($$, $3, $6);
     }
 ;
 
