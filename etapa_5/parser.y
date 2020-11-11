@@ -966,6 +966,8 @@ for:
     {  
         $$ = named_node("for");
         add_children($$, 4, $3, $5, $7, $9);
+
+        gen_for_code($$, $3, $5, $7, $9);
     }
 ;
 

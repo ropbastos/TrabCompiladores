@@ -29,6 +29,8 @@ void gen_if_code(node* ifcmd, node* cond, node* true_block, node* false_block);
 
 void gen_while_code(node* while_cmd, node* cond, node* block);
 
+void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterthought, node* block);
+
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 
 

@@ -402,3 +402,25 @@ void gen_while_code(node* while_cmd, node* cond, node* block)
   insert_end(&while_cmd->code, new_inst(NULL, "jumpI", NULL, NULL, loop_label, NULL));
   insert_end(&while_cmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
 }
+
+void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterthought, node* block)
+{
+  if (initialization != NULL)
+    concat_end(&for_cmd->code, initialization->code);
+  
+  char* true_label = label();
+  char* false_label = label();
+  patch(cond->t, true_label);
+  patch(cond->f, false_label);
+  char* loop_label = label();
+  insert_end(&for_cmd->code, new_inst(loop_label, "nop", NULL, NULL, NULL, NULL));
+  if (cond != NULL)
+    concat_end(&for_cmd->code, cond->code);
+  insert_end(&for_cmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
+  if (block->code != NULL)
+    concat_end(&for_cmd->code, block->code);
+  if (afterthought != NULL)
+    concat_end(&for_cmd->code, afterthought->code);
+  insert_end(&for_cmd->code, new_inst(NULL, "jumpI", NULL, NULL, loop_label, NULL));
+  insert_end(&for_cmd->code, new_inst(false_label, "nop", NULL, NULL, NULL ,NULL));
+}
