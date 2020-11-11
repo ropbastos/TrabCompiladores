@@ -379,7 +379,6 @@ cmds:
       if ($1 != NULL) 
       {
         $$ = $1; add_children($$, 1, $3);
-        concat_end(&$$->code, $3->code);
       } 
       else 
       {
@@ -391,7 +390,8 @@ cmds:
       if ($1 != NULL) 
       {
         $$ = $1; add_children($$, 1, $3);
-        concat_end(&$$->code, $3->code);
+        if ($3 != NULL)
+          concat_end(&$$->code, $3->code);
       } 
       else 
       {
@@ -950,12 +950,14 @@ if:
         $$ = named_node("if");
         add_children($$, 3, $3, $5, NULL);
 
-        gen_if_code($$, $3, $5);
+        gen_if_code($$, $3, $5, NULL);
     }
 |   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
     {  
         $$ = named_node("if");
         add_children($$, 3, $3, $5, $7);
+
+        gen_if_code($$, $3, $5, $7);
     }
 ;
 

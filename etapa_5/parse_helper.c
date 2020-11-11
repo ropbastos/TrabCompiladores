@@ -359,7 +359,7 @@ void gen_bool_lit_exp_code(node* exp)
   }
 }
 
-void gen_if_code(node* ifcmd, node* cond, node* block)
+void gen_if_code(node* ifcmd, node* cond, node* true_block, node* false_block)
 {
   char* true_label = label();
   char* false_label = label();
@@ -367,8 +367,23 @@ void gen_if_code(node* ifcmd, node* cond, node* block)
   patch(cond->t, true_label);
   patch(cond->f, false_label);
 
-  concat_end(&ifcmd->code, cond->code);
-  insert_end(&ifcmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
-  concat_end(&ifcmd->code, block->code);
-  insert_end(&ifcmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
+  if (false_block == NULL)
+  {
+    concat_end(&ifcmd->code, cond->code);
+    insert_end(&ifcmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
+    concat_end(&ifcmd->code, true_block->code);
+    insert_end(&ifcmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
+  }
+  else
+  {
+    char* end_label = label();
+    concat_end(&ifcmd->code, cond->code);
+    insert_end(&ifcmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
+    concat_end(&ifcmd->code, true_block->code);
+    insert_end(&ifcmd->code, new_inst(NULL, "jumpI", NULL, NULL, end_label, NULL));
+    insert_end(&ifcmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
+    concat_end(&ifcmd->code, false_block->code);
+    insert_end(&ifcmd->code, new_inst(end_label, "nop", NULL, NULL, NULL, NULL));
+  }
 }
+
