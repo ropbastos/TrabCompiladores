@@ -206,17 +206,17 @@ global_list:
     }
 |   TK_IDENTIFICADOR ',' global_list 
     { 
-      add_id($3, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$3, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
       $$ = $3; 
     }
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list 
     { 
-      add_id($6, $1, $3->value.i, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$6, $1, $3->value.i, NOT_A_STRING, NOT_INITIALIZED); 
       $$ = $6; 
     }
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list 
     { 
-      add_id($7, $1, $4->value.i, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$7, $1, $4->value.i, NOT_A_STRING, NOT_INITIALIZED); 
       $$ = $7; 
     }
 ;
@@ -398,6 +398,19 @@ cmds:
         $$ = $3;
       };
     }
+  |   control cmds
+    {
+      if ($1 != NULL) 
+      {
+        $$ = $1; add_children($$, 1, $2);
+        if ($2 != NULL)
+          concat_end(&$$->code, $2->code);
+      } 
+      else 
+      {
+        $$ = $2;
+      };
+    }
 ;
 
 local_decl:
@@ -480,7 +493,7 @@ local_list:
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
-      add_id($3->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$3->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
       $$->id_list = $3->id_list; 
 
       if ($3->ast_node != NULL ) { $$->ast_node = $3->ast_node; } else { $$->ast_node = NULL; };
@@ -531,9 +544,9 @@ local_list:
         syntactic_error(ERR_UNDECLARED, $3->value.s, get_line_number(), NULL);
 
       if (lookup_res->data_type != STR)
-        add_id($5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, lookup_res->data_type); 
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, lookup_res->data_type); 
       else
-        add_id($5->id_list, $1, NOT_A_VECTOR, lookup_res->size, lookup_res->data_type);
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, lookup_res->size, lookup_res->data_type);
 
       $$->id_list = $5->id_list; 
 
@@ -544,10 +557,10 @@ local_list:
     {
       if ($3->data_type == STR)
       {
-        add_id($5->id_list, $1, NOT_A_VECTOR, strlen($3->label), $3->data_type); 
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, strlen($3->label), $3->data_type); 
       }
       else
-        add_id($5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, $3->data_type);
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, $3->data_type);
 
       $$->id_list = $5->id_list; 
 

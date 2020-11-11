@@ -1,16 +1,17 @@
+int a, b, c, d, e, f;
+
 int main(){
 
-  int i;
-  int a;
+  int x, y, z;
 
-  for (i = 0: i < 3: i = i + 1)
-  {
-    a = 2;
+  while (a < b && e != f) do {
+    if (c < d){
+      x = y + z;
+    } else {
+      x = x - z;
+    };
   };
-
-  i = 0;
   
-
 }
 
 
