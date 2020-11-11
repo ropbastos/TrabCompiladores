@@ -25,6 +25,8 @@ void gen_logicop_code(node* op, node* left_exp, node* right_exp);
 
 void gen_bool_lit_exp_code(node* exp);
 
+void gen_if_code(node* ifcmd, node* cond, node* block);
+
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 
 

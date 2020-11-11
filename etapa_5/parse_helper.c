@@ -358,3 +358,17 @@ void gen_bool_lit_exp_code(node* exp)
     hole_list_cat(&exp->f, &new_hole);
   }
 }
+
+void gen_if_code(node* ifcmd, node* cond, node* block)
+{
+  char* true_label = label();
+  char* false_label = label();
+
+  patch(cond->t, true_label);
+  patch(cond->f, false_label);
+
+  concat_end(&ifcmd->code, cond->code);
+  insert_end(&ifcmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
+  concat_end(&ifcmd->code, block->code);
+  insert_end(&ifcmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
+}

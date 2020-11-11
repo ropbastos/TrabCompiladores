@@ -239,6 +239,7 @@ func:
         syntactic_error(ERR_WRONG_PAR_RETURN, $1->label, return_line, NULL);
       } 
       $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
+      print_code($2->code);
     }
 ;
 
@@ -375,11 +376,27 @@ cmds:
     }
 |   jmp_stmt ';' cmds
     {
-      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) 
+      {
+        $$ = $1; add_children($$, 1, $3);
+        concat_end(&$$->code, $3->code);
+      } 
+      else 
+      {
+        $$ = $3;
+      };
     }
 |   control ';' cmds
     {
-      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) 
+      {
+        $$ = $1; add_children($$, 1, $3);
+        concat_end(&$$->code, $3->code);
+      } 
+      else 
+      {
+        $$ = $3;
+      };
     }
 ;
 
@@ -643,7 +660,7 @@ attrib:
         insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rbss", arg(dst->offset)));
       else
         insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rfp", arg(dst->offset)));
-      print_code($$->code);
+      //print_code($$->code);
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
@@ -932,6 +949,8 @@ if:
     {  
         $$ = named_node("if");
         add_children($$, 3, $3, $5, NULL);
+
+        gen_if_code($$, $3, $5);
     }
 |   TK_PR_IF '(' exp ')' block TK_PR_ELSE block
     {  
