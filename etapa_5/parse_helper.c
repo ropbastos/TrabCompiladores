@@ -428,6 +428,8 @@ void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterth
   insert_end(&for_cmd->code, new_inst(false_label, "nop", NULL, NULL, NULL ,NULL));
 }
 
+int find_return_val(){}
+
 void gen_func_code(node* header, node* body, int offset, symb_table* scope)
 {
   int is_main = 0;
@@ -444,10 +446,18 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope)
   }
 
   // Abre espaco pras variaveis locais.
-  insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(offset), "rsp", NULL));
+  if (offset != 0)
+    insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(offset), "rsp", NULL));
   // Abre espaco pros argumentos.
   /* TODO */
-  concat_end(&header->code, body->code);
+  // Final do prologo.
+  insert_end(&header->code, new_inst(NULL, "addI", "rsp", "16", "rsp", NULL));
+  // Insere codigo do corpo.
+  if (body != NULL)
+    concat_end(&header->code, body->code);
+  // Sequencia de retorno.
+  //int return_val = find_return_val(body);
+  // Halt para terminar o programa no caso da funcao ser a main.
   if (is_main)
     insert_end(&header->code, new_inst(NULL, "halt", NULL, NULL, NULL, NULL));
 };

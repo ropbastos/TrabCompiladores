@@ -204,7 +204,7 @@ void print_tree_labels(node* tree) {
 void check_return_type(node* tree)
 {
   if (tree == NULL) return;
-  //printf("Current node data type: %d\n", tree->data_type);
+  
   if (tree->is_return == 1)
   {
     if (expected_return_type == CHAR && tree->data_type != CHAR || expected_return_type == STR && tree->data_type != STR

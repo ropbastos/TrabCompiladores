@@ -249,11 +249,8 @@ func:
       } 
       $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
 
-      if ($2 != NULL)
-      {
-        gen_func_code($$, $2, prev_offset, peek(scope_stack));
-        //print_code($$->code);
-      }
+      gen_func_code($$, $2, prev_offset, peek(scope_stack));
+      //print_code($$->code);
     }
 ;
 
@@ -368,6 +365,9 @@ cmds:
 |   block ';' cmds
     {
       if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+
+      if ($3 != NULL)
+          concat_end(&$$->code, $3->code);
     }
 |   local_decl ';' cmds 
     {
@@ -376,6 +376,9 @@ cmds:
 |   attrib ';' cmds
     {
       if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+
+      if ($3 != NULL)
+          concat_end(&$$->code, $3->code);
     }
 |   io ';' cmds
     {
@@ -384,6 +387,9 @@ cmds:
 |   func_call ';' cmds
     {
       if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+
+      if ($3 != NULL)
+          concat_end(&$$->code, $3->code);
     }
 |   shift ';' cmds
     {
