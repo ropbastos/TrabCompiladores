@@ -14,14 +14,15 @@ stack* scope_stack = NULL;
 extern int return_line;
 extern int expected_return_type;
 extern int return_type_is_correct;
+extern int prev_offset;
 
 inst_list_item* head = NULL;
 
-typedef struct prod_val {
-  struct node* ast_node;
-  struct id_list_item* id_list;
-  struct arg_list_item* arg_list;
-} prod;
+// typedef struct prod_val {
+//   struct node* ast_node;
+//   struct id_list_item* id_list;
+//   struct arg_list_item* arg_list;
+// } prod;
 %}
 
 %define parse.error verbose
@@ -239,7 +240,12 @@ func:
         syntactic_error(ERR_WRONG_PAR_RETURN, $1->label, return_line, NULL);
       } 
       $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
-      print_code($2->code);
+
+      if ($2 != NULL)
+      {
+        gen_func_code($$, $2, prev_offset, peek(scope_stack));
+        print_code($$->code);
+      }
     }
 ;
 
@@ -334,6 +340,7 @@ block_start: '{'
 block_end: '}' 
 { 
   int offset_to_inherit = peek(scope_stack)->offset; 
+  prev_offset = peek(scope_stack)->offset;
   pop(&scope_stack)->table;
   if (peek(scope_stack)->is_global == 0)
   {
@@ -575,7 +582,7 @@ literal:
       $$ = lexval_node($1); 
       symb_table* scope = pop(&scope_stack);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, CHAR,
-                                              1, NULL, $1, 0, scope->is_global);
+                                              1, NULL, $1, 0, scope->is_global, NULL);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
@@ -584,7 +591,7 @@ literal:
       $$ = lexval_node($1); 
       symb_table* scope = pop(&scope_stack);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
-                                              1, NULL, $1, 0, scope->is_global);
+                                              1, NULL, $1, 0, scope->is_global, NULL);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
@@ -593,7 +600,7 @@ literal:
       $$ = lexval_node($1); 
       symb_table* scope = pop(&scope_stack);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, FLOAT,
-                                              8, NULL, $1, 0, scope->is_global);
+                                              8, NULL, $1, 0, scope->is_global, NULL);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
@@ -602,7 +609,7 @@ literal:
       $$ = lexval_node($1); 
       symb_table* scope = pop(&scope_stack);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, INT,
-                                              4, NULL, $1, 0, scope->is_global);
+                                              4, NULL, $1, 0, scope->is_global, NULL);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
@@ -611,7 +618,7 @@ literal:
       $$ = lexval_node($1); 
       symb_table* scope = pop(&scope_stack);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, STR,
-                                              strlen($$->label), NULL, $1, 0, scope->is_global);
+                                              strlen($$->label), NULL, $1, 0, scope->is_global, NULL);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
@@ -620,7 +627,7 @@ literal:
       $$ = lexval_node($1); 
       symb_table* scope = pop(&scope_stack);
       symbol_entry* new_lit = new_symbol_entry($$->label, get_line_number(), LIT, BOOL,
-                                              1, NULL, $1, 0, scope->is_global);
+                                              1, NULL, $1, 0, scope->is_global, NULL);
       ht_insert(new_lit, scope);
       push(&scope_stack, scope);
     }
@@ -782,6 +789,8 @@ func_call:
       
       $$ = lexval_node($1); add_children($$, 1, $3->ast_node);
       $$->data_type = lookup_res->data_type;
+
+      
     }
 ;
 
@@ -1211,7 +1220,7 @@ lit_exp:
       {
         // If not, put it.
         symb_table* scope = pop(&scope_stack);
-        sb = new_symbol_entry(float_to_str, get_line_number(), LIT, FLOAT, 8, NULL, $1, 0, scope->is_global);
+        sb = new_symbol_entry(float_to_str, get_line_number(), LIT, FLOAT, 8, NULL, $1, 0, scope->is_global, NULL);
         if (scope == NULL) printf("Scope is null on num.\n");
         ht_insert(sb, scope);
         push(&scope_stack, scope);
@@ -1229,7 +1238,7 @@ lit_exp:
       {
         // If not, put it.
         symb_table* scope = pop(&scope_stack);
-        sb = new_symbol_entry(int_to_str, get_line_number(), LIT, INT, 4, NULL, $1, 0, scope->is_global);
+        sb = new_symbol_entry(int_to_str, get_line_number(), LIT, INT, 4, NULL, $1, 0, scope->is_global, NULL);
         if (scope == NULL) printf("Scope is null on num.\n");
         ht_insert(sb, scope);
         push(&scope_stack, scope);
@@ -1248,7 +1257,7 @@ lit_exp:
     if (sb == NULL)
     {
       symb_table* scope = pop(&scope_stack);
-      sb = new_symbol_entry($$->label, get_line_number(), LIT, CHAR, 1, NULL, $1, 0, scope->is_global);
+      sb = new_symbol_entry($$->label, get_line_number(), LIT, CHAR, 1, NULL, $1, 0, scope->is_global, NULL);
       if (scope == NULL) printf("Scope is null on num.\n");
       ht_insert(sb, scope);
       push(&scope_stack, scope);
@@ -1262,7 +1271,7 @@ lit_exp:
     if (sb == NULL)
     {
       symb_table* scope = pop(&scope_stack);
-      sb = new_symbol_entry($$->label, get_line_number(), LIT, STR, strlen($$->label), NULL, $1, 0, scope->is_global);
+      sb = new_symbol_entry($$->label, get_line_number(), LIT, STR, strlen($$->label), NULL, $1, 0, scope->is_global, NULL);
       if (scope == NULL) printf("Scope is null on num.\n");
       ht_insert(sb, scope);
       push(&scope_stack, scope);

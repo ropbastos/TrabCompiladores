@@ -29,6 +29,7 @@ void delete_item(inst_list_item** head, inst_list_item* del);
 void concat_end(inst_list_item** dst_list, inst_list_item* src_list);
 
 void print_code(inst_list_item* item);
+int count_instructions(inst_list_item* code);
 
 
 extern int reg_num;

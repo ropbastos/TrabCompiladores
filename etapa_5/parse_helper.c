@@ -1,6 +1,9 @@
 #include <string.h>
 #include "parse_helper.h"
 #include "iloc.h"
+#include "stack.h"
+
+int prev_offset = -1;
 
 
 void add_variables_to_scope(int type, id_list* ids, symb_table* scope)
@@ -41,7 +44,7 @@ void add_variables_to_scope(int type, id_list* ids, symb_table* scope)
           size = -1;
       }
       sb = new_symbol_entry(current->id, current->line, VAR, type,
-                             size, NULL, NULL, scope->offset, scope->is_global);
+                             size, NULL, NULL, scope->offset, scope->is_global, NULL);
       scope->offset += size;
     }
     else // Is a vector. OFFSET NOT BEING CALCULATED AS OF E5 FOR VECTORS.
@@ -67,7 +70,7 @@ void add_variables_to_scope(int type, id_list* ids, symb_table* scope)
           size = -1;
       }
       sb = new_symbol_entry(current->id, current->line, VEC, type,
-                             size, NULL, NULL, 0, scope->is_global);
+                             size, NULL, NULL, 0, scope->is_global, NULL);
     }
 
     ht_insert(sb, scope);
@@ -110,7 +113,7 @@ void add_functions_to_scope(int type, lex_val* id, arg_list* params, symb_table*
 
   // Add function name to scope.
   symbol_entry* sb = new_symbol_entry(id->value.s, id->line, FUNC, type,
-                                       size, params, id, 0, scope->is_global);
+                                       size, params, id, 0, scope->is_global, label());
   if (ht_lookup(sb->label, scope) != NULL)
   {
     syntactic_error(ERR_DECLARED, NULL, -1, ht_lookup(sb->label, scope));
@@ -424,3 +427,38 @@ void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterth
   insert_end(&for_cmd->code, new_inst(NULL, "jumpI", NULL, NULL, loop_label, NULL));
   insert_end(&for_cmd->code, new_inst(false_label, "nop", NULL, NULL, NULL ,NULL));
 }
+
+void gen_func_code(node* header, node* body, int offset, symb_table* scope)
+{
+  int is_main = 0;
+  if (strcmp(header->label, "main") == 0)
+    is_main = 1;
+  // Iguala rsp e rfp.
+  if (is_main)
+    insert_end(&header->code, new_inst("L0", "i2i", "rsp", NULL, "rfp", NULL));
+  else
+  {
+    symbol_entry* func = ht_lookup(header->label, scope);
+    insert_end(&header->code, new_inst(func->iloc_func_label, "i2i", "rsp", NULL, "rfp", NULL));
+  }
+
+  // Abre espaco pras variaveis locais.
+  insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(offset), "rsp", NULL));
+  // Abre espaco pros argumentos.
+  /* TODO */
+  concat_end(&header->code, body->code);
+  if (is_main)
+    insert_end(&header->code, new_inst(NULL, "halt", NULL, NULL, NULL, NULL));
+};
+
+void gen_func_call_code(node* call, prod* args)
+{
+  // Salva end. de retorno (5 instrucoes abaixo).
+  char* temp = reg();
+  insert_end(&call->code, new_inst(NULL, "addI", "rpc", "5", temp, NULL));
+  insert_end(&call->code, new_inst(NULL, "storeAI", temp, NULL, "rsp", "0"));
+  // Salva rsp e rfp.
+  insert_end(&call->code, new_inst(NULL, "storeAI", "rsp", NULL, "rsp", "4"));
+  insert_end(&call->code, new_inst(NULL, "storeAI", "rfp", NULL, "rsp", "8"));
+
+};

@@ -5,6 +5,12 @@
 #include <stdlib.h>
 #include "errors.h"
 
+typedef struct prod_val {
+  struct node* ast_node;
+  struct id_list_item* id_list;
+  struct arg_list_item* arg_list;
+} prod;
+
 void add_variables_to_scope(int type, id_list* ids, symb_table* scope);
 
 id_list* new_id_list(lex_val* id, int vec_size);
@@ -30,6 +36,8 @@ void gen_if_code(node* ifcmd, node* cond, node* true_block, node* false_block);
 void gen_while_code(node* while_cmd, node* cond, node* block);
 
 void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterthought, node* block);
+
+void gen_func_code(node* header, node* body, int offset, symb_table* scope);
 
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 

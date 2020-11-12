@@ -2,15 +2,9 @@ int a, b, c, d, e, f;
 
 int main(){
 
-  int x, y, z;
+  int x, y;
 
-  while (a < b && e != f) do {
-    if (c < d){
-      x = y + z;
-    } else {
-      x = x - z;
-    };
-  };
+  x = 2;
   
 }
 

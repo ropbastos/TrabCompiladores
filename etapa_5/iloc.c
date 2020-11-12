@@ -5,7 +5,7 @@
 #include "iloc.h"
 
 int reg_num = -1; 
-int label_num = -1;
+int label_num = 0;
 
 char* label()
 {
@@ -225,11 +225,26 @@ void print_code(inst_list_item* item)
 
     if (strcmp(op, "nop") == 0)
       printf("%s nop\n", label);
+    else if (strcmp(op, "halt") == 0)
+      printf("%s halt\n", label);
     else
       printf("%s %s %s%s => %s%s\n", label, op, arg1, arg2, arg3, arg4);
 
     item = item->next;
   }
+}
+
+int count_instructions(inst_list_item* code)
+{
+  int inst_num = 0;
+
+  while (code != NULL)
+  {
+    inst_num++;
+    code = code->next;
+  }
+
+  return inst_num;
 }
 
 
