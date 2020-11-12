@@ -433,6 +433,7 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope)
   int is_main = 0;
   if (strcmp(header->label, "main") == 0)
     is_main = 1;
+
   // Iguala rsp e rfp.
   if (is_main)
     insert_end(&header->code, new_inst("L0", "i2i", "rsp", NULL, "rfp", NULL));
@@ -451,8 +452,9 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope)
     insert_end(&header->code, new_inst(NULL, "halt", NULL, NULL, NULL, NULL));
 };
 
-void gen_func_call_code(node* call, prod* args)
+void gen_func_call_code(node* call, prod* args, symbol_entry* func)
 {
+  call->temp = reg();
   // Salva end. de retorno (5 instrucoes abaixo).
   char* temp = reg();
   insert_end(&call->code, new_inst(NULL, "addI", "rpc", "5", temp, NULL));
@@ -460,5 +462,7 @@ void gen_func_call_code(node* call, prod* args)
   // Salva rsp e rfp.
   insert_end(&call->code, new_inst(NULL, "storeAI", "rsp", NULL, "rsp", "4"));
   insert_end(&call->code, new_inst(NULL, "storeAI", "rfp", NULL, "rsp", "8"));
+  // Salta para codigo da funcao.
+  insert_end(&call->code, new_inst(NULL, "jumpI", NULL, NULL, func->iloc_func_label, NULL));
 
 };

@@ -143,7 +143,7 @@ inst_list_item* head = NULL;
 %right UNARY
 
 %%
-root: program { arvore = $1; };
+root: program { arvore = $1; print_code($1->code); };
 
 program:
     %empty { $$ = NULL; }
@@ -155,6 +155,14 @@ program:
     { 
       $$ = $1;
       add_children($$, 1, $2);
+
+      if ($2 != NULL)
+      {
+        if ($2->code != NULL)
+        {
+          concat_end(&$$->code, $2->code);
+        }
+      }
     }
 ;
 
@@ -244,7 +252,7 @@ func:
       if ($2 != NULL)
       {
         gen_func_code($$, $2, prev_offset, peek(scope_stack));
-        print_code($$->code);
+        //print_code($$->code);
       }
     }
 ;
@@ -790,7 +798,7 @@ func_call:
       $$ = lexval_node($1); add_children($$, 1, $3->ast_node);
       $$->data_type = lookup_res->data_type;
 
-      
+      gen_func_call_code($$, $3, lookup_res);
     }
 ;
 
