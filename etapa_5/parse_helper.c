@@ -492,8 +492,8 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope)
       insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
       insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
       insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
-      insert_end(&header->code, new_inst(NULL, "store", rsp_reg, NULL, "rsp", NULL));
-      insert_end(&header->code, new_inst(NULL, "store", rfp_reg, NULL, "rfp", NULL));
+      insert_end(&header->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
+      insert_end(&header->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
       insert_end(&header->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
     }
     // Retorno é um identificador.
