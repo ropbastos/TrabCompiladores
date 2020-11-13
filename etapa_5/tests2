@@ -7,7 +7,7 @@ int main(){
 
   int x;
 
-  x = f();
+  x = f() + 1;
   
 }
 
