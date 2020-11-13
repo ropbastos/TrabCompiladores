@@ -201,6 +201,13 @@ void concat_end(inst_list_item** dst_list, inst_list_item* src_list)
 
 void print_code(inst_list_item* item)
 {
+  printf("     loadI 1024 => rfp\n");
+  printf("     loadI 1024 => rsp\n");
+
+  int inst_num = count_instructions(item);
+  printf("     loadI %d => rbss\n", inst_num + 4);
+  printf("     jumpI => L0\n");
+
   while (item != NULL)
   {
     inst* inst = item->instruction;

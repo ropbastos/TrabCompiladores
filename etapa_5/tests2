@@ -1,16 +1,13 @@
-int a, b;
 
-int func(){
-  a = 1;
-  b = 2;
-  return a + b;
+int f(){
+  return 73;
 }
 
 int main(){
 
-  int x, y;
+  int x;
 
-  x = func();
+  x = f();
   
 }
 

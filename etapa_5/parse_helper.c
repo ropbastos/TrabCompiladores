@@ -428,7 +428,26 @@ void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterth
   insert_end(&for_cmd->code, new_inst(false_label, "nop", NULL, NULL, NULL ,NULL));
 }
 
-int find_return_val(){}
+node* find_return_node(node* tree)
+{
+  if (tree == NULL) return NULL;
+  if (tree->is_return) return tree;
+
+  node* return_node;
+
+  if (tree->child_num)
+  {
+    for (int i = 0; i < tree->child_num; i++)
+    {
+      return_node = find_return_node(tree->children[i]);
+      if (return_node != NULL)
+      {
+        return return_node;
+      }
+    }
+  }
+  return NULL;
+}
 
 void gen_func_code(node* header, node* body, int offset, symb_table* scope)
 {
@@ -451,12 +470,44 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope)
   // Abre espaco pros argumentos.
   /* TODO */
   // Final do prologo.
-  insert_end(&header->code, new_inst(NULL, "addI", "rsp", "16", "rsp", NULL));
+  if (is_main == 0)
+    insert_end(&header->code, new_inst(NULL, "addI", "rsp", "16", "rsp", NULL));
   // Insere codigo do corpo.
   if (body != NULL)
     concat_end(&header->code, body->code);
+
   // Sequencia de retorno.
-  //int return_val = find_return_val(body);
+  node* return_node = find_return_node(body);
+  if (return_node != NULL)
+  {
+    // Retorno é um literal.
+    if (return_node->children[0]->val != NULL)
+    {
+      int ret_val = return_node->children[0]->val->value.i;
+      char* ret_reg = reg();
+      insert_end(&header->code, new_inst(NULL, "loadI", arg(ret_val), NULL, ret_reg, NULL));
+      insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "12"));
+      char* rsp_reg = reg();
+      char* rfp_reg = reg();
+      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
+      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
+      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
+      insert_end(&header->code, new_inst(NULL, "store", rsp_reg, NULL, "rsp", NULL));
+      insert_end(&header->code, new_inst(NULL, "store", rfp_reg, NULL, "rfp", NULL));
+      insert_end(&header->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
+    }
+    // Retorno é um identificador.
+    // Retorno é uma exp arit.
+    // Retorno é uma exp booleana.
+  }
+  else
+  {
+    
+  }
+  
+  
+
+
   // Halt para terminar o programa no caso da funcao ser a main.
   if (is_main)
     insert_end(&header->code, new_inst(NULL, "halt", NULL, NULL, NULL, NULL));
@@ -474,5 +525,5 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func)
   insert_end(&call->code, new_inst(NULL, "storeAI", "rfp", NULL, "rsp", "8"));
   // Salta para codigo da funcao.
   insert_end(&call->code, new_inst(NULL, "jumpI", NULL, NULL, func->iloc_func_label, NULL));
-
+  insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "12", call->temp, NULL));
 };
