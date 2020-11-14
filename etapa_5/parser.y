@@ -990,11 +990,7 @@ jmp_stmt:
       $$->data_type = $2->data_type;
       $$->is_return = 1;
       $$->return_line = get_line_number();
-      concat_end(&($$->code), $2->code); // Causes freezing.
-      $$->temp = $2->temp;
-      printf("Codigo na regra do return:\n");
-      print_code($$->code);
-      printf("SAINDO DA REGRA DO RETURN\n");
+      gen_return_code($$, $2, peek(scope_stack));
     }
 |   TK_PR_BREAK { $$ = named_node("break"); }
 |   TK_PR_CONTINUE { $$ = named_node("continue"); }

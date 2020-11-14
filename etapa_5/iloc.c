@@ -247,8 +247,10 @@ int count_instructions(inst_list_item* code)
 
   while (code != NULL)
   {
+    //printf("%s\n", code->instruction->op);
     inst_num++;
     code = code->next;
+    //if (inst_num == 5) break;
   }
 
   return inst_num;

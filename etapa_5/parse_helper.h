@@ -43,6 +43,8 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
 
 void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack);
 
+void gen_return_code(node* return_node, node* exp, symb_table* scope);
+
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 
 

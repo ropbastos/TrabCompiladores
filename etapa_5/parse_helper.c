@@ -495,58 +495,50 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
   }
   // Insere codigo do corpo.
   if (body != NULL)
+  {
     concat_end(&header->code, body->code);
-  // Sequencia de retorno.
-  node* return_node = find_return_node(body);
-  if (return_node != NULL)
-  {
-    symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
-    char* ret_reg = reg();
-    // Retorno é um literal.
-    if (return_val != NULL && return_val->symbol_type == LIT)
-    {
-      int ret_val = return_node->children[0]->val->value.i;
-      insert_end(&header->code, new_inst(NULL, "loadI", arg(ret_val), NULL, ret_reg, NULL));
-      insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "12"));
-    }
-    // Retorno é um identificador.
-    else if (return_val != NULL && return_val->symbol_type == VAR)
-    {
-      int offset = return_val->offset;
-      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", arg(offset), ret_reg, NULL));
-      insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
-    }
-    // Retorno é uma exp arit.
-    else
-    {
-      printf("Codigo do return_node:\n");
-      print_code(return_node->code);
-      concat_end(&header->code, return_node->code);
-      printf("Codigo do header depois de concat cod do return_node:\n");
-      print_code(header->code);
-    }
-    // Retorno é uma exp booleana.
-    char* rsp_reg = reg();
-    char* rfp_reg = reg();
-    printf("antes de inserir inst gen_func_code\n");
-    insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
-    printf("inseriu insttt\n");
-    insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
-    insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
-    insert_end(&header->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
-    insert_end(&header->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
-    insert_end(&header->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
   }
-  else
-  {
     
-  }
-  printf("antes de inserir o halt em gen func code\n");
+  // Sequencia de retorno.
+  // node* return_node = find_return_node(body);
+  // if (return_node != NULL)
+  // {
+  //   symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
+  //   char* ret_reg = reg();
+  //   // Retorno é um literal.
+  //   if (return_val != NULL && return_val->symbol_type == LIT)
+  //   {
+  //     int ret_val = return_node->children[0]->val->value.i;
+  //     insert_end(&header->code, new_inst(NULL, "loadI", arg(ret_val), NULL, ret_reg, NULL));
+  //     insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "12"));
+  //   }
+  //   // Retorno é um identificador.
+  //   else if (return_val != NULL && return_val->symbol_type == VAR)
+  //   {
+  //     int offset = return_val->offset;
+  //     insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", arg(offset), ret_reg, NULL));
+  //     insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
+  //   }
+  //   // Retorno é uma exp.
+  //   else
+  //   {
+  //     printf("Header code:\n");
+  //     print_code(header->code);
+  //     printf("Return code:\n");
+  //     print_code(return_node->code);
+  //   }
+  //   char* rsp_reg = reg();
+  //   char* rfp_reg = reg();
+  //   insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
+  //   insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
+  //   insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
+  //   insert_end(&header->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
+  //   insert_end(&header->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
+  //   insert_end(&header->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
+  
   // Halt para terminar o programa no caso da funcao ser a main.
   if (is_main)
     insert_end(&header->code, new_inst(NULL, "halt", NULL, NULL, NULL, NULL));
-
-  printf("vai sair de gen_func_code\n");
 };
 
 void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack)
@@ -590,3 +582,39 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
   else
     insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "16", call->temp, NULL)); 
 };
+
+void gen_return_code(node* return_node, node* exp, symb_table* scope)
+{
+  concat_end(&return_node->code, exp->code);
+  // Sequencia de retorno.
+  symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
+  char* ret_reg = reg();
+  // Retorno é um literal.
+  if (return_val != NULL && return_val->symbol_type == LIT)
+  {
+    int ret_val = return_node->children[0]->val->value.i;
+    insert_end(&return_node->code, new_inst(NULL, "loadI", arg(ret_val), NULL, ret_reg, NULL));
+    insert_end(&return_node->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "12"));
+  }
+  // Retorno é um identificador.
+  else if (return_val != NULL && return_val->symbol_type == VAR)
+  {
+    int offset = return_val->offset;
+    insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", arg(offset), ret_reg, NULL));
+    insert_end(&return_node->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
+  }
+  // Retorno é uma exp.
+  else
+  {
+    insert_end(&return_node->code, new_inst(NULL, "i2i", exp->temp, NULL, ret_reg, NULL));
+    insert_end(&return_node->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
+  }
+  char* rsp_reg = reg();
+  char* rfp_reg = reg();
+  insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
+  insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
+  insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
+  insert_end(&return_node->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
+  insert_end(&return_node->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
+  insert_end(&return_node->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
+}
