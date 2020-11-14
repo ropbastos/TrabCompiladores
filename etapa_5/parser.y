@@ -15,14 +15,9 @@ extern int return_line;
 extern int expected_return_type;
 extern int return_type_is_correct;
 extern int prev_offset;
+int first_offset = 1;
 
 inst_list_item* head = NULL;
-
-// typedef struct prod_val {
-//   struct node* ast_node;
-//   struct id_list_item* id_list;
-//   struct arg_list_item* arg_list;
-// } prod;
 %}
 
 %define parse.error verbose
@@ -255,8 +250,16 @@ func:
       {
         syntactic_error(ERR_WRONG_PAR_RETURN, $1->label, return_line, NULL);
       } 
-      $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
-      gen_func_code($$, $2, prev_offset, peek(scope_stack), scope_stack);
+      $$ = $1; if ($2 != NULL) add_children($$, 1, $2);
+      if (first_offset) 
+      {
+        gen_func_code($$, $2, 20, peek(scope_stack), scope_stack);
+        first_offset = 0;
+      }
+      else
+      {
+        gen_func_code($$, $2, prev_offset, peek(scope_stack), scope_stack);
+      }
     }
 ;
 
@@ -562,6 +565,8 @@ local_list:
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), lexval_node($3));
       $$->ast_node->children[0]->data_type = lookup_res->data_type;
+
+      //gen_ini_code($$->ast_node, $1, $3, NULL, scope_stack);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal
     {
@@ -580,6 +585,8 @@ local_list:
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), $3);
       $$->ast_node->children[0]->data_type = $3->data_type;
+
+      //gen_ini_code($$->ast_node, $1, NULL, $3, scope_stack);
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
     {
@@ -596,6 +603,8 @@ local_list:
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), lexval_node($3), $5->ast_node);
       $$->ast_node->children[0]->data_type = lookup_res->data_type;
+     // gen_ini_code($$->ast_node, $1, $3, NULL, scope_stack);
+      //concat_end(&$$->ast_node->code, $5->ast_node->code);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
     {
@@ -610,6 +619,9 @@ local_list:
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), $3, $5->ast_node);
       $$->ast_node->children[0]->data_type = $3->data_type;
+
+      //gen_ini_code($$->ast_node, $1, NULL, $3, scope_stack);
+      //concat_end(&$$->ast_node->code, $5->ast_node->code);
     }
 ;
 
@@ -679,43 +691,7 @@ attrib:
       $$ = named_node("="); add_children($$, 2, lexval_node($1), $3); 
       $$->children[0]->data_type = dst->data_type;
 
-      concat_end(&($$->code), $3->code);
-
-      char* label_end = label();
-      inst *loadI, *jumpI;
-      if ($3->t != NULL)
-      {
-        char* label_true = label();
-        patch($3->t, label_true);
-
-        loadI = new_inst(label_true, "loadI", "1", NULL, $3->temp, NULL);
-        jumpI = new_inst(NULL, "jumpI", NULL, NULL, label_end, NULL);
-
-        insert_end(&$$->code, loadI);
-        insert_end(&$$->code, jumpI);
-      }
-      if ($3->f != NULL)
-      {
-        char* label_false = label();
-        patch($3->f, label_false);
-
-        loadI = new_inst(label_false, "loadI", "0", NULL, $3->temp, NULL);
-        jumpI = new_inst(NULL, "jumpI", NULL, NULL, label_end, NULL);
-
-        insert_end(&$$->code, loadI);
-        insert_end(&$$->code, jumpI);
-      }
-
-      if ($3->t != NULL || $3->f != NULL)
-      {
-        inst* nop = new_inst(label_end, "nop", NULL, NULL, NULL, NULL);
-        insert_end(&$$->code, nop);
-      }
-
-      if (dst->is_global)
-        insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rbss", arg(dst->offset)));
-      else
-        insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rfp", arg(dst->offset)));
+      gen_attrib_code($$, $3, dst);
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 

@@ -25,6 +25,10 @@ void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, s
 
 void binary_exp_type_and_error_check(node* binary_operator, node* left_exp, node* right_exp, int line);
 
+void gen_ini_code(node* ini, lex_val* dst, lex_val* src_var, node* src_lit, stack* scope_stack);
+
+void gen_attrib_code(node* attrib, node* exp, symbol_entry* dst);
+
 void generate_binary_exp_code(node* op, node* left_exp, node* right_exp, inst* inst, char* temp);
 
 void gen_relop_code(node* exp, node* left_exp, node* right_exp);

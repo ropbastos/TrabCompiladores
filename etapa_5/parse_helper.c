@@ -498,43 +498,6 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
   {
     concat_end(&header->code, body->code);
   }
-    
-  // Sequencia de retorno.
-  // node* return_node = find_return_node(body);
-  // if (return_node != NULL)
-  // {
-  //   symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
-  //   char* ret_reg = reg();
-  //   // Retorno é um literal.
-  //   if (return_val != NULL && return_val->symbol_type == LIT)
-  //   {
-  //     int ret_val = return_node->children[0]->val->value.i;
-  //     insert_end(&header->code, new_inst(NULL, "loadI", arg(ret_val), NULL, ret_reg, NULL));
-  //     insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "12"));
-  //   }
-  //   // Retorno é um identificador.
-  //   else if (return_val != NULL && return_val->symbol_type == VAR)
-  //   {
-  //     int offset = return_val->offset;
-  //     insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", arg(offset), ret_reg, NULL));
-  //     insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
-  //   }
-  //   // Retorno é uma exp.
-  //   else
-  //   {
-  //     printf("Header code:\n");
-  //     print_code(header->code);
-  //     printf("Return code:\n");
-  //     print_code(return_node->code);
-  //   }
-  //   char* rsp_reg = reg();
-  //   char* rfp_reg = reg();
-  //   insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
-  //   insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
-  //   insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
-  //   insert_end(&header->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
-  //   insert_end(&header->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
-  //   insert_end(&header->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
   
   // Halt para terminar o programa no caso da funcao ser a main.
   if (is_main)
@@ -617,4 +580,64 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope)
   insert_end(&return_node->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
   insert_end(&return_node->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
   insert_end(&return_node->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
+}
+
+void gen_attrib_code(node* attrib, node* exp, symbol_entry* dst)
+{
+  concat_end(&(attrib->code), exp->code);
+
+  char* label_end = label();
+  inst *loadI, *jumpI;
+  if (exp->t != NULL)
+  {
+    char* label_true = label();
+    patch(exp->t, label_true);
+
+    loadI = new_inst(label_true, "loadI", "1", NULL, exp->temp, NULL);
+    jumpI = new_inst(NULL, "jumpI", NULL, NULL, label_end, NULL);
+
+    insert_end(&attrib->code, loadI);
+    insert_end(&attrib->code, jumpI);
+  }
+  if (exp->f != NULL)
+  {
+    char* label_false = label();
+    patch(exp->f, label_false);
+
+    loadI = new_inst(label_false, "loadI", "0", NULL, exp->temp, NULL);
+    jumpI = new_inst(NULL, "jumpI", NULL, NULL, label_end, NULL);
+
+    insert_end(&attrib->code, loadI);
+    insert_end(&attrib->code, jumpI);
+  }
+
+  if (exp->t != NULL || exp->f != NULL)
+  {
+    inst* nop = new_inst(label_end, "nop", NULL, NULL, NULL, NULL);
+    insert_end(&attrib->code, nop);
+  }
+
+  if (dst->is_global)
+    insert_end(&(attrib->code), new_inst(NULL, "storeAI", exp->temp, NULL, "rbss", arg(dst->offset)));
+  else
+    insert_end(&(attrib->code), new_inst(NULL, "storeAI", exp->temp, NULL, "rfp", arg(dst->offset)));
+}
+
+void gen_ini_code(node* ini, lex_val* dst, lex_val* src_var, node* src_lit, stack* scope_stack)
+{
+  symbol_entry* dst_sb = st_lookup(dst->value.s, scope_stack);
+  char* temp = reg();
+  if (src_lit != NULL)
+  {
+    insert_end(&ini->code, new_inst(NULL, "loadI", src_lit->label, NULL, temp, NULL));
+  }
+  else if (src_var != NULL)
+  {
+    symbol_entry* src_sb = st_lookup(src_var->value.s, scope_stack);
+    if (src_sb->is_global)
+      insert_end(&ini->code, new_inst(NULL, "loadAI", "rbss", arg(src_sb->offset), temp, NULL));
+    else
+      insert_end(&ini->code, new_inst(NULL, "loadAI", "rfp", arg(src_sb->offset), temp, NULL));
+  }
+  insert_end(&ini->code, new_inst(NULL, "storeAI", temp, NULL, "rfp", arg(12)));
 }
