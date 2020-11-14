@@ -121,6 +121,19 @@ void add_functions_to_scope(int type, lex_val* id, arg_list* params, symb_table*
   ht_insert(sb, scope);
 }
 
+void add_args_to_scope(symb_table* scope, arg_list* args)
+{
+  arg_list* current = args;
+  while (current != NULL)
+  {
+    symbol_entry* sb = new_symbol_entry(current->id, 0, VAR, INT, 4, 
+                                        NULL, NULL, scope->offset, 0, NULL);
+    ht_insert(sb, scope);
+    scope->offset += 4;
+    current = current->next;
+  }
+}
+
 arg_list* new_arg_list(int type, lex_val* id)
 {
   arg_list* param_list = malloc(sizeof(struct arg_list_item));
@@ -449,81 +462,131 @@ node* find_return_node(node* tree)
   return NULL;
 }
 
-void gen_func_code(node* header, node* body, int offset, symb_table* scope)
+void gen_func_code(node* header, node* body, int offset, symb_table* scope, stack* scope_stack)
 {
   int is_main = 0;
   if (strcmp(header->label, "main") == 0)
     is_main = 1;
 
   // Iguala rsp e rfp.
-  if (is_main)
-    insert_end(&header->code, new_inst("L0", "i2i", "rsp", NULL, "rfp", NULL));
-  else
+  symbol_entry* func = st_lookup(header->label, scope_stack);
+  if (is_main == 0)
   {
-    symbol_entry* func = ht_lookup(header->label, scope);
     insert_end(&header->code, new_inst(func->iloc_func_label, "i2i", "rsp", NULL, "rfp", NULL));
   }
-
-  // Abre espaco pras variaveis locais.
-  if (offset != 0)
+  else
+  {
+    insert_end(&header->code, new_inst("L0", "i2i", "rsp", NULL, "rfp", NULL));
+  }
+  
+  // Abre espaco pras variaveis locais e argumentos.
+  if (is_main && offset != 0)
     insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(offset), "rsp", NULL));
-  // Abre espaco pros argumentos.
-  /* TODO */
   // Final do prologo.
   if (is_main == 0)
-    insert_end(&header->code, new_inst(NULL, "addI", "rsp", "16", "rsp", NULL));
+    insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(16+arg_list_len(func->args)*4), "rsp", NULL));
+  // Obtem os parametros.
+  int param_num = arg_list_len(func->args);
+  char* reg_param = reg();
+  for (int i = 0; i < param_num; i++)
+  {
+    insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", arg(12+i*4), reg_param, NULL));
+    insert_end(&header->code, new_inst(NULL, "storeAI", reg_param, NULL, "rfp", arg(20+i)));
+  }
   // Insere codigo do corpo.
   if (body != NULL)
     concat_end(&header->code, body->code);
-
   // Sequencia de retorno.
   node* return_node = find_return_node(body);
   if (return_node != NULL)
   {
+    symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
+    char* ret_reg = reg();
     // Retorno é um literal.
-    if (return_node->children[0]->val != NULL)
+    if (return_val != NULL && return_val->symbol_type == LIT)
     {
       int ret_val = return_node->children[0]->val->value.i;
-      char* ret_reg = reg();
       insert_end(&header->code, new_inst(NULL, "loadI", arg(ret_val), NULL, ret_reg, NULL));
       insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "12"));
-      char* rsp_reg = reg();
-      char* rfp_reg = reg();
-      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
-      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
-      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
-      insert_end(&header->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
-      insert_end(&header->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
-      insert_end(&header->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
     }
     // Retorno é um identificador.
+    else if (return_val != NULL && return_val->symbol_type == VAR)
+    {
+      int offset = return_val->offset;
+      insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", arg(offset), ret_reg, NULL));
+      insert_end(&header->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
+    }
     // Retorno é uma exp arit.
+    else
+    {
+      printf("Codigo do return_node:\n");
+      print_code(return_node->code);
+      concat_end(&header->code, return_node->code);
+      printf("Codigo do header depois de concat cod do return_node:\n");
+      print_code(header->code);
+    }
     // Retorno é uma exp booleana.
+    char* rsp_reg = reg();
+    char* rfp_reg = reg();
+    printf("antes de inserir inst gen_func_code\n");
+    insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
+    printf("inseriu insttt\n");
+    insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
+    insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
+    insert_end(&header->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
+    insert_end(&header->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
+    insert_end(&header->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
   }
   else
   {
     
   }
-  
-  
-
-
+  printf("antes de inserir o halt em gen func code\n");
   // Halt para terminar o programa no caso da funcao ser a main.
   if (is_main)
     insert_end(&header->code, new_inst(NULL, "halt", NULL, NULL, NULL, NULL));
+
+  printf("vai sair de gen_func_code\n");
 };
 
-void gen_func_call_code(node* call, prod* args, symbol_entry* func)
+void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack)
 {
   call->temp = reg();
-  // Salva end. de retorno (5 instrucoes abaixo).
+  // Calc. end. de retorno (5 instrucoes + 2*(numero de parametros) abaixo).
   char* temp = reg();
-  insert_end(&call->code, new_inst(NULL, "addI", "rpc", "5", temp, NULL));
+  int return_offset = 5;
+  int param_num = 0;
+  if (args->arg_list != NULL)
+  {
+    param_num = arg_list_len(args->arg_list);
+    return_offset += param_num*2;
+  }
+  // Salva end. de retorno.
+  insert_end(&call->code, new_inst(NULL, "addI", "rpc", arg(return_offset), temp, NULL));
   insert_end(&call->code, new_inst(NULL, "storeAI", temp, NULL, "rsp", "0"));
   // Salva rsp e rfp.
   insert_end(&call->code, new_inst(NULL, "storeAI", "rsp", NULL, "rsp", "4"));
   insert_end(&call->code, new_inst(NULL, "storeAI", "rfp", NULL, "rsp", "8"));
-  // Salta para codigo da funcao.
+  // Empilha os parametros.
+  arg_list* param = args->arg_list;
+  int param_offset = 12;
+  for (int i = 0; i < param_num; i++)
+  {
+    symbol_entry* param_sb = st_lookup(param->id, scope_stack);
+    int var_offset = param_sb->offset;
+    if (param_sb->symbol_type == VAR)
+      insert_end(&call->code, new_inst(NULL, "loadAI", "rfp", arg(var_offset), temp, NULL));
+    else if (param_sb->symbol_type == LIT)
+      insert_end(&call->code, new_inst(NULL, "loadI", param_sb->label, NULL, temp, NULL));
+    insert_end(&call->code, new_inst(NULL, "storeAI", temp, NULL, "rsp", arg(param_offset)));
+    param_offset += 4;
+    param = param->next;
+  }
+  // Salta para o codigo da funcao.
   insert_end(&call->code, new_inst(NULL, "jumpI", NULL, NULL, func->iloc_func_label, NULL));
-  insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "12", call->temp, NULL));
+  // Carrega o valor de retorno.
+  if (param_num == 0)
+    insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "12", call->temp, NULL));
+  else
+    insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "16", call->temp, NULL)); 
 };

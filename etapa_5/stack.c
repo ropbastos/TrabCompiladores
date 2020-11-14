@@ -75,7 +75,6 @@ void move_stack(struct StackNode* dst, struct StackNode* src)
 
 symbol_entry* st_lookup(char* label, struct StackNode* scope_stack)
 {
-  //printf("st_lookup chamada.\n");
   stack* searched_scopes = NULL;
   symb_table* scope = NULL;
 

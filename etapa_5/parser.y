@@ -91,7 +91,9 @@ inst_list_item* head = NULL;
 %type<node> block
 %type<node> body
 %type<node> header
+%type<node> header2
 %type<node> func
+%type<node> func2
 %type<node> attrib
 %type<node> func_call
 %type<node> exp
@@ -151,7 +153,7 @@ program:
     { 
       if ($2 != NULL) $$ = $2; else $$ = NULL; 
     }
-|   func program 
+|   func2 program 
     { 
       $$ = $1;
       add_children($$, 1, $2);
@@ -238,8 +240,14 @@ type:
 |   TK_PR_STRING { $$ = STR; }
 ;
 
+func2:
+    func block_end 
+    {
+      $$ = $1;
+    }
+
 func:
-    header body 
+    header2 body 
     {
       expected_return_type = $1->data_type;
       check_return_type($2);
@@ -248,11 +256,22 @@ func:
         syntactic_error(ERR_WRONG_PAR_RETURN, $1->label, return_line, NULL);
       } 
       $$ = $1; if ($2 != NULL) add_children($$, 1, $2); 
-
-      gen_func_code($$, $2, prev_offset, peek(scope_stack));
-      //print_code($$->code);
+      gen_func_code($$, $2, prev_offset, peek(scope_stack), scope_stack);
     }
 ;
+
+header2:
+    header block_start
+    {
+      $$ = $1;
+
+      symbol_entry* func = st_lookup($1->label, scope_stack);
+      symb_table* scope = pop(&scope_stack);
+
+      add_args_to_scope(scope, func->args); // Did that work?
+
+      push(&scope_stack, scope);
+    }
 
 header:
     type TK_IDENTIFICADOR '(' ')' 
@@ -275,7 +294,10 @@ header:
     { 
       symb_table* scope = pop(&scope_stack);
       if (scope == NULL)
+      {
         scope = symbol_table(0);
+        scope->is_global = 1;
+      }
 
       add_functions_to_scope($1, $2, $4, scope);
 
@@ -283,6 +305,7 @@ header:
       push(&scope_stack, scope);
 
       $$ = lexval_node($2); $$->data_type = $1; 
+
     }
 |   TK_PR_STATIC type TK_IDENTIFICADOR '(' ')' 
     { 
@@ -334,13 +357,13 @@ params:
 ;
 
 body:
-    block { $$ = $1; }
+     cmds { $$ = $1; }
 ;
 
 block_start: '{' 
 { 
   push(&scope_stack,
-   (peek(scope_stack)->is_global) ? symbol_table(0) : symbol_table(peek(scope_stack)->offset)); 
+    (peek(scope_stack)->is_global) ? symbol_table(20) : symbol_table(peek(scope_stack)->offset));  
 }
 block_end: '}' 
 { 
@@ -689,12 +712,10 @@ attrib:
         insert_end(&$$->code, nop);
       }
 
-      //concat_end(&($$->code), $3->code);
       if (dst->is_global)
         insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rbss", arg(dst->offset)));
       else
         insert_end(&($$->code), new_inst(NULL, "storeAI", $3->temp, NULL, "rfp", arg(dst->offset)));
-      //print_code($$->code);
     }
 |   TK_IDENTIFICADOR '[' exp ']' '=' exp
     { 
@@ -804,7 +825,7 @@ func_call:
       $$ = lexval_node($1); add_children($$, 1, $3->ast_node);
       $$->data_type = lookup_res->data_type;
 
-      gen_func_call_code($$, $3, lookup_res);
+      gen_func_call_code($$, $3, lookup_res, scope_stack);
     }
 ;
 
@@ -815,7 +836,7 @@ exp_list:
 
       if ($1->val != NULL)
       {
-        exp_list->id = $1->val->value.s;
+        exp_list->id = $1->label;
         exp_list->line = $1->val->line;
         exp_list->type = $1->data_type;
         exp_list->next = NULL;
@@ -969,6 +990,11 @@ jmp_stmt:
       $$->data_type = $2->data_type;
       $$->is_return = 1;
       $$->return_line = get_line_number();
+      concat_end(&($$->code), $2->code); // Causes freezing.
+      $$->temp = $2->temp;
+      printf("Codigo na regra do return:\n");
+      print_code($$->code);
+      printf("SAINDO DA REGRA DO RETURN\n");
     }
 |   TK_PR_BREAK { $$ = named_node("break"); }
 |   TK_PR_CONTINUE { $$ = named_node("continue"); }

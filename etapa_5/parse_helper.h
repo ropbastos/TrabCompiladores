@@ -17,6 +17,8 @@ id_list* new_id_list(lex_val* id, int vec_size);
 
 void add_functions_to_scope(int type, lex_val* id, arg_list* params, symb_table* scope);
 
+void add_args_to_scope(symb_table* scope, arg_list* args);
+
 arg_list* new_arg_list(int type, lex_val* id);
 
 void generic_attrib_errors_check(lex_val* id, node* exp, int should_be_vector, stack* scope_stack, int line);
@@ -37,9 +39,9 @@ void gen_while_code(node* while_cmd, node* cond, node* block);
 
 void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterthought, node* block);
 
-void gen_func_code(node* header, node* body, int offset, symb_table* scope);
+void gen_func_code(node* header, node* body, int offset, symb_table* scope, stack* scope_stack);
 
-void gen_func_call_code(node* call, prod* args, symbol_entry* func);
+void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack);
 
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 

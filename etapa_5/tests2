@@ -1,13 +1,13 @@
 
-int f(){
-  return 73;
+int f(int y){
+  return y + 1;
 }
 
 int main(){
 
   int x;
 
-  x = f() + 1;
+  x = f(2);
   
 }
 
