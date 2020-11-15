@@ -566,7 +566,7 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
   // Salva rsp e rfp.
   insert_end(&reg_saving_code, new_inst(NULL, "storeAI", "rsp", NULL, "rsp", "4"));
   insert_end(&reg_saving_code, new_inst(NULL, "storeAI", "rfp", NULL, "rsp", "8"));
-  // Reoderna os dois trechos acima, agora que se sabe o endereco de retorno.
+  // Reordena os dois trechos acima, agora que se sabe o endereco de retorno.
   concat_end(&reg_saving_code, param_stacking_code);
   concat_end(&call->code, reg_saving_code);
   // Salta para o codigo da funcao.
