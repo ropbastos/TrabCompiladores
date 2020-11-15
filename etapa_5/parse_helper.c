@@ -507,7 +507,7 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
   for (int i = 0; i < param_num; i++)
   {
     insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", arg(12+i*4), reg_param, NULL));
-    insert_end(&header->code, new_inst(NULL, "storeAI", reg_param, NULL, "rfp", arg(20+i)));
+    insert_end(&header->code, new_inst(NULL, "storeAI", reg_param, NULL, "rfp", arg(20+i*4)));
   }
   // Insere codigo do corpo.
   if (body != NULL)

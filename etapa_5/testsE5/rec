@@ -6,8 +6,8 @@ int fib2(int a) {
     return 1;
   };
   int aux1, aux2;
-  aux1 = fib2(a);
-  aux2 = fib2(a);
+  aux1 = fib2(a-1);
+  aux2 = fib2(a-2);
   return aux1+aux2;
 }
 
