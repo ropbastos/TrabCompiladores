@@ -16,6 +16,7 @@ extern int expected_return_type;
 extern int return_type_is_correct;
 extern int prev_offset;
 int first_offset = 1;
+extern int in_main;
 
 inst_list_item* head = NULL;
 %}
@@ -239,6 +240,7 @@ func2:
     func block_end 
     {
       $$ = $1;
+      in_main = 0;
     }
 
 func:
@@ -292,6 +294,8 @@ header:
       push(&scope_stack, scope);
 
       $$ = lexval_node($2); $$->data_type = $1;
+
+      if (strcmp($$->label, "main") == 0) in_main = 1;
     }
 |   type TK_IDENTIFICADOR '(' params ')' 
     { 

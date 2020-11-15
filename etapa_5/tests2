@@ -1,18 +1,13 @@
-int f(){
-  return 73;
-}
+int fib(int x, int y) 
+{ 
+    return 10 + x + y;
+} 
+  
+int main() 
+{ 
+    int n; 
+    n = fib(1, 2); 
 
-
-int main(){
-
-  int a;
-  int b;
-
-  b = 7;
-
-  a = f();
-
-}
-
-
+    return 0;
+} 
 
