@@ -51,5 +51,6 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope);
 
 int shift_val_check(lex_val* id, lex_val* shift_amount, stack* scope_stack, int line);
 
+void patch_ini_offsets(hole_list* holes, id_list* ids, int offset);
 
 #endif

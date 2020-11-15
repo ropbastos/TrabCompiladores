@@ -212,17 +212,17 @@ global_list:
     }
 |   TK_IDENTIFICADOR ',' global_list 
     { 
-      add_id(&$3, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$3, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED, 0); 
       $$ = $3; 
     }
 |   TK_IDENTIFICADOR '[' TK_LIT_INT ']' ',' global_list 
     { 
-      add_id(&$6, $1, $3->value.i, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$6, $1, $3->value.i, NOT_A_STRING, NOT_INITIALIZED, 0); 
       $$ = $6; 
     }
 |   TK_IDENTIFICADOR '[' '+' TK_LIT_INT ']' ',' global_list 
     { 
-      add_id(&$7, $1, $4->value.i, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$7, $1, $4->value.i, NOT_A_STRING, NOT_INITIALIZED, 0); 
       $$ = $7; 
     }
 ;
@@ -271,7 +271,7 @@ header2:
       symbol_entry* func = st_lookup($1->label, scope_stack);
       symb_table* scope = pop(&scope_stack);
 
-      add_args_to_scope(scope, func->args); // Did that work?
+      add_args_to_scope(scope, func->args); 
 
       push(&scope_stack, scope);
     }
@@ -397,13 +397,16 @@ cmds:
     }
 |   local_decl ';' cmds 
     {
-      if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+      if ($1 != NULL) { $$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
+
+      if ($3 != NULL && $1 != NULL)
+          concat_end(&$$->code, $3->code);
     }
 |   attrib ';' cmds
     {
       if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
 
-      if ($3 != NULL)
+      if ($3 != NULL && $1 != NULL)
           concat_end(&$$->code, $3->code);
     }
 |   io ';' cmds
@@ -414,7 +417,7 @@ cmds:
     {
       if ($1 != NULL) {$$ = $1; add_children($$, 1, $3);} else {$$ = $3;};
 
-      if ($3 != NULL)
+      if ($3 != NULL && $1 != NULL)
           concat_end(&$$->code, $3->code);
     }
 |   shift ';' cmds
@@ -426,6 +429,8 @@ cmds:
       if ($1 != NULL) 
       {
         $$ = $1; add_children($$, 1, $3);
+        if ($3 != NULL && $1 != NULL)
+          concat_end(&$$->code, $3->code);
       } 
       else 
       {
@@ -472,9 +477,14 @@ local_decl:
         printf("id on top of id_list: %s\n", $2->id_list->id);
       }
 
+      int offset = local_scope->offset;
+
       // Add locals to symbol table.
       add_variables_to_scope($1, $2->id_list, local_scope);
       push(&scope_stack, local_scope);
+
+      if ($2->ast_node != NULL)
+        patch_ini_offsets($2->ast_node->t, $2->id_list, offset);
 
       $$ = $2->ast_node;
     }
@@ -540,7 +550,7 @@ local_list:
     }
 |   TK_IDENTIFICADOR ',' local_list
     {
-      add_id(&$3->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED); 
+      add_id(&$3->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, NOT_INITIALIZED, 0); 
       $$->id_list = $3->id_list; 
 
       if ($3->ast_node != NULL ) { $$->ast_node = $3->ast_node; } else { $$->ast_node = NULL; };
@@ -561,12 +571,13 @@ local_list:
       if (lookup_res->data_type == STR) local_ids->str_size = lookup_res->size;
       else local_ids->str_size = NOT_A_STRING;
       local_ids->next = NULL;
+      local_ids->has_hole = 1;
       $$->id_list = local_ids;
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), lexval_node($3));
       $$->ast_node->children[0]->data_type = lookup_res->data_type;
 
-      //gen_ini_code($$->ast_node, $1, $3, NULL, scope_stack);
+      gen_ini_code($$->ast_node, $1, $3, NULL, scope_stack);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal
     {
@@ -580,13 +591,14 @@ local_list:
         local_ids->str_size = strlen($3->label);
       }
       else local_ids->str_size = NOT_A_STRING;
+      local_ids->has_hole = 1;
       local_ids->next = NULL;
       $$->id_list = local_ids;
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 2, lexval_node($1), $3);
       $$->ast_node->children[0]->data_type = $3->data_type;
 
-      //gen_ini_code($$->ast_node, $1, NULL, $3, scope_stack);
+      gen_ini_code($$->ast_node, $1, NULL, $3, scope_stack);
     }
 |   TK_IDENTIFICADOR TK_OC_LE TK_IDENTIFICADOR ',' local_list
     {
@@ -595,33 +607,38 @@ local_list:
         syntactic_error(ERR_UNDECLARED, $3->value.s, get_line_number(), NULL);
 
       if (lookup_res->data_type != STR)
-        add_id(&$5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, lookup_res->data_type); 
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, lookup_res->data_type, 1); 
       else
-        add_id(&$5->id_list, $1, NOT_A_VECTOR, lookup_res->size, lookup_res->data_type);
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, lookup_res->size, lookup_res->data_type, 1);
 
       $$->id_list = $5->id_list; 
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), lexval_node($3), $5->ast_node);
       $$->ast_node->children[0]->data_type = lookup_res->data_type;
-     // gen_ini_code($$->ast_node, $1, $3, NULL, scope_stack);
-      //concat_end(&$$->ast_node->code, $5->ast_node->code);
+      gen_ini_code($$->ast_node, $1, $3, NULL, scope_stack);
+      concat_end(&$$->ast_node->code, $5->ast_node->code);
+      hole_list_cat(&$$->ast_node->t, &$5->ast_node->t);
     }
 |   TK_IDENTIFICADOR TK_OC_LE literal ',' local_list
     {
       if ($3->data_type == STR)
       {
-        add_id(&$5->id_list, $1, NOT_A_VECTOR, strlen($3->label), $3->data_type); 
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, strlen($3->label), $3->data_type, 1); 
       }
       else
-        add_id(&$5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, $3->data_type);
+        add_id(&$5->id_list, $1, NOT_A_VECTOR, NOT_A_STRING, $3->data_type, 1);
 
       $$->id_list = $5->id_list; 
 
       $$->ast_node = lexval_node($2); add_children($$->ast_node, 3, lexval_node($1), $3, $5->ast_node);
       $$->ast_node->children[0]->data_type = $3->data_type;
 
-      //gen_ini_code($$->ast_node, $1, NULL, $3, scope_stack);
-      //concat_end(&$$->ast_node->code, $5->ast_node->code);
+      gen_ini_code($$->ast_node, $1, NULL, $3, scope_stack);
+      if ($5->ast_node != NULL)
+      {
+        concat_end(&$$->ast_node->code, $5->ast_node->code);
+        hole_list_cat(&$$->ast_node->t, &$5->ast_node->t);
+      }
     }
 ;
 

@@ -14,10 +14,12 @@ typedef struct id_list_item {
   int vec_size;
   int str_size;
   int ini_type;
+  int has_hole;
   struct id_list_item* next;
 } id_list;
 
-void add_id(id_list** list, lex_val* id, int vec_size, int str_size, int ini_type);
+void add_id(id_list** list, lex_val* id, int vec_size, int str_size, int ini_type, int offset);
 void print_ids(id_list* list);
+int id_list_len(id_list* list);
 
 #endif

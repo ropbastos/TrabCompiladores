@@ -266,7 +266,7 @@ char* hole()
   return new_hole;
 }
 
-hole_list* new_hole_list(char** hole) // Seems right.
+hole_list* new_hole_list(char** hole)
 {
   hole_list* new_list = malloc(sizeof(hole_list));
   new_list->label = hole;
@@ -317,6 +317,20 @@ void print_hole_list(hole_list* list)
     printf("Label: %s\n", *(current->label));
     current = current->next;
   };
+}
+
+int hole_list_len(hole_list* list)
+{
+  int len = 0;
+  if (list == NULL) return len;
+
+  hole_list* current = list;
+  while (current != NULL) 
+  {
+    len++;
+    current = current->next;
+  }
+  return len;
 }
 
 

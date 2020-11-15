@@ -1,0 +1,22 @@
+int fib2(int a) {
+  if (a == 0) {
+    return 0;
+  };
+  if (a == 1) {
+    return 1;
+  };
+  int aux1, aux2;
+  aux1 = fib2(a);
+  aux2 = fib2(a);
+  return aux1+aux2;
+}
+
+int main(){
+
+  int x <= 7;
+
+  int y <= 0;
+
+  y = fib2(x);
+
+}

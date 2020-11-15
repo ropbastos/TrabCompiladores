@@ -49,5 +49,6 @@ hole_list* new_hole_list(char** hole);
 void hole_list_cat(hole_list** dst, hole_list** src);
 void patch(hole_list* list, char* label);
 void print_hole_list(hole_list* list);
+int hole_list_len(hole_list* list);
 
 #endif

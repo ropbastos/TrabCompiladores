@@ -357,6 +357,19 @@ void gen_logicop_code(node* op, node* left_exp, node* right_exp)
     hole_list_cat(&op->f, &left_exp->t);
     concat_end(&op->code, left_exp->code);
   }
+  else if(strcmp(op->label, "-") == 0)
+  {
+    char* neg_reg = reg();
+    if (left_exp->val)
+    {
+      insert_end(&op->code, new_inst(NULL, "loadI", arg(-left_exp->val->value.i), NULL, op->temp, NULL));
+    }
+    else
+    {
+      concat_end(&op->code, left_exp->code);
+      insert_end(&op->code, new_inst(NULL, "rsubI", left_exp->temp, "0", op->temp, NULL));
+    }
+  }
 }
 
 void gen_bool_lit_exp_code(node* exp)
@@ -387,7 +400,8 @@ void gen_if_code(node* ifcmd, node* cond, node* true_block, node* false_block)
   {
     concat_end(&ifcmd->code, cond->code);
     insert_end(&ifcmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
-    concat_end(&ifcmd->code, true_block->code);
+    if (true_block != NULL)
+      concat_end(&ifcmd->code, true_block->code);
     insert_end(&ifcmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
   }
   else
@@ -395,7 +409,8 @@ void gen_if_code(node* ifcmd, node* cond, node* true_block, node* false_block)
     char* end_label = label();
     concat_end(&ifcmd->code, cond->code);
     insert_end(&ifcmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
-    concat_end(&ifcmd->code, true_block->code);
+    if (true_block != NULL)
+      concat_end(&ifcmd->code, true_block->code);
     insert_end(&ifcmd->code, new_inst(NULL, "jumpI", NULL, NULL, end_label, NULL));
     insert_end(&ifcmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
     concat_end(&ifcmd->code, false_block->code);
@@ -414,7 +429,8 @@ void gen_while_code(node* while_cmd, node* cond, node* block)
   insert_end(&while_cmd->code, new_inst(loop_label, "nop", NULL, NULL, NULL, NULL));
   concat_end(&while_cmd->code, cond->code);
   insert_end(&while_cmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
-  concat_end(&while_cmd->code, block->code);
+  if (block != NULL)
+    concat_end(&while_cmd->code, block->code);
   insert_end(&while_cmd->code, new_inst(NULL, "jumpI", NULL, NULL, loop_label, NULL));
   insert_end(&while_cmd->code, new_inst(false_label, "nop", NULL, NULL, NULL, NULL));
 }
@@ -433,7 +449,7 @@ void gen_for_code(node* for_cmd, node* initialization, node* cond, node* afterth
   if (cond != NULL)
     concat_end(&for_cmd->code, cond->code);
   insert_end(&for_cmd->code, new_inst(true_label, "nop", NULL, NULL, NULL, NULL));
-  if (block->code != NULL)
+  if (block != NULL)
     concat_end(&for_cmd->code, block->code);
   if (afterthought != NULL)
     concat_end(&for_cmd->code, afterthought->code);
@@ -639,5 +655,25 @@ void gen_ini_code(node* ini, lex_val* dst, lex_val* src_var, node* src_lit, stac
     else
       insert_end(&ini->code, new_inst(NULL, "loadAI", "rfp", arg(src_sb->offset), temp, NULL));
   }
-  insert_end(&ini->code, new_inst(NULL, "storeAI", temp, NULL, "rfp", arg(12)));
+  inst* storeAI = new_inst(NULL, "storeAI", temp, NULL, "rfp", "HOLE");
+  insert_end(&ini->code, storeAI);
+
+  hole_list* new_hole = new_hole_list(&storeAI->arg4);
+  hole_list_cat(&ini->t, &new_hole);
+}
+
+void patch_ini_offsets(hole_list* holes, id_list* ids, int offset)
+{
+  hole_list* current_hole = holes;
+  id_list* current_id = ids;
+  while (current_hole != NULL && current_id != NULL)
+  {
+    if (current_id->has_hole)
+    {
+      *(current_hole->label) = arg(offset);
+      current_hole = current_hole->next;
+    }
+    offset += 4;
+    current_id = current_id->next;
+  }
 }
