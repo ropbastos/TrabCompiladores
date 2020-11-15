@@ -1,9 +1,16 @@
+int f(){
+  return 73;
+}
+
 
 int main(){
 
-  int a, b;
+  int a;
+  int b;
 
-  b = 3 + 2;
+  b = 7;
+
+  a = f();
 
 }
 

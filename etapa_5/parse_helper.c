@@ -497,7 +497,10 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
   
   // Abre espaco pras variaveis locais e argumentos.
   if (is_main && offset != 0)
-    insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(offset), "rsp", NULL));
+  {
+    //printf("is_main offset != 0\n");
+    insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(scope->offset), "rsp", NULL));
+  }
   // Final do prologo.
   if (is_main == 0)
     insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(16+arg_list_len(func->args)*4), "rsp", NULL));
@@ -523,36 +526,49 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
 void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack)
 {
   call->temp = reg();
-  // Calc. end. de retorno (5 instrucoes + 2*(numero de parametros) abaixo).
+  // Para calc. o end. de retorno.
   char* temp = reg();
   int return_offset = 5;
   int param_num = 0;
   if (args->arg_list != NULL)
   {
     param_num = arg_list_len(args->arg_list);
-    return_offset += param_num*2;
   }
-  // Salva end. de retorno.
-  insert_end(&call->code, new_inst(NULL, "addI", "rpc", arg(return_offset), temp, NULL));
-  insert_end(&call->code, new_inst(NULL, "storeAI", temp, NULL, "rsp", "0"));
-  // Salva rsp e rfp.
-  insert_end(&call->code, new_inst(NULL, "storeAI", "rsp", NULL, "rsp", "4"));
-  insert_end(&call->code, new_inst(NULL, "storeAI", "rfp", NULL, "rsp", "8"));
-  // Empilha os parametros.
-  arg_list* param = args->arg_list;
-  int param_offset = 12;
-  for (int i = 0; i < param_num; i++)
+  // Empilha os parametros. -- COD DE SALVAR REGS VEM ANTES DESSE, MAS ESSE É MONTADO ANTES.
+  inst_list_item* param_stacking_code = NULL;
+  if (args->ast_node != NULL && args->ast_node->code != NULL)
   {
-    symbol_entry* param_sb = st_lookup(param->id, scope_stack);
-    int var_offset = param_sb->offset;
-    if (param_sb->symbol_type == VAR)
-      insert_end(&call->code, new_inst(NULL, "loadAI", "rfp", arg(var_offset), temp, NULL));
-    else if (param_sb->symbol_type == LIT)
-      insert_end(&call->code, new_inst(NULL, "loadI", param_sb->label, NULL, temp, NULL));
-    insert_end(&call->code, new_inst(NULL, "storeAI", temp, NULL, "rsp", arg(param_offset)));
-    param_offset += 4;
-    param = param->next;
-  }
+    node* arg_node = args->ast_node;
+    int param_offset = 12;
+    for (int i = 0; i < param_num; i++)
+    {
+      if (arg_node != NULL && arg_node->code != NULL)
+      {
+        concat_end(&param_stacking_code, arg_node->code);
+        insert_end(&param_stacking_code, new_inst(NULL, "storeAI", arg_node->temp, NULL, "rsp", arg(param_offset)));
+      }
+      param_offset += 4;
+      if (arg_node->children != NULL)
+      {
+        arg_node = arg_node->children[0];
+      }
+      else
+      {
+        break;
+      }
+    }
+  } 
+  // Salva end. de retorno.
+  inst_list_item* reg_saving_code = NULL;
+  return_offset += count_instructions(param_stacking_code);
+  insert_end(&reg_saving_code, new_inst(NULL, "addI", "rpc", arg(return_offset), temp, NULL));
+  insert_end(&reg_saving_code, new_inst(NULL, "storeAI", temp, NULL, "rsp", "0"));
+  // Salva rsp e rfp.
+  insert_end(&reg_saving_code, new_inst(NULL, "storeAI", "rsp", NULL, "rsp", "4"));
+  insert_end(&reg_saving_code, new_inst(NULL, "storeAI", "rfp", NULL, "rsp", "8"));
+  // Reoderna os dois trechos acima, agora que se sabe o endereco de retorno.
+  concat_end(&reg_saving_code, param_stacking_code);
+  concat_end(&call->code, reg_saving_code);
   // Salta para o codigo da funcao.
   insert_end(&call->code, new_inst(NULL, "jumpI", NULL, NULL, func->iloc_func_label, NULL));
   // Carrega o valor de retorno.

@@ -896,6 +896,8 @@ exp_list:
       $$ = head;
 
       add_children($$->ast_node, 1, $3->ast_node);
+      $$->ast_node->children[0]->code = $3->ast_node->code;
+      $$->ast_node->children[0]->temp = $3->ast_node->temp;
     }
 |   %empty 
     { 
