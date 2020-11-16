@@ -179,22 +179,16 @@ void print_ht_entry(ht_entry** ht, int key)
 
 // Arg lists
 
-void add_arg(arg_list* list, lex_val* id, int type)
+void add_arg(arg_list** list, lex_val* id, int type)
 {
   if (list == NULL) return;
 
-  arg_list* current = list;
-
-  while (current->next != NULL)
-  {
-    current = current->next;
-  }
-
-  current->next = (arg_list*) malloc(sizeof(arg_list));
-  current->next->id = id->value.s;
-  current->next->line = id->line;
-  current->next->type = type;
-  current->next->next = NULL;
+  arg_list* new_arg = malloc(sizeof(struct arg_list_item));
+  new_arg->id = id->value.s;
+  new_arg->line = id->line;
+  new_arg->type = type;
+  new_arg->next = *list;
+  *list = new_arg; 
 }
 
 void add_arg_call(arg_list* list, arg_list* to_add)

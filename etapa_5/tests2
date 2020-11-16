@@ -1,12 +1,13 @@
 int fib(int x, int y) 
 { 
-    return 10 + x + y;
+    return x + y;
 } 
   
 int main() 
 { 
     int n; 
-    n = fib(1, 2); 
+    int b <= 7;
+    n = fib(3 + 2, 1 + 2); 
 
     return 0;
 } 

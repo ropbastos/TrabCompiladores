@@ -1,37 +1,17 @@
      loadI 1024 => rfp
      loadI 1024 => rsp
-     loadI 37 => rbss
+     loadI 17 => rbss
      jumpI => L0
-L1:  i2i rsp => rfp
-     addI rsp, 24 => rsp
-     loadAI rfp, 12 => r8
-     storeAI r8 => rfp, 20
-     loadAI rfp, 16 => r8
-     storeAI r8 => rfp, 24
-     loadI 10 => r0
-     loadAI rfp, 24 => r1
-     add r0, r1 => r2
-     loadAI rfp, 20 => r3
-     add r2, r3 => r4
-     i2i r4 => r5
-     storeAI r5 => rfp, 16
-     loadAI rfp, 0 => r5
-     loadAI rfp, 4 => r6
-     loadAI rfp, 8 => r7
-     i2i r6 => rsp
-     i2i r7 => rfp
-     jump  => r5
 L0:  i2i rsp => rfp
      addI rsp, 24 => rsp
-     addI rpc, 9 => r12
-     storeAI r12 => rsp, 0
-     storeAI rsp => rsp, 4
-     storeAI rfp => rsp, 8
-     loadI 1 => r9
-     storeAI r9 => rsp, 12
-     loadI 2 => r10
-     storeAI r10 => rsp, 16
-     jumpI  => L1
-     loadAI rsp, 16 => r11
-     storeAI r11 => rfp, 20
+     loadI 5 => r0
+     storeAI r0 => rfp, 20
+L4:  nop
+     loadAI rfp, 20 => r1
+     loadI 5 => r2
+     cmp_GT r1, r2 => r3
+     cbr r3 => L2, L3
+L2:  nop
+     jumpI  => L4
+L3:  nop
      halt

@@ -345,7 +345,7 @@ header:
 params:
     type TK_IDENTIFICADOR ',' params
     {
-      add_arg($4, $2, $1);
+      add_arg(&$4, $2, $1);
       $$ = $4;
     }
 |   type TK_IDENTIFICADOR
@@ -354,7 +354,7 @@ params:
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR ',' params
     {
-      add_arg($5, $3, $2);
+      add_arg(&$5, $3, $2);
       $$ = $5;
     }
 |   TK_PR_CONST type TK_IDENTIFICADOR 
