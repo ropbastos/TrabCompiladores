@@ -17,6 +17,7 @@ extern int return_type_is_correct;
 extern int prev_offset;
 int first_offset = 1;
 extern int in_main;
+int loaded_lits = 0;
 
 inst_list_item* head = NULL;
 %}
@@ -1057,7 +1058,7 @@ exp:
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
       $$->size = lookup_result->size;
 
-      char* temp = reg();
+      char* temp = reg(1);
       $$->temp = temp;
       if (lookup_result->is_global)
         insert_end(&($$->code),
@@ -1116,38 +1117,34 @@ exp:
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
-      char* temp = reg();
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "add", $1->temp, $3->temp, temp, NULL),
-        temp);
+        new_inst(NULL, "add", $1->temp, $3->temp, $1->temp, NULL),
+        $1->temp);
 
     }
 |   exp '-' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
-      char* temp = reg();
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "sub", $1->temp, $3->temp, temp, NULL),
-        temp);
+        new_inst(NULL, "sub", $1->temp, $3->temp, $1->temp, NULL),
+        $1->temp);
     }
 |   exp '*' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
-      char* temp = reg();
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "mult", $1->temp, $3->temp, temp, NULL),
-        temp);
+        new_inst(NULL, "mult", $1->temp, $3->temp, $1->temp, NULL),
+        $1->temp);
     }
 |   exp '/' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
-      char* temp = reg();
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "div", $1->temp, $3->temp, temp, NULL),
-        temp);
+        new_inst(NULL, "div", $1->temp, $3->temp, $1->temp, NULL),
+        $1->temp);
     }
 |   exp '%' exp 
     { 
@@ -1280,7 +1277,19 @@ lit_exp:
       }
       
       $$ = lexval_node($1); $$->data_type = INT;
-      char* temp = reg();
+      char* temp;
+      if (loaded_lits < 3)
+      {
+        temp = reg(1);
+        loaded_lits++;
+        //printf("new reg: %s\n", temp);
+      }
+      else
+      {
+        temp = reg(0);
+        loaded_lits = 0;
+        //printf("old reg: %s\n", temp);
+      }
       insert_end(&($$->code), 
         new_inst(NULL, "loadI", arg($1->value.i), NULL, temp, NULL));
       $$->temp = temp;

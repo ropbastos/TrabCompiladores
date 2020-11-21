@@ -36,7 +36,7 @@ extern int reg_num;
 extern int label_num;
 
 char* label();
-char* reg();
+char* reg(int new_reg);
 char* arg(int arg_val);
 
 typedef struct hole_list_item {

@@ -14,10 +14,17 @@ char* label()
   return label_name;
 };
 
-char* reg()
+char* reg(int new_reg)
 {
   char* reg_name;
-  asprintf(&reg_name,"r%d", ++reg_num);
+  if (new_reg)
+    asprintf(&reg_name,"r%d", ++reg_num%4);
+  else
+  {
+    reg_num = 2;
+    asprintf(&reg_name,"r%d", reg_num);
+  }
+  
   return reg_name;
 };
 

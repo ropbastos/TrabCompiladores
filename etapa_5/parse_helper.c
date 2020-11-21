@@ -274,7 +274,7 @@ void generate_binary_exp_code(node* op, node* left_exp, node* right_exp, inst* i
 
 void gen_relop_code(node* exp, node* left_exp, node* right_exp)
 {
-  exp->temp = reg();
+  exp->temp = reg(0);
   
   inst* branch = new_inst(NULL, "cbr", exp->temp, NULL, "HOLE", "HOLE");
   insert_end(&(exp->code), branch);
@@ -328,8 +328,6 @@ void gen_relop_code(node* exp, node* left_exp, node* right_exp)
 
 void gen_logicop_code(node* op, node* left_exp, node* right_exp)
 {
-  op->temp = reg();
-
   if (strcmp(op->label, "&&") == 0)
   {
     char* true_label = label();
@@ -360,15 +358,17 @@ void gen_logicop_code(node* op, node* left_exp, node* right_exp)
   }
   else if(strcmp(op->label, "-") == 0)
   {
-    char* neg_reg = reg();
+    char* neg_reg = reg(1);
     if (left_exp->val)
     {
+      op->temp = reg(1);
       insert_end(&op->code, new_inst(NULL, "loadI", arg(-left_exp->val->value.i), NULL, op->temp, NULL));
     }
     else
     {
       concat_end(&op->code, left_exp->code);
-      insert_end(&op->code, new_inst(NULL, "rsubI", left_exp->temp, "0", op->temp, NULL));
+      insert_end(&op->code, new_inst(NULL, "rsubI", left_exp->temp, "0", left_exp->temp, NULL));
+      op->temp = left_exp->temp;
     }
   }
 }
@@ -507,7 +507,7 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
     insert_end(&header->code, new_inst(NULL, "addI", "rsp", arg(16+arg_list_len(func->args)*4), "rsp", NULL));
   // Obtem os parametros.
   int param_num = arg_list_len(func->args);
-  char* reg_param = reg();
+  char* reg_param = reg(1);
   for (int i = 0; i < param_num; i++)
   {
     insert_end(&header->code, new_inst(NULL, "loadAI", "rfp", arg(12+i*4), reg_param, NULL));
@@ -526,9 +526,9 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
 
 void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack)
 {
-  call->temp = reg();
+  call->temp = reg(1);
   // Para calc. o end. de retorno.
-  char* temp = reg();
+  char* temp = reg(1);
   int return_offset = 5;
   int param_num = 0;
   if (args->arg_list != NULL)
@@ -586,7 +586,7 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope)
     concat_end(&return_node->code, exp->code);
     // Sequencia de retorno.
     symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
-    char* ret_reg = reg();
+    char* ret_reg = reg(1);
     // Retorno é um literal.
     if (return_val != NULL && return_val->symbol_type == LIT)
     {
@@ -607,8 +607,8 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope)
       insert_end(&return_node->code, new_inst(NULL, "i2i", exp->temp, NULL, ret_reg, NULL));
       insert_end(&return_node->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
     }
-    char* rsp_reg = reg();
-    char* rfp_reg = reg();
+    char* rsp_reg = reg(1);
+    char* rfp_reg = reg(1);
     insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", "0", ret_reg, NULL));
     insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", "4", rsp_reg, NULL));
     insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", "8", rfp_reg, NULL));
@@ -662,7 +662,7 @@ void gen_attrib_code(node* attrib, node* exp, symbol_entry* dst)
 void gen_ini_code(node* ini, lex_val* dst, lex_val* src_var, node* src_lit, stack* scope_stack)
 {
   symbol_entry* dst_sb = st_lookup(dst->value.s, scope_stack);
-  char* temp = reg();
+  char* temp = reg(0);
   if (src_lit != NULL)
   {
     insert_end(&ini->code, new_inst(NULL, "loadI", src_lit->label, NULL, temp, NULL));

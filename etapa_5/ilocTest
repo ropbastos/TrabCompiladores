@@ -4,13 +4,13 @@
      jumpI => L0
 L0:  i2i rsp => rfp
      addI rsp, 24 => rsp
-     loadI 5 => r0
-     storeAI r0 => rfp, 20
-L4:  nop
-     loadAI rfp, 20 => r1
      loadI 5 => r2
-     cmp_GT r1, r2 => r3
-     cbr r3 => L2, L3
+     storeAI r2 => rfp, 20
+L4:  nop
+     loadAI rfp, 20 => r3
+     loadI 5 => r0
+     cmp_GT r3, r0 => r2
+     cbr r2 => L2, L3
 L2:  nop
      jumpI  => L4
 L3:  nop
