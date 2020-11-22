@@ -1,0 +1,15 @@
+int f(int a){
+  return a - 1;
+}
+
+int main() {
+
+  int b;
+  b = 2;
+
+  while (b != -(6+1)) do
+  {
+    b = f(b);
+  }
+
+}
