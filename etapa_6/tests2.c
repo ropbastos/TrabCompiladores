@@ -1,9 +1,7 @@
-int f(){
-  int a;
-  a = 3;
-  return a;
-}
-
 int main(){
-  return f();
+  int a;
+  int b;
+  a = 3;
+  b = 5;
+  return 7;
 }

@@ -233,7 +233,8 @@ void print_code(inst_list_item* item)
       label = inst->label;
       formatted_label = malloc(sizeof(label)+sizeof(": "));
       formatted_label = strcpy(formatted_label, label);
-      formatted_label = strcat(formatted_label, ": ");
+      if (label[0] != '/')
+        formatted_label = strcat(formatted_label, ": ");
       label = formatted_label;
     }
 

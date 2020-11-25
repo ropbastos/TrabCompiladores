@@ -155,11 +155,34 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
   asm_inst_list_item* asm_code = NULL;
 
   inst_list_item* iloc_item = iloc;
+  int in_return_seq = 0;
   while(iloc_item != NULL)
   {
     inst* iloc_inst = iloc_item->instruction;
 
-    if (iloc_inst->label && !strcmp(iloc_inst->label, "// FUNC BEGIN"))
+    if (in_return_seq) // Ignore ILOC return seq.
+    { 
+      if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .ret id"))
+      {
+        char* src = x86Roffset(iloc_item->next->instruction->arg1, iloc_item->next->instruction->arg2);
+        char* dst = x86reg(iloc_item->next->instruction->arg3);
+        asm_end(&asm_code, asm_op(NULL, "movl", src, dst));
+        asm_end(&asm_code, asm_op(NULL, "movl", dst, "%eax"));
+      }
+      else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .ret lit"))
+      {
+        char* ret_val = x86lit(iloc_item->next->instruction->arg1);
+        asm_end(&asm_code, asm_op(NULL, "movl", ret_val, "%eax"));
+      }
+      if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .return end"))
+      {
+        asm_end(&asm_code, asm_op(NULL, "popq", "%rbp", NULL));
+        asm_end(&asm_code, asm_op(NULL, "ret", NULL, NULL));
+        in_return_seq = 0;
+      }
+        
+    } 
+    else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .func begin"))
     {
       char* func_label = iloc_item->next->instruction->label;
       if (strcmp(iloc_item->next->instruction->label, "L0") == 0)
@@ -173,11 +196,10 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
         asm_end(&asm_code, asm_op(NULL, "movq", "%rsp", "%rbp"));
       } 
     }
-    else if ((iloc_inst->label && !strcmp(iloc_inst->label, "// RETURN BEGIN")) 
+    else if ((iloc_inst->label && !strcmp(iloc_inst->label, "//   .return begin")) 
             || !strcmp(iloc_inst->op, "halt"))
     {
-      asm_end(&asm_code, asm_op(NULL, "popq", "%rbp", NULL));
-      asm_end(&asm_code, asm_op(NULL, "ret", NULL, NULL));
+      in_return_seq = 1;
     }
     else if (!strcmp(iloc_inst->op, "loadI"))
     {
