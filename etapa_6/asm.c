@@ -143,6 +143,7 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
   {
     inst* iloc_inst = iloc_item->instruction;
 
+    // ASM de entrada em funcoes.
     if (iloc_inst->label && !strcmp(iloc_inst->label, "// FUNC BEGIN"))
     {
       char* func_label = iloc_item->next->instruction->label;
@@ -157,7 +158,9 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
         asm_end(&asm_code, asm_op(NULL, "movq", "%rsp", "%rbp"));
       } 
     }
-    else if (iloc_inst->label && !strcmp(iloc_inst->label, "// RETURN BEGIN"))
+    // ASM de retorno de funcoes.
+    else if ((iloc_inst->label && !strcmp(iloc_inst->label, "// RETURN BEGIN")) 
+            || !strcmp(iloc_inst->op, "halt"))
     {
       asm_end(&asm_code, asm_op(NULL, "popq", "%rbp", NULL));
       asm_end(&asm_code, asm_op(NULL, "ret", NULL, NULL));
@@ -166,8 +169,6 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
 
     iloc_item = iloc_item->next;
   }
-
-  asm_end(&asm_code, asm_op(NULL, "popq", "%rbp", NULL));
 
   return asm_code;
 };
