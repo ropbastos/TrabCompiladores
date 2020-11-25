@@ -481,6 +481,10 @@ node* find_return_node(node* tree)
 
 void gen_func_code(node* header, node* body, int offset, symb_table* scope, stack* scope_stack)
 {
+  // Marca inicio da funcao para geracao de ASM posterior.
+  insert_end(&header->code, new_inst("// FUNC BEGIN", "", NULL, NULL, NULL, NULL));
+
+  // Define se estamos na main. 
   int is_main = 0;
   if (strcmp(header->label, "main") == 0)
     is_main = 1;
@@ -583,6 +587,7 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope)
 {
   if (!in_main)
   {
+    insert_end(&return_node->code, new_inst("// RETURN BEGIN", "", NULL, NULL, NULL, NULL));
     concat_end(&return_node->code, exp->code);
     // Sequencia de retorno.
     symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
@@ -615,6 +620,7 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope)
     insert_end(&return_node->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
     insert_end(&return_node->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
     insert_end(&return_node->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
+    insert_end(&return_node->code, new_inst("// RETURN END", "", NULL, NULL, NULL, NULL));
   }
 }
 

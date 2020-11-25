@@ -15,15 +15,16 @@ stack* scope_stack_final = NULL;
 int main (int argc, char **argv)
 {
   int ret = yyparse(); 
-  //exporta (arvore);
   if (argc == 2)
   {
     if (!strcmp(argv[1], "-asm"))
       print_asm(iloc_to_asm(((node*) arvore)->code), peek(scope_stack_final));
     else if (!strcmp(argv[1], "-iloc"))
       print_code(((node*) arvore)->code);
+    else if (!strcmp(argv[1], "-tree"))
+      exporta(arvore);
     else
-      printf("usage: ./etapa6 [-iloc] [-asm] < source\n");
+      printf("usage: ./etapa6 [-tree | -iloc | -asm] < source\n");
   } else
   {
     print_asm(iloc_to_asm(((node*) arvore)->code), peek(scope_stack_final));

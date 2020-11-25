@@ -143,10 +143,24 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
   {
     inst* iloc_inst = iloc_item->instruction;
 
-    if (iloc_inst->label && strcmp(iloc_inst->label, "L0"))
+    if (iloc_inst->label && !strcmp(iloc_inst->label, "// FUNC BEGIN"))
     {
-      asm_end(&asm_code, asm_op("main", "pushq", "%rbp", NULL));
-      asm_end(&asm_code, asm_op(NULL, "movq", "%rsp", "%rbp"));
+      char* func_label = iloc_item->next->instruction->label;
+      if (strcmp(iloc_item->next->instruction->label, "L0") == 0)
+      {
+        asm_end(&asm_code, asm_op("main", "pushq", "%rbp", NULL));
+        asm_end(&asm_code, asm_op(NULL, "movq", "%rsp", "%rbp"));
+      } 
+      else 
+      {
+        asm_end(&asm_code, asm_op(func_label, "pushq", "%rbp", NULL));
+        asm_end(&asm_code, asm_op(NULL, "movq", "%rsp", "%rbp"));
+      } 
+    }
+    else if (iloc_inst->label && !strcmp(iloc_inst->label, "// RETURN BEGIN"))
+    {
+      asm_end(&asm_code, asm_op(NULL, "popq", "%rbp", NULL));
+      asm_end(&asm_code, asm_op(NULL, "ret", NULL, NULL));
     }
 
 
@@ -172,7 +186,10 @@ void print_asm(asm_inst_list_item* asm_code, symb_table* scope)
   {
     if (current->inst->lbl)
       printf("%s:\n", current->inst->lbl);
-    printf("  %s %s", current->inst->op, current->inst->src);
+    if (strcmp(current->inst->op, "ret") == 0)
+      printf("  %s", current->inst->op);
+    else
+      printf("  %s %s", current->inst->op, current->inst->src);
     if (current->inst->dst)
       printf(", %s\n", current->inst->dst);
     else
