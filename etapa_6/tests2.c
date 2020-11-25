@@ -1,7 +1,9 @@
-int func(){
-  return 0;
-}
-int main(){
+int f(){
   int a;
   a = 3;
+  return a;
+}
+
+int main(){
+  return f();
 }

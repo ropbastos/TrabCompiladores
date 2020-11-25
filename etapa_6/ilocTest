@@ -1,13 +1,24 @@
      loadI 1024 => rfp
      loadI 1024 => rsp
-     loadI 13 => rbss
+     loadI 24 => rbss
      jumpI => L0
 // FUNC BEGIN: 
 L1:  i2i rsp => rfp
      addI rsp, 16 => rsp
+     loadI 3 => r0
+     storeAI r0 => rfp, 20
+// RETURN BEGIN: 
+     loadAI rfp, 20 => r1
+     loadAI rfp, 20 => r2
+     storeAI r2 => rfp, 16
+     loadAI rfp, 0 => r2
+     loadAI rfp, 4 => r3
+     loadAI rfp, 8 => r0
+     i2i r3 => rsp
+     i2i r0 => rfp
+     jump  => r2
+// RETURN END: 
 // FUNC BEGIN: 
 L0:  i2i rsp => rfp
-     addI rsp, 24 => rsp
-     loadI 3 => r1
-     storeAI r1 => rfp, 20
+     addI rsp, 20 => rsp
      halt

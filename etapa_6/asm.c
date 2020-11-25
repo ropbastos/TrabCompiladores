@@ -104,6 +104,9 @@ char* x86reg(char* iloc_reg)
   } else if (!strcmp("r3", iloc_reg))
   {
     return "%edx";
+  } else if (!strcmp("rfp", iloc_reg))
+  {
+    return "%rbp";
   } else
   {
     return NULL;
@@ -117,6 +120,19 @@ char* x86lit(char* iloc_lit)
   lit_string = strcat(lit_string, iloc_lit);
   return lit_string;
 };
+
+char* x86Roffset(char* iloc_reg, char* iloc_offset)
+{
+  char* x86adressing;
+  char* x86r = x86reg(iloc_reg); 
+  x86adressing = malloc(sizeof("-()")+sizeof(x86r)+sizeof(iloc_offset));
+  x86adressing = strcat(x86adressing, "-");
+  x86adressing = strcat(x86adressing, iloc_offset);
+  x86adressing = strcat(x86adressing, "(");
+  x86adressing = strcat(x86adressing, x86r);
+  x86adressing = strcat(x86adressing, ")");
+  return x86adressing;
+}
 
 void asm_print_globals(ht_entry** table)
 {
@@ -143,7 +159,6 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
   {
     inst* iloc_inst = iloc_item->instruction;
 
-    // ASM de entrada em funcoes.
     if (iloc_inst->label && !strcmp(iloc_inst->label, "// FUNC BEGIN"))
     {
       char* func_label = iloc_item->next->instruction->label;
@@ -158,13 +173,22 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
         asm_end(&asm_code, asm_op(NULL, "movq", "%rsp", "%rbp"));
       } 
     }
-    // ASM de retorno de funcoes.
     else if ((iloc_inst->label && !strcmp(iloc_inst->label, "// RETURN BEGIN")) 
             || !strcmp(iloc_inst->op, "halt"))
     {
       asm_end(&asm_code, asm_op(NULL, "popq", "%rbp", NULL));
       asm_end(&asm_code, asm_op(NULL, "ret", NULL, NULL));
     }
+    else if (!strcmp(iloc_inst->op, "loadI"))
+    {
+      asm_end(&asm_code, asm_op(NULL, "movl", x86lit(iloc_inst->arg1), x86reg(iloc_inst->arg3)));
+    }
+    else if (!strcmp(iloc_inst->op, "storeAI"))
+    {
+      char* dest = x86Roffset(iloc_inst->arg3, iloc_inst->arg4);
+      asm_end(&asm_code, asm_op(NULL, "movl", x86reg(iloc_inst->arg1), dest));
+    }
+    
 
 
     iloc_item = iloc_item->next;

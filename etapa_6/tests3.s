@@ -1,10 +1,5 @@
-
-  .globl	main
-	.type	main, @function
-a:
-  .zero 4
-b:
-  .zero 4
+  .globl main
+  .type main, @function
 main:
   pushq %rbp
   movq %rsp, %rbp
