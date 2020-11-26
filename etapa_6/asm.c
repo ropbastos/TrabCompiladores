@@ -4,6 +4,8 @@
 #include <string.h> 
 #include "asm.h"
 
+int last_inst_div_mul = 0;
+
 asm_inst* asm_op(char* lbl, char* op, char* src, char* dst)
 {
   asm_inst* new_inst = malloc(sizeof(asm_inst));
@@ -94,17 +96,31 @@ char* x86reg(char* iloc_reg)
 {
   if (!strcmp("r0", iloc_reg))
   {
-    return "%eax";
+    return "%ah";
   } else if (!strcmp("r1", iloc_reg))
   {
-    return "%ebx";
+    return "%al";
   } else if (!strcmp("r2", iloc_reg))
   {
-    return "%ecx";
+    return "%bh";
   } else if (!strcmp("r3", iloc_reg))
   {
-    return "%edx";
-  } else if (!strcmp("rfp", iloc_reg))
+    return "%bl";
+  } else if (!strcmp("r4", iloc_reg))
+  {
+    return "%ch";
+  } else if (!strcmp("r5", iloc_reg))
+  {
+    return "%cl";
+  } else if (!strcmp("r6", iloc_reg))
+  {
+    return "%dh";
+  }
+   else if (!strcmp("r7", iloc_reg))
+  {
+    return "%dl";
+  }
+  else if (!strcmp("rfp", iloc_reg))
   {
     return "%rbp";
   } else
@@ -166,21 +182,27 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
       {
         char* src = x86Roffset(iloc_item->next->instruction->arg1, iloc_item->next->instruction->arg2);
         char* dst = x86reg(iloc_item->next->instruction->arg3);
-        asm_end(&asm_code, asm_op(NULL, "movl", src, dst));
-        asm_end(&asm_code, asm_op(NULL, "movl", dst, "%eax"));
+        asm_end(&asm_code, asm_op(NULL, "mov", src, dst));
+        asm_end(&asm_code, asm_op(NULL, "mov", dst, "%al"));
       }
       else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .ret lit"))
       {
         char* ret_val = x86lit(iloc_item->next->instruction->arg1);
-        asm_end(&asm_code, asm_op(NULL, "movl", ret_val, "%eax"));
+        asm_end(&asm_code, asm_op(NULL, "mov", ret_val, "%al"));
+      }
+      else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .ret exp"))
+      {
+        if (last_inst_div_mul == 0) {
+          char* ret_val = x86reg(iloc_item->next->instruction->arg1);
+          asm_end(&asm_code, asm_op(NULL, "mov", ret_val, "%al"));
+        }
       }
       if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .return end"))
       {
         asm_end(&asm_code, asm_op(NULL, "popq", "%rbp", NULL));
         asm_end(&asm_code, asm_op(NULL, "ret", NULL, NULL));
         in_return_seq = 0;
-      }
-        
+      }   
     } 
     else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .func begin"))
     {
@@ -203,15 +225,57 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
     }
     else if (!strcmp(iloc_inst->op, "loadI"))
     {
-      asm_end(&asm_code, asm_op(NULL, "movl", x86lit(iloc_inst->arg1), x86reg(iloc_inst->arg3)));
+      asm_end(&asm_code, asm_op(NULL, "mov", x86lit(iloc_inst->arg1), x86reg(iloc_inst->arg3)));
+      last_inst_div_mul = 0;
     }
     else if (!strcmp(iloc_inst->op, "storeAI"))
     {
       char* dest = x86Roffset(iloc_inst->arg3, iloc_inst->arg4);
-      asm_end(&asm_code, asm_op(NULL, "movl", x86reg(iloc_inst->arg1), dest));
+      asm_end(&asm_code, asm_op(NULL, "mov", x86reg(iloc_inst->arg1), dest));
+      last_inst_div_mul = 0;
     }
-    
-
+    else if (!strcmp(iloc_inst->op, "loadAI"))
+    {
+      char* src = x86Roffset(iloc_inst->arg1, iloc_inst->arg2);
+      char* dst = x86reg(iloc_inst->arg3);
+      asm_end(&asm_code, asm_op(NULL, "mov", src, dst));
+      last_inst_div_mul = 0;
+    }
+    else if (!strcmp(iloc_inst->op, "add"))
+    {
+      char* src = x86reg(iloc_inst->arg2);
+      char* dst = x86reg(iloc_inst->arg1);
+      asm_end(&asm_code, asm_op(NULL, "add", src, dst));
+      last_inst_div_mul = 0;
+    }
+    else if (!strcmp(iloc_inst->op, "sub"))
+    {
+      char* src = x86reg(iloc_inst->arg2);
+      char* dst = x86reg(iloc_inst->arg1);
+      asm_end(&asm_code, asm_op(NULL, "sub", src, dst));
+      last_inst_div_mul = 0;
+    }
+    else if (!strcmp(iloc_inst->op, "mult"))
+    {
+      char* multiplier = (x86reg(iloc_inst->arg2)[0] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
+      char* multiplicand = x86reg(iloc_inst->arg1);
+      asm_end(&asm_code, asm_op(NULL, "mov", multiplicand, "%al"));
+      asm_end(&asm_code, asm_op(NULL, "xor", "%ah", "%ah"));
+      asm_end(&asm_code, asm_op(NULL, "mul", multiplier, NULL));
+      asm_end(&asm_code, asm_op(NULL, "mov", "%al", multiplicand));
+      last_inst_div_mul = 1;
+            
+    }
+    else if (!strcmp(iloc_inst->op, "div"))
+    {
+      char* divisor = (x86reg(iloc_inst->arg2)[0] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
+      char* dividend = x86reg(iloc_inst->arg1);
+      asm_end(&asm_code, asm_op(NULL, "mov", dividend, "%al"));
+      asm_end(&asm_code, asm_op(NULL, "xor", "%ah", "%ah"));
+      asm_end(&asm_code, asm_op(NULL, "div", divisor, NULL));
+      asm_end(&asm_code, asm_op(NULL, "mov", "%al", dividend));
+      last_inst_div_mul = 1;
+    }
 
     iloc_item = iloc_item->next;
   }
@@ -233,7 +297,7 @@ void print_asm(asm_inst_list_item* asm_code, symb_table* scope)
   {
     if (current->inst->lbl)
       printf("%s:\n", current->inst->lbl);
-    if (strcmp(current->inst->op, "ret") == 0)
+    if (current->inst->src == NULL)
       printf("  %s", current->inst->op);
     else
       printf("  %s %s", current->inst->op, current->inst->src);

@@ -585,8 +585,8 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
 
 void gen_return_code(node* return_node, node* exp, symb_table* scope)
 {
-  insert_end(&return_node->code, new_inst("//   .return begin", "", NULL, NULL, NULL, NULL));
   concat_end(&return_node->code, exp->code);
+  insert_end(&return_node->code, new_inst("//   .return begin", "", NULL, NULL, NULL, NULL));
   // Sequencia de retorno.
   symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
   char* ret_reg = reg(1);

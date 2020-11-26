@@ -1,20 +1,22 @@
      loadI 1024 => rfp
      loadI 1024 => rsp
-     loadI 20 => rbss
+     loadI 22 => rbss
      jumpI => L0
 //   .func begin
 L0:  i2i rsp => rfp
      addI rsp, 28 => rsp
-     loadI 3 => r0
+     loadI 10 => r0
      storeAI r0 => rfp, 20
-     loadI 5 => r1
+     loadI 2 => r1
      storeAI r1 => rfp, 24
-//   .return begin
      loadAI rfp, 20 => r2
      loadAI rfp, 24 => r3
-     add r2, r3 => r2
+     div r2, r3 => r2
+     loadI 3 => r4
+     mult r2, r4 => r2
+//   .return begin
 //   .ret exp
-     i2i r2 => r0
-     storeAI r0 => rfp, 16
+     i2i r2 => r5
+     storeAI r5 => rfp, 16
 //   .return end
      halt

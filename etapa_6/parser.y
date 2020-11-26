@@ -19,7 +19,6 @@ extern int return_type_is_correct;
 extern int prev_offset;
 int first_offset = 1;
 extern int in_main;
-int loaded_lits = 0;
 
 inst_list_item* head = NULL;
 %}
@@ -1279,19 +1278,7 @@ lit_exp:
       }
       
       $$ = lexval_node($1); $$->data_type = INT;
-      char* temp;
-      if (loaded_lits < 3)
-      {
-        temp = reg(1);
-        loaded_lits++;
-        //printf("new reg: %s\n", temp);
-      }
-      else
-      {
-        temp = reg(0);
-        loaded_lits = 0;
-        //printf("old reg: %s\n", temp);
-      }
+      char* temp = reg(1);
       insert_end(&($$->code), 
         new_inst(NULL, "loadI", arg($1->value.i), NULL, temp, NULL));
       $$->temp = temp;

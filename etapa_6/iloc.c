@@ -18,13 +18,12 @@ char* reg(int new_reg)
 {
   char* reg_name;
   if (new_reg)
-    asprintf(&reg_name,"r%d", ++reg_num%4);
+    asprintf(&reg_name,"r%d", ++reg_num%8);
   else
   {
-    reg_num = 2;
-    asprintf(&reg_name,"r%d", reg_num);
+    if (reg_num == -1) reg_num++;
+    asprintf(&reg_name,"r%d", reg_num%8);
   }
-  
   return reg_name;
 };
 
