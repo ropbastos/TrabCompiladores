@@ -38,7 +38,7 @@ int main(){
   }
   else
   {
-    a = 1337;
+    a = 130;
   }
 
   if (b == 2) 
@@ -52,4 +52,6 @@ int main(){
 
   if (c == 3) {};
   if (c < 20) {} else {};
+
+  return x+y+z+a+b+c+d;
 }

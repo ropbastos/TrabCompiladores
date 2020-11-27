@@ -1,7 +1,14 @@
 int main() {
   int a;
   int b;
-  a = 20;
-  b = 10;
-  return b / 2 * a + 50 - a;
+  int c;
+  a = 3;
+  b = 7;
+  c = a;
+
+  if (a > 9 || (b == 7 && c == 7)) {
+    b = 3;
+  }
+
+  return b;
 }
