@@ -14,48 +14,48 @@ L0:  i2i rsp => rfp
      loadI 4 => r3
      storeAI r3 => rfp, 48
      loadAI rfp, 36 => r4
-     loadI 1 => r5
-     cmp_EQ r4, r5 => r5
-     cbr r5 => L6, L9
+     loadI 1 => r0
+     cmp_EQ r4, r0 => r0
+     cbr r0 => L6, L9
 L6:  nop
-     loadAI rfp, 40 => r0
-     loadI 3 => r1
-     cmp_NE r0, r1 => r1
-     cbr r1 => L8, L9
+     loadAI rfp, 40 => r1
+     loadI 3 => r2
+     cmp_NE r1, r2 => r2
+     cbr r2 => L8, L9
 L8:  nop
-     loadI 10 => r2
-     storeAI r2 => rfp, 24
+     loadI 10 => r3
+     storeAI r3 => rfp, 24
 L9:  nop
-     loadAI rfp, 36 => r3
-     loadI 1 => r4
-     cmp_NE r3, r4 => r4
-     cbr r4 => L10, L13
+     loadAI rfp, 36 => r4
+     loadI 1 => r0
+     cmp_NE r4, r0 => r0
+     cbr r0 => L10, L13
 L10:  nop
-     loadAI rfp, 40 => r4
-     loadI 2 => r5
-     cmp_EQ r4, r5 => r5
-     cbr r5 => L12, L13
-L12:  nop
-     loadI 11 => r0
-     storeAI r0 => rfp, 24
-L13:  nop
-     loadAI rfp, 36 => r1
-     loadI 1 => r2
+     loadAI rfp, 40 => r1
+     loadI 2 => r2
      cmp_EQ r1, r2 => r2
-     cbr r2 => L14, L17
+     cbr r2 => L12, L13
+L12:  nop
+     loadI 11 => r3
+     storeAI r3 => rfp, 24
+L13:  nop
+     loadAI rfp, 36 => r4
+     loadI 1 => r0
+     cmp_EQ r4, r0 => r0
+     cbr r0 => L14, L17
 L14:  nop
-     loadAI rfp, 40 => r3
-     loadI 2 => r4
-     cmp_NE r3, r4 => r4
-     cbr r4 => L16, L17
+     loadAI rfp, 40 => r1
+     loadI 2 => r2
+     cmp_NE r1, r2 => r2
+     cbr r2 => L16, L17
 L16:  nop
-     loadI 11 => r5
-     storeAI r5 => rfp, 24
+     loadI 11 => r3
+     storeAI r3 => rfp, 24
 L17:  nop
-     loadAI rfp, 36 => r0
-     loadI 1 => r1
-     cmp_NE r0, r1 => r1
-     cbr r1 => L20, L18
+     loadAI rfp, 36 => r4
+     loadI 1 => r0
+     cmp_NE r4, r0 => r0
+     cbr r0 => L20, L18
 L18:  nop
      loadAI rfp, 40 => r1
      loadI 2 => r2
@@ -66,59 +66,59 @@ L20:  nop
      storeAI r3 => rfp, 28
 L21:  nop
      loadAI rfp, 44 => r4
-     loadI 2 => r5
-     cmp_GE r4, r5 => r5
-     cbr r5 => L23, L24
+     loadI 2 => r0
+     cmp_GE r4, r0 => r0
+     cbr r0 => L23, L24
 L23:  nop
-     loadI 30 => r0
-     storeAI r0 => rfp, 32
+     loadI 30 => r1
+     storeAI r1 => rfp, 32
 L24:  nop
-     loadAI rfp, 36 => r1
-     loadI 1 => r2
-     cmp_NE r1, r2 => r2
-     cbr r2 => L26, L27
+     loadAI rfp, 36 => r2
+     loadI 1 => r3
+     cmp_NE r2, r3 => r3
+     cbr r3 => L26, L27
 L26:  nop
      jumpI  => L28
 L27:  nop
-     loadI 130 => r3
-     storeAI r3 => rfp, 36
+     loadI 130 => r4
+     storeAI r4 => rfp, 36
 L28:  nop
-     loadAI rfp, 40 => r4
-     loadI 2 => r5
-     cmp_EQ r4, r5 => r5
-     cbr r5 => L30, L31
-L30:  nop
-     loadI 69 => r0
-     storeAI r0 => rfp, 40
-L31:  nop
-     loadAI rfp, 44 => r0
-     loadI 3 => r1
+     loadAI rfp, 40 => r0
+     loadI 2 => r1
      cmp_EQ r0, r1 => r1
-     cbr r1 => L32, L33
+     cbr r1 => L30, L31
+L30:  nop
+     loadI 69 => r2
+     storeAI r2 => rfp, 40
+L31:  nop
+     loadAI rfp, 44 => r3
+     loadI 3 => r4
+     cmp_EQ r3, r4 => r4
+     cbr r4 => L32, L33
 L32:  nop
 L33:  nop
-     loadAI rfp, 44 => r2
-     loadI 20 => r3
-     cmp_LT r2, r3 => r3
-     cbr r3 => L34, L35
+     loadAI rfp, 44 => r0
+     loadI 20 => r1
+     cmp_LT r0, r1 => r1
+     cbr r1 => L34, L35
 L34:  nop
 L35:  nop
-     loadAI rfp, 24 => r4
-     loadAI rfp, 28 => r5
-     add r4, r5 => r4
-     loadAI rfp, 32 => r5
-     add r4, r5 => r4
+     loadAI rfp, 24 => r2
+     loadAI rfp, 28 => r3
+     add r2, r3 => r3
+     loadAI rfp, 32 => r4
+     add r3, r4 => r4
      loadAI rfp, 36 => r0
-     add r4, r0 => r4
+     add r4, r0 => r0
      loadAI rfp, 40 => r1
-     add r4, r1 => r4
+     add r0, r1 => r1
      loadAI rfp, 44 => r2
-     add r4, r2 => r4
-     loadAI rfp, 48 => r2
-     add r4, r2 => r4
+     add r1, r2 => r2
+     loadAI rfp, 48 => r3
+     add r2, r3 => r3
 //   .return begin
 //   .ret exp
-     i2i r4 => r3
-     storeAI r3 => rfp, 16
+     i2i r3 => r4
+     storeAI r4 => rfp, 16
 //   .return end
      halt

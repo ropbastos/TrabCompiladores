@@ -96,27 +96,29 @@ char* x86reg(char* iloc_reg)
 {
   if (!strcmp("r0", iloc_reg))
   {
-    return "%bh";
+    return "%ebx";
   } else if (!strcmp("r1", iloc_reg))
   {
-    return "%bl";
+    return "%ecx";
   } else if (!strcmp("r2", iloc_reg))
   {
-    return "%ch";
+    return "%edx";
   } else if (!strcmp("r3", iloc_reg))
   {
-    return "%cl";
+    return "%esi";
   } else if (!strcmp("r4", iloc_reg))
   {
-    return "%dh";
-  } else if (!strcmp("r5", iloc_reg))
-  {
-    return "%dl";
+    return "%edi";
   }
   else if (!strcmp("rfp", iloc_reg))
   {
     return "%rbp";
-  } else
+  }
+  else if (!strcmp("rsp", iloc_reg))
+  {
+    return "%rsp";
+  }
+  else
   {
     return NULL;
   }
@@ -134,6 +136,7 @@ char* x86Roffset(char* iloc_reg, char* iloc_offset)
 {
   char* x86adressing;
   char* x86r = x86reg(iloc_reg); 
+  if (!x86r) printf("x86r eh NULL\n");
   x86adressing = malloc(sizeof("-()")+sizeof(x86r)+sizeof(iloc_offset));
   x86adressing = strcat(x86adressing, "-");
   x86adressing = strcat(x86adressing, iloc_offset);
@@ -165,6 +168,7 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
 
   inst_list_item* iloc_item = iloc;
   int in_return_seq = 0;
+  int in_call_seq = 0;
   while(iloc_item != NULL)
   {
     inst* iloc_inst = iloc_item->instruction;
@@ -179,19 +183,19 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
       {
         char* src = x86Roffset(iloc_item->next->instruction->arg1, iloc_item->next->instruction->arg2);
         char* dst = x86reg(iloc_item->next->instruction->arg3);
-        asm_end(&asm_code, asm_op(label, "mov", src, dst));
-        asm_end(&asm_code, asm_op(label, "mov", dst, "%al"));
+        asm_end(&asm_code, asm_op(label, "movl", src, dst));
+        asm_end(&asm_code, asm_op(label, "movl", dst, "%eax"));
       }
       else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .ret lit"))
       {
         char* ret_val = x86lit(iloc_item->next->instruction->arg1);
-        asm_end(&asm_code, asm_op(label, "mov", ret_val, "%al"));
+        asm_end(&asm_code, asm_op(label, "movl", ret_val, "%eax"));
       }
       else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .ret exp"))
       {
         if (last_inst_div_mul == 0) {
           char* ret_val = x86reg(iloc_item->next->instruction->arg1);
-          asm_end(&asm_code, asm_op(label, "mov", ret_val, "%al"));
+          asm_end(&asm_code, asm_op(label, "movl", ret_val, "%eax"));
         }
       }
       if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .return end"))
@@ -200,7 +204,19 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
         asm_end(&asm_code, asm_op(label, "ret", NULL, NULL));
         in_return_seq = 0;
       }   
-    } 
+    }
+    else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .call begin")) // Ignore ILOC call seq.
+    {
+      in_call_seq = 1;
+    }
+    else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .call end"))
+    {
+      in_call_seq = 0;
+    }
+    else if (in_call_seq)
+    {
+      asm_end(&asm_code, asm_op(label, "subq", "$16", "%rsp"));
+    }
     else if (iloc_inst->label && !strcmp(iloc_inst->label, "//   .func begin"))
     {
       char* func_label = iloc_item->next->instruction->label;
@@ -222,55 +238,57 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
     }
     else if (!strcmp(iloc_inst->op, "loadI"))
     {
-      asm_end(&asm_code, asm_op(label, "mov", x86lit(iloc_inst->arg1), x86reg(iloc_inst->arg3)));
+      asm_end(&asm_code, asm_op(label, "movl", x86lit(iloc_inst->arg1), x86reg(iloc_inst->arg3)));
       last_inst_div_mul = 0;
     }
     else if (!strcmp(iloc_inst->op, "storeAI"))
     {
       char* dest = x86Roffset(iloc_inst->arg3, iloc_inst->arg4);
-      asm_end(&asm_code, asm_op(label, "mov", x86reg(iloc_inst->arg1), dest));
+      asm_end(&asm_code, asm_op(label, "movl", x86reg(iloc_inst->arg1), dest));
       last_inst_div_mul = 0;
     }
     else if (!strcmp(iloc_inst->op, "loadAI"))
     {
       char* src = x86Roffset(iloc_inst->arg1, iloc_inst->arg2);
       char* dst = x86reg(iloc_inst->arg3);
-      asm_end(&asm_code, asm_op(label, "mov", src, dst));
+      asm_end(&asm_code, asm_op(label, "movl", src, dst));
       last_inst_div_mul = 0;
     }
     else if (!strcmp(iloc_inst->op, "add"))
     {
-      char* src = x86reg(iloc_inst->arg2);
-      char* dst = x86reg(iloc_inst->arg1);
-      asm_end(&asm_code, asm_op(label, "add", src, dst));
+      char* src = x86reg(iloc_inst->arg1);
+      char* dst = x86reg(iloc_inst->arg2);
+      asm_end(&asm_code, asm_op(label, "addl", src, dst));
       last_inst_div_mul = 0;
     }
     else if (!strcmp(iloc_inst->op, "sub"))
     {
       char* src = x86reg(iloc_inst->arg2);
       char* dst = x86reg(iloc_inst->arg1);
-      asm_end(&asm_code, asm_op(label, "sub", src, dst));
+      asm_end(&asm_code, asm_op(label, "subl", src, dst));
+      asm_end(&asm_code, asm_op(label, "movl", dst, src));
       last_inst_div_mul = 0;
     }
     else if (!strcmp(iloc_inst->op, "mult"))
     {
-      char* multiplier = (x86reg(iloc_inst->arg2)[1] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
-      char* multiplicand = x86reg(iloc_inst->arg1);
-      asm_end(&asm_code, asm_op(label, "mov", multiplicand, "%al"));
-      asm_end(&asm_code, asm_op(label, "xor", "%ah", "%ah"));
-      asm_end(&asm_code, asm_op(label, "mul", multiplier, NULL));
-      asm_end(&asm_code, asm_op(label, "mov", "%al", multiplicand));
+      // char* multiplier = (x86reg(iloc_inst->arg2)[2] == 'a') ? "%ecx" : x86reg(iloc_inst->arg2);
+      // char* multiplicand = x86reg(iloc_inst->arg1);
+      // asm_end(&asm_code, asm_op(label, "movl", multiplicand, "%eax"));
+      // asm_end(&asm_code, asm_op(label, "xor", "%ah", "%ah"));
+      // asm_end(&asm_code, asm_op(label, "mull", multiplier, NULL));
+      // asm_end(&asm_code, asm_op(label, "movl", "%eax", multiplier));
+      asm_end(&asm_code, asm_op(label, "imull", x86reg(iloc_inst->arg1), x86reg(iloc_inst->arg2)));
       last_inst_div_mul = 1;
             
     }
     else if (!strcmp(iloc_inst->op, "div"))
     {
-      char* divisor = (x86reg(iloc_inst->arg2)[1] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
+      char* divisor = (x86reg(iloc_inst->arg2)[2] == 'a') ? "%ecx" : x86reg(iloc_inst->arg2);
       char* dividend = x86reg(iloc_inst->arg1);
-      asm_end(&asm_code, asm_op(label, "mov", dividend, "%al"));
-      asm_end(&asm_code, asm_op(label, "xor", "%ah", "%ah"));
-      asm_end(&asm_code, asm_op(label, "div", divisor, NULL));
-      asm_end(&asm_code, asm_op(label, "mov", "%al", dividend));
+      asm_end(&asm_code, asm_op(label, "movl", dividend, "%eax"));
+      asm_end(&asm_code, asm_op(label, "cltd", NULL, NULL));
+      asm_end(&asm_code, asm_op(label, "idivl", divisor, NULL));
+      asm_end(&asm_code, asm_op(label, "movl", "%eax", divisor));
       last_inst_div_mul = 1;
     }
     else if (!strcmp(iloc_inst->op, "cmp_EQ"))

@@ -1,10 +1,12 @@
 int main() {
-int a;
-int b;
-a = 1;
-b = 6;
-while (a < b) do {
-a = a + 1;
-};
-return a;
+  int x, y, z, a, b, c, d;
+  x = 10;
+  y = 20;
+  z = 30;
+  a = 130;
+  b = 69;
+  c = 3;
+  d = 4;
+  return x+y+z+a+b+c+d;
 }
+

@@ -19,7 +19,7 @@ extern int return_type_is_correct;
 extern int prev_offset;
 int first_offset = 1;
 extern int in_main;
-int loadAIs = 0;
+int loadAIs = 1;
 
 inst_list_item* head = NULL;
 %}
@@ -1060,17 +1060,7 @@ exp:
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
       $$->size = lookup_result->size;
 
-      char* temp;
-      if (loadAIs < 3)
-      {
-        temp = reg(1);
-        loadAIs++;
-      }
-      else
-      {
-        temp = reg(0);
-        loadAIs = 0;
-      }
+      char* temp = reg(1);
       $$->temp = temp;
       if (lookup_result->is_global)
         insert_end(&($$->code),
@@ -1130,8 +1120,8 @@ exp:
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "add", $1->temp, $3->temp, $1->temp, NULL),
-        $1->temp);
+        new_inst(NULL, "add", $1->temp, $3->temp, $3->temp, NULL),
+        $3->temp);
 
     }
 |   exp '-' exp 
@@ -1139,24 +1129,24 @@ exp:
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "sub", $1->temp, $3->temp, $1->temp, NULL),
-        $1->temp);
+        new_inst(NULL, "sub", $1->temp, $3->temp, $3->temp, NULL),
+        $3->temp);
     }
 |   exp '*' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "mult", $1->temp, $3->temp, $1->temp, NULL),
-        $1->temp);
+        new_inst(NULL, "mult", $1->temp, $3->temp, $3->temp, NULL),
+        $3->temp);
     }
 |   exp '/' exp 
     { 
       $$ = named_node("+"); add_children($$, 2, $1, $3);
       binary_exp_type_and_error_check($$, $1, $3, get_line_number());
       generate_binary_exp_code($$, $1, $3, 
-        new_inst(NULL, "div", $1->temp, $3->temp, $1->temp, NULL),
-        $1->temp);
+        new_inst(NULL, "div", $1->temp, $3->temp, $3->temp, NULL),
+        $3->temp);
     }
 |   exp '%' exp 
     { 

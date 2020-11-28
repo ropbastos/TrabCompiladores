@@ -530,6 +530,7 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
 
 void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack)
 {
+  insert_end(&call->code, new_inst("//   .call begin", "", NULL, NULL, NULL, NULL));
   call->temp = reg(1);
   // Para calc. o end. de retorno.
   char* temp = reg(1);
@@ -581,6 +582,8 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
     insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "12", call->temp, NULL));
   else
     insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "16", call->temp, NULL)); 
+
+  insert_end(&call->code, new_inst("//   .call end", "", NULL, NULL, NULL, NULL));
 };
 
 void gen_return_code(node* return_node, node* exp, symb_table* scope)
