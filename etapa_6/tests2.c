@@ -1,14 +1,10 @@
 int main() {
-  int a;
-  int b;
-  int c;
-  a = 3;
-  b = 7;
-  c = a;
-
-  if (a > 9 || (b == 7 && c == 7)) {
-    b = 3;
-  }
-
-  return b;
+int a;
+int b;
+a = 1;
+b = 6;
+while (a < b) do {
+a = a + 1;
+};
+return a;
 }

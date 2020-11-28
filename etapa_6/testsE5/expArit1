@@ -10,4 +10,5 @@ int main() {
   d = 8 / 2;
   e = 2 * 2 + 1;
   f = 2 * (4 - 1);
+  return a+b+c+d+e+f;
 }

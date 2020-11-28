@@ -96,27 +96,20 @@ char* x86reg(char* iloc_reg)
 {
   if (!strcmp("r0", iloc_reg))
   {
-    return "%ah";
+    return "%bh";
   } else if (!strcmp("r1", iloc_reg))
   {
-    return "%al";
+    return "%bl";
   } else if (!strcmp("r2", iloc_reg))
   {
-    return "%bh";
+    return "%ch";
   } else if (!strcmp("r3", iloc_reg))
   {
-    return "%bl";
+    return "%cl";
   } else if (!strcmp("r4", iloc_reg))
   {
-    return "%ch";
-  } else if (!strcmp("r5", iloc_reg))
-  {
-    return "%cl";
-  } else if (!strcmp("r6", iloc_reg))
-  {
     return "%dh";
-  }
-   else if (!strcmp("r7", iloc_reg))
+  } else if (!strcmp("r5", iloc_reg))
   {
     return "%dl";
   }
@@ -261,7 +254,7 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
     }
     else if (!strcmp(iloc_inst->op, "mult"))
     {
-      char* multiplier = (x86reg(iloc_inst->arg2)[0] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
+      char* multiplier = (x86reg(iloc_inst->arg2)[1] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
       char* multiplicand = x86reg(iloc_inst->arg1);
       asm_end(&asm_code, asm_op(label, "mov", multiplicand, "%al"));
       asm_end(&asm_code, asm_op(label, "xor", "%ah", "%ah"));
@@ -272,7 +265,7 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
     }
     else if (!strcmp(iloc_inst->op, "div"))
     {
-      char* divisor = (x86reg(iloc_inst->arg2)[0] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
+      char* divisor = (x86reg(iloc_inst->arg2)[1] == 'a') ? "%cl" : x86reg(iloc_inst->arg2);
       char* dividend = x86reg(iloc_inst->arg1);
       asm_end(&asm_code, asm_op(label, "mov", dividend, "%al"));
       asm_end(&asm_code, asm_op(label, "xor", "%ah", "%ah"));

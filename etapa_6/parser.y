@@ -19,6 +19,7 @@ extern int return_type_is_correct;
 extern int prev_offset;
 int first_offset = 1;
 extern int in_main;
+int loadAIs = 0;
 
 inst_list_item* head = NULL;
 %}
@@ -1059,7 +1060,17 @@ exp:
       $$ = lexval_node($1); $$->data_type = lookup_result->data_type;
       $$->size = lookup_result->size;
 
-      char* temp = reg(1);
+      char* temp;
+      if (loadAIs < 3)
+      {
+        temp = reg(1);
+        loadAIs++;
+      }
+      else
+      {
+        temp = reg(0);
+        loadAIs = 0;
+      }
       $$->temp = temp;
       if (lookup_result->is_global)
         insert_end(&($$->code),
