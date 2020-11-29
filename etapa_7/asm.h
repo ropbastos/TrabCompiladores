@@ -19,6 +19,8 @@ typedef struct asm_inst_list_item {
 asm_inst* asm_op(char* lbl, char* op, char* src, char* dst);
 void asm_start(asm_inst_list_item** head, asm_inst* new_inst);
 void asm_end(asm_inst_list_item** head, asm_inst* new_inst);
+void asm_before(asm_inst_list_item** head, asm_inst_list_item* next, asm_inst* new_inst);
+void asm_after(asm_inst_list_item* prev_item, asm_inst* new_inst);
 void asm_cat(asm_inst_list_item** dst_list, asm_inst_list_item* src_list);
 void asm_del(asm_inst_list_item** head, asm_inst_list_item* del);
 

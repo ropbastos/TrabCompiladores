@@ -3,7 +3,7 @@ int main() {
   int repeticoes;
   int i;
 
-  repeticoes = 61;
+  repeticoes = 61; // To compilando com longs.
   divisivel = 2;
 
   for (i = 0: i < repeticoes: i = i + 1)
@@ -18,4 +18,3 @@ int main() {
 
   return divisivel;
 }
-

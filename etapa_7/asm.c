@@ -130,6 +130,38 @@ void asm_after(asm_inst_list_item* prev_item, asm_inst* new_inst)
   if (new_item->next != NULL) new_item->next->prev = new_item; 
 }
 
+void asm_before(asm_inst_list_item** head, asm_inst_list_item* next, asm_inst* new_inst)
+{
+  // Check if the given next item is NULL.
+  if (next == NULL)
+  {
+    printf("Given next item cannot be NULL.\n");
+    return;
+  }
+
+  // Allocate new item.
+  asm_inst_list_item* new_item = malloc(sizeof(asm_inst_list_item));
+
+  // Put in the new instruction.
+  new_item->inst = new_inst;
+
+  // Make prev of new item as prev of next item.
+  new_item->prev = next->prev;
+
+  // Make the prev of next item as new item.
+  next->prev = new_item;
+
+  // Make next as next of new item.
+  new_item->next = next;
+
+  // Change next of new item's prev.
+  if (new_item->prev != NULL)
+    new_item->prev->next = new_item;
+  // If the prev of new_item is NULL, it will be the new head.
+  else
+    (*head) = new_item;
+}
+
 char* x86label()
 {
   char* label_name;
@@ -507,7 +539,7 @@ asm_inst_list_item* optimize(asm_inst_list_item* asm_code)
     {
       not_in_call = 1;
     }
-    if (not_in_call)
+    if (not_in_call && !current->inst->lbl)
     {
       if (current->next && current->inst->op && !strcmp(current->inst->op, "movq") 
           && !strcmp(current->next->inst->op, "movq"))
@@ -537,6 +569,19 @@ asm_inst_list_item* optimize(asm_inst_list_item* asm_code)
           asm_del(&head, del1);
           asm_del(&head, del2);
         }
+      }
+
+      // Substitute DIV by 2 for faster instruction.
+      if (current->inst->op && !strcmp(current->inst->op, "idivq")
+          && current->prev->prev->prev->inst->src[1] == '2' && current->next)
+      {
+        asm_inst_list_item* del1 = current;
+        asm_inst_list_item* del2 = current->prev;
+        asm_inst* division_by_two = asm_op(NULL, "sar", "$1", "%rax");
+        current = current->next;
+        asm_before(&head, current, division_by_two);
+        asm_del(&head, del1);
+        asm_del(&head, del2);
       }
     }
     
