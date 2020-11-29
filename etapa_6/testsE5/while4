@@ -13,4 +13,6 @@ int main() {
     b = f(b) + 1;
   }
 
+  return b;
+
 }
