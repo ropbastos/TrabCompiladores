@@ -27,10 +27,11 @@ extern int label_num;
 char* x86label();
 char* x86reg(char* iloc_reg);
 char* x86lit(char* iloc_lit);
+char* x86global(char* global_name);
+char* x86Roffset(char* iloc_reg, char* iloc_offset);
 
 asm_inst_list_item* iloc_to_asm(inst_list_item* iloc);
 void asm_print_globals(ht_entry** table);
 void print_asm(asm_inst_list_item* asm_code, symb_table* scope);
-char* mul_aux(char* multiplicand_reg); // prev->prev infelizmente ta dando NULL. 
 
 #endif

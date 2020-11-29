@@ -118,6 +118,10 @@ char* x86reg(char* iloc_reg)
   {
     return "%rsp";
   }
+  else if (!strcmp("rbss", iloc_reg))
+  {
+    return "%rsp";
+  }
   else
   {
     return NULL;
@@ -149,16 +153,35 @@ char* x86Roffset(char* iloc_reg, char* iloc_offset)
   return x86adressing;
 }
 
+char* x86global(char* global_name)
+{
+  char* addr = malloc(sizeof(global_name)+sizeof("(%rip)"));
+  addr = strcat(addr, global_name);
+  addr = strcat(addr, "(%rip)");
+  return addr;
+}
+
 void asm_print_globals(ht_entry** table)
 {
+  int first_global = 1;
   for (int i = 0; i < TABLE_SIZE; i++)
   {
     ht_entry* current = table[i];
     while(current != NULL)
     {
       if (current->symbol->symbol_type == VAR)
-      {
-        printf("%s:\n  .zero 4\n", current->symbol->label);
+      { 
+        if (first_global) printf("  .text\n");
+        printf("  .globl %s\n", current->symbol->label);
+        if (first_global)
+        {
+          printf("  .bss\n");
+          first_global = 0;
+        }
+        printf("  .align 8\n");
+        printf("  .type %s, @object\n", current->symbol->label);
+        printf("  .size %s, 8\n", current->symbol->label);
+        printf("%s:\n  .zero 8\n", current->symbol->label);
       }
       current = current->next;
     }
@@ -204,6 +227,7 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
     }
     else if (!strcmp(iloc_inst->op, "halt"))
     {
+
       char* ret = x86Roffset(iloc_item->prev->instruction->arg3, iloc_item->prev->instruction->arg4);
       asm_end(&asm_code, asm_op(label, "movq", ret, "%rax"));
       asm_end(&asm_code, asm_op(label, "movq", "%rbp", "%rsp"));
@@ -218,13 +242,21 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
     }
     else if (!strcmp(iloc_inst->op, "storeAI"))
     {
-      char* dest = x86Roffset(iloc_inst->arg3, iloc_inst->arg4);
+      char* dest;
+      if (!strcmp(iloc_inst->arg3, "rbss"))
+        dest = x86global(iloc_item->prev->instruction->op);
+      else
+        dest = x86Roffset(iloc_inst->arg3, iloc_inst->arg4);
       asm_end(&asm_code, asm_op(label, "movq", x86reg(iloc_inst->arg1), dest));
       last_inst_div_mul = 0;
     }
     else if (!strcmp(iloc_inst->op, "loadAI"))
     {
-      char* src = x86Roffset(iloc_inst->arg1, iloc_inst->arg2);
+      char* src;
+      if (!strcmp(iloc_inst->arg1, "rbss"))
+        src = x86global(iloc_item->prev->instruction->op);
+      else
+        src = x86Roffset(iloc_inst->arg1, iloc_inst->arg2);
       char* dst = x86reg(iloc_inst->arg3);
       asm_end(&asm_code, asm_op(label, "movq", src, dst));
       last_inst_div_mul = 0;
@@ -386,12 +418,12 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
 
 void print_asm(asm_inst_list_item* asm_code, symb_table* scope)
 {
-  // Declare main.
-  printf("  .globl main\n  .type main, @function\n");
-
   // Declare globals.
   ht_entry** global_table = scope->table;
   asm_print_globals(global_table);
+  
+  // Declare main.
+  printf("  .text\n  .globl main\n  .type main, @function\n");
 
   asm_inst_list_item* current = asm_code;
   while (current != NULL)

@@ -1063,8 +1063,12 @@ exp:
       char* temp = reg(1);
       $$->temp = temp;
       if (lookup_result->is_global)
+      {
+        insert_end(&($$->code),
+         new_inst("//   .global", lookup_result->label, NULL, NULL, NULL, NULL));
         insert_end(&($$->code),
          new_inst(NULL, "loadAI", "rbss", arg(lookup_result->offset), temp, NULL));
+      }
       else
         insert_end(&($$->code),
          new_inst(NULL, "loadAI", "rfp", arg(lookup_result->offset), temp, NULL));

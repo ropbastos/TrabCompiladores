@@ -667,7 +667,10 @@ void gen_attrib_code(node* attrib, node* exp, symbol_entry* dst)
   }
 
   if (dst->is_global)
+  {
+    insert_end(&(attrib->code), new_inst("//   .global", dst->label, NULL, NULL, NULL, NULL));
     insert_end(&(attrib->code), new_inst(NULL, "storeAI", exp->temp, NULL, "rbss", arg(dst->offset)));
+  }
   else
     insert_end(&(attrib->code), new_inst(NULL, "storeAI", exp->temp, NULL, "rfp", arg(dst->offset)));
 }
@@ -684,7 +687,10 @@ void gen_ini_code(node* ini, lex_val* dst, lex_val* src_var, node* src_lit, stac
   {
     symbol_entry* src_sb = st_lookup(src_var->value.s, scope_stack);
     if (src_sb->is_global)
+    {
+      insert_end(&(ini->code), new_inst("//   .global", src_sb->label, NULL, NULL, NULL, NULL));
       insert_end(&ini->code, new_inst(NULL, "loadAI", "rbss", arg(src_sb->offset), temp, NULL));
+    }
     else
       insert_end(&ini->code, new_inst(NULL, "loadAI", "rfp", arg(src_sb->offset), temp, NULL));
   }
