@@ -336,17 +336,27 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
     else if (!strcmp(iloc_inst->op, "addI"))
     {
       int offset = atoi(iloc_inst->arg2);
-      offset *= 2;
-      char* offset_;
-      asprintf(&offset_, "$%d", offset);
+      
       if (!strcmp(iloc_inst->arg1, "rsp"))
       {
+        offset *= 2;
+        char* offset_;
+        asprintf(&offset_, "$%d", offset);
         asm_end(&asm_code, asm_op(label, "subq", offset_, "%rsp"));
       }
       else if (!strcmp(iloc_inst->arg1, "rpc"))
       {
+        // p = numero de parametros
+        // 5 + 2*p = iloc_offset
+        // asm: $9 por param
+        // p = (iloc_offset - 5) / 2
+        // 20 32 41 50
+        int param_num = (offset - 5) / 2;
+        int rip_offset = (param_num > 0) ? 23 + 9*param_num : 20;
+        char* rip_offset_;
+        asprintf(&rip_offset_, "$%d", rip_offset);
         asm_end(&asm_code, asm_op(label, "lea", "0(%rip)", x86reg(iloc_inst->arg3)));
-        asm_end(&asm_code, asm_op(label, "addq", "$41", x86reg(iloc_inst->arg3)));
+        asm_end(&asm_code, asm_op(label, "addq", rip_offset_, x86reg(iloc_inst->arg3)));
       }
     }
     else if (!strcmp(iloc_inst->op, "rsubI"))
