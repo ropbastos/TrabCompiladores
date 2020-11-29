@@ -241,8 +241,8 @@ void print_code(inst_list_item* item)
       printf("%s nop\n", label);
     else if (strcmp(op, "halt") == 0)
       printf("%s halt\n", label);
-    else if (strcmp(op, "") == 0) // "Compiler directives" as ILOC comments.
-      printf("%s\n", label);
+    else if (label && label[0] == '/') // "Compiler directives" as ILOC comments.
+      printf("%s %s\n", label, op);
     else
       printf("%s %s %s%s => %s%s\n", label, op, arg1, arg2, arg3, arg4);
 

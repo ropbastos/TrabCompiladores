@@ -1,5 +1,5 @@
-int f(int a){
-  return a - 1;
+int f(int a, int b){
+  return a - b;
 }
 
 int main() {
@@ -11,7 +11,7 @@ int main() {
 
   while (b != -7) do
   {
-    b = f(b);
+    b = f(b, c);
   }
 
   return b;

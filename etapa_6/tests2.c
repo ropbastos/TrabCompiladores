@@ -1,5 +1,5 @@
-int s(int a, int b, int c){
-  return a + b+c;
+int s(int a, int b){
+  return a + b;
 }
 
 int main() {
@@ -11,7 +11,7 @@ int main() {
   c = 10;
   d = 8;
 
-  a = s(c, d, b);
+  a = s(8, c) + 2;
 
   return a;
 }

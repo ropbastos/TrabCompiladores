@@ -348,11 +348,13 @@ asm_inst_list_item* iloc_to_asm(inst_list_item* iloc)
       {
         // p = numero de parametros
         // 5 + 2*p = iloc_offset
-        // asm: $9 por param
+        // asm: $9 por param em var, $12 por lit
         // p = (iloc_offset - 5) / 2
-        // 20 32 41 50
+        // 20 32 41 50 -> offsets p/ 0, 1, 2, 3 parametros respectivamente.
         int param_num = (offset - 5) / 2;
-        int rip_offset = (param_num > 0) ? 23 + 9*param_num : 20;
+        int lit_params = atoi(iloc_item->prev->instruction->op);
+        int var_params = param_num - lit_params;
+        int rip_offset = (param_num > 0) ? 23 + 9*var_params + 12*lit_params : 20;
         char* rip_offset_;
         asprintf(&rip_offset_, "$%d", rip_offset);
         asm_end(&asm_code, asm_op(label, "lea", "0(%rip)", x86reg(iloc_inst->arg3)));

@@ -1,3 +1,4 @@
+#define _GNU_SOURCE  
 #include <string.h>
 #include "parse_helper.h"
 #include "iloc.h"
@@ -540,6 +541,8 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
   {
     param_num = arg_list_len(args->arg_list);
   }
+  // Para ajudar na geracao do asm.
+  int lit_param_num = 0;
   // Empilha os parametros. -- COD DE SALVAR REGS VEM ANTES DESSE, MAS ESSE É MONTADO ANTES.
   inst_list_item* param_stacking_code = NULL;
   if (args->ast_node != NULL && args->ast_node->code != NULL)
@@ -550,6 +553,8 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
     {
       if (arg_node != NULL && arg_node->code != NULL)
       {
+        if (!strcmp(arg_node->code->instruction->op, "loadI"))
+          lit_param_num++;
         concat_end(&param_stacking_code, arg_node->code);
         insert_end(&param_stacking_code, new_inst(NULL, "storeAI", arg_node->temp, NULL, "rsp", arg(param_offset)));
       }
@@ -567,6 +572,9 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
   // Salva end. de retorno.
   inst_list_item* reg_saving_code = NULL;
   return_offset += count_instructions(param_stacking_code);
+  char* lit_params_n;
+  asprintf(&lit_params_n, "%d", lit_param_num);
+  insert_end(&reg_saving_code, new_inst("//   .lit params", lit_params_n, NULL, NULL, NULL, NULL));
   insert_end(&reg_saving_code, new_inst(NULL, "addI", "rpc", arg(return_offset), temp, NULL));
   insert_end(&reg_saving_code, new_inst(NULL, "storeAI", temp, NULL, "rsp", "0"));
   // Salva rsp e rfp.

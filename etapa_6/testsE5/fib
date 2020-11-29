@@ -17,7 +17,7 @@ int main()
     int n; 
     int m;
     m = 9;
-    n = fib(m); 
+    n = fib(9); 
 
     return n;
 } 
