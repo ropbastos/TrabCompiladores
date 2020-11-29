@@ -12,4 +12,5 @@ int main() {
     b = f(b);
   }
 
+  return b;
 }

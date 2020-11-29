@@ -481,9 +481,6 @@ node* find_return_node(node* tree)
 
 void gen_func_code(node* header, node* body, int offset, symb_table* scope, stack* scope_stack)
 {
-  // Marca inicio da funcao para geracao de ASM posterior.
-  insert_end(&header->code, new_inst("//   .func begin", "", NULL, NULL, NULL, NULL));
-
   // Define se estamos na main. 
   int is_main = 0;
   if (strcmp(header->label, "main") == 0)
@@ -493,11 +490,15 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
   symbol_entry* func = st_lookup(header->label, scope_stack);
   if (is_main == 0)
   {
-    insert_end(&header->code, new_inst(func->iloc_func_label, "i2i", "rsp", NULL, "rfp", NULL));
+    insert_end(&header->code, new_inst(func->iloc_func_label, "nop", NULL, NULL, NULL, NULL));
+    insert_end(&header->code, new_inst("//   .func begin", "", NULL, NULL, NULL, NULL));
+    insert_end(&header->code, new_inst(NULL, "i2i", "rsp", NULL, "rfp", NULL));
   }
   else
   {
-    insert_end(&header->code, new_inst("L0", "i2i", "rsp", NULL, "rfp", NULL));
+    insert_end(&header->code, new_inst("L0", "nop", NULL, NULL, NULL, NULL));
+    insert_end(&header->code, new_inst("//   .func begin", "", NULL, NULL, NULL, NULL));
+    insert_end(&header->code, new_inst(NULL, "i2i", "rsp", NULL, "rfp", NULL));
   }
   
   // Abre espaco pras variaveis locais e argumentos.
@@ -530,7 +531,6 @@ void gen_func_code(node* header, node* body, int offset, symb_table* scope, stac
 
 void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope_stack)
 {
-  insert_end(&call->code, new_inst("//   .call begin", "", NULL, NULL, NULL, NULL));
   call->temp = reg(1);
   // Para calc. o end. de retorno.
   char* temp = reg(1);
@@ -582,21 +582,17 @@ void gen_func_call_code(node* call, prod* args, symbol_entry* func, stack* scope
     insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "12", call->temp, NULL));
   else
     insert_end(&call->code, new_inst(NULL, "loadAI", "rsp", "16", call->temp, NULL)); 
-
-  insert_end(&call->code, new_inst("//   .call end", "", NULL, NULL, NULL, NULL));
 };
 
 void gen_return_code(node* return_node, node* exp, symb_table* scope)
 {
   concat_end(&return_node->code, exp->code);
-  insert_end(&return_node->code, new_inst("//   .return begin", "", NULL, NULL, NULL, NULL));
   // Sequencia de retorno.
   symbol_entry* return_val = ht_lookup(return_node->children[0]->label, scope);
   char* ret_reg = reg(1);
   // Retorno é um literal.
   if (return_val != NULL && return_val->symbol_type == LIT)
   {
-    insert_end(&return_node->code, new_inst("//   .ret lit", "", NULL, NULL, NULL, NULL));
     int ret_val = return_node->children[0]->val->value.i;
     insert_end(&return_node->code, new_inst(NULL, "loadI", arg(ret_val), NULL, ret_reg, NULL));
     insert_end(&return_node->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "12"));
@@ -605,14 +601,12 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope)
   else if (return_val != NULL && return_val->symbol_type == VAR)
   {
     int offset = return_val->offset;
-    insert_end(&return_node->code, new_inst("//   .ret id", "", NULL, NULL, NULL, NULL));
     insert_end(&return_node->code, new_inst(NULL, "loadAI", "rfp", arg(offset), ret_reg, NULL));
     insert_end(&return_node->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
   }
   // Retorno é uma exp.
   else
   {
-    insert_end(&return_node->code, new_inst("//   .ret exp", "", NULL, NULL, NULL, NULL));
     insert_end(&return_node->code, new_inst(NULL, "i2i", exp->temp, NULL, ret_reg, NULL));
     insert_end(&return_node->code, new_inst(NULL, "storeAI", ret_reg, NULL, "rfp", "16"));
   }
@@ -626,11 +620,6 @@ void gen_return_code(node* return_node, node* exp, symb_table* scope)
     insert_end(&return_node->code, new_inst(NULL, "i2i", rsp_reg, NULL, "rsp", NULL));
     insert_end(&return_node->code, new_inst(NULL, "i2i", rfp_reg, NULL, "rfp", NULL));
     insert_end(&return_node->code, new_inst(NULL, "jump", NULL, NULL, ret_reg, NULL));
-    insert_end(&return_node->code, new_inst("//   .return end", "", NULL, NULL, NULL, NULL));
-  }
-  else
-  {
-    insert_end(&return_node->code, new_inst("//   .return end", "", NULL, NULL, NULL, NULL));
   }
 }
 
