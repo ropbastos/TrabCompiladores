@@ -1,0 +1,12 @@
+int main() {
+
+  int b;
+  b = 2;
+
+  while (b != -(6+1)) do
+  {
+    b = b - 1;
+  }
+
+  return b;
+}
