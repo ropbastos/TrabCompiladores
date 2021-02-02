@@ -1337,5 +1337,6 @@ bool:
 void yyerror(char const *s) {
     fprintf(stderr, "%s on line %d at column %d\n",\
             s, get_line_number(), get_col());
+    exit(1);
 }
 
